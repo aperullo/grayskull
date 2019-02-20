@@ -1,0 +1,106 @@
+version: '3.7'
+
+volumes:
+  mysql_data:
+
+networks:
+  proxy:
+    external: true
+  security:
+    external: true
+  db:
+
+services:
+  proxy:
+    image: traefik:1.7
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
+      - target: 8080
+        published: 8080
+        protocol: tcp
+        mode: host
+    networks:
+      - proxy
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: '0.5G'
+      mode: global
+      placement:
+        constraints: [node.role == manager]
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    command:
+      - "--api"
+      - "--entrypoints=Name:http Address::80 Redirect.EntryPoint:https"
+      - "--entrypoints=Name:https Address::443 TLS"
+      - "--defaultentrypoints=http,https"
+      - "--docker"
+      - "--docker.swarmMode"
+      - "--docker.domain=mydomain.ca"
+      - "--docker.watch"
+
+  resource:
+    image: resource-server
+    networks:
+      - security
+
+  gateway:
+    image: spring-gateway
+    networks:
+      - security
+      - proxy
+    labels:
+      - "traefik.frontend.rule=Host:gateway.docker.localhost"
+      - "traefik.port=8080"
+      - "traefik.docker.network=proxy"
+      - "traefik.frontend.passHostHeader=true"
+  keycloak:
+    image: jboss/keycloak:4.8.3.Final
+    networks:
+      - default
+      - proxy
+      - security
+      - db
+    labels:
+      - "traefik.frontend.rule=Host:keycloak.docker.localhost"
+      - "traefik.port=8080"
+      - "traefik.docker.network=proxy"
+      - "traefik.frontend.passHostHeader=true"
+    environment:
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+      DB_VENDOR: MYSQL
+      DB_ADDR: mysql
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: password
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:5
+    networks:
+      - db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: keycloak
+      MYSQL_USER: keycloak
+      MYSQL_PASSWORD: password
+    volumes:
+      - mysql_data:/var/lib/mysql

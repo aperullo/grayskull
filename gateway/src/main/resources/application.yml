@@ -1,0 +1,46 @@
+server:
+  port: 8080
+  error:
+    include-stacktrace: always
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.springframework.security.oauth2: INFO
+    org.springframework.cloud.gateway: TRACE
+#    org.springframework.boot.autoconfigure: DEBUG
+
+kc:
+  base-url: http://keycloak:8080/auth
+  realm: master
+  realm-url: ${kc.base-url}/realms/${kc.realm}
+
+security:
+  enable-csrf: false
+
+spring:
+  autoconfigure:
+    # TODO: remove when fixed https://github.com/spring-projects/spring-security/issues/6314
+    exclude: org.springframework.boot.actuate.autoconfigure.security.reactive.ReactiveManagementWebSecurityAutoConfiguration
+  thymeleaf:
+    cache: false
+  security:
+    oauth2:
+      client:
+        registration:
+          master:
+            provider: keycloak
+            client-id: login-client
+            client-secret: secret
+            authorization-grant-type: authorization_code
+            redirect-uri-template: "{baseUrl}/{action}/oauth2/code/{registrationId}"
+            scope: openid,profile,email,resource.read
+        provider:
+          keycloak:
+            authorization-uri: ${kc.realm-url}/protocol/openid-connect/auth
+            token-uri: ${kc.realm-url}/protocol/openid-connect/token
+            user-info-uri: ${kc.realm-url}/protocol/openid-connect/userinfo
+            user-name-attribute: preferred_username
+            jwk-set-uri: ${kc.realm-url}/protocol/openid-connect/certs
