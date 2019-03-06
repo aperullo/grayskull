@@ -1,0 +1,13 @@
+apply plugin: 'com.palantir.docker-compose'
+
+dependencies {
+    implementation project(':resource-server')
+    implementation project(':gateway')
+}
+
+dockerCompose {
+    template 'src/templates/docker-compose.yml'
+    dockerComposeFile 'build/docker-compose.yml'
+}
+
+build.dependsOn('generateDockerCompose')
