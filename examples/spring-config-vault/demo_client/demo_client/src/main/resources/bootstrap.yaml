@@ -1,0 +1,13 @@
+spring:
+    application:
+        name: democlient
+    cloud:
+        config:
+            uri: http://spring-svr-stk:8888
+            token: s.aCFDJYAxoJgV4K1rh4RlkxQa
+            username: user
+            password: secret
+            # If we couldn't retrieve the config, throw an exception so the container stops and is restarted.
+            fail-fast: false
+     
+  

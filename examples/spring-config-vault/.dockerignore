@@ -1,0 +1,2 @@
+#ignore files it doesn't have access to
+vault_files/*
