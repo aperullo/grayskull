@@ -1,0 +1,73 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+import static arrakis.common.SwarmConstants.composeSyntaxVersion
+import static arrakis.common.SwarmConstants.proxyNetwork
+import static arrakis.common.SwarmConstants.metricsNetwork
+
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven {
+            url = 'https://nexus.di2e.net/nexus/content/repositories/Private_ARRAKIS_Snapshots/'
+            credentials {
+                username = project.findProperty('arrakis_deploy_username') ?: ""
+                password = project.findProperty('arrakis_deploy_password') ?: ""
+            }
+        }
+        maven {
+            url = 'https://nexus.di2e.net/nexus/content/repositories/Private_ARRAKIS_Releases'
+            credentials {
+                username = project.findProperty('arrakis_deploy_username') ?: ""
+                password = project.findProperty('arrakis_deploy_password') ?: ""
+            }
+        }
+    }
+    dependencies {
+        classpath 'arrakis:common:0.1.0-SNAPSHOT'
+    }
+}
+
+plugins {
+    id 'base'
+}
+
+task filter {
+    dependsOn 'filterStacks'
+    dependsOn 'filterElasticsearchConfigs'
+    dependsOn 'filterKibanaConfigs'
+    dependsOn 'filterLogstashConfigs'
+}
+
+task filterStacks(type: Copy) {
+    from 'src/templates/stacks'
+    include '**/*'
+    into buildDir
+
+    filter(ReplaceTokens, tokens:
+            [
+                    composeSyntaxVersion: "\'${composeSyntaxVersion}\'" as String,
+                    proxyNetwork: proxyNetwork,
+                    metricsNetwork: metricsNetwork
+            ])
+}
+
+task filterElasticsearchConfigs(type: Copy) {
+    from 'src/templates/configs/elasticsearch'
+    include '**/*'
+    into "$buildDir/configs/elasticsearch"
+}
+
+task filterKibanaConfigs(type: Copy) {
+    from 'src/templates/configs/kibana'
+    include '**/*'
+    into "$buildDir/configs/kibana"
+}
+
+task filterLogstashConfigs(type: Copy) {
+    from 'src/templates/configs/logstash'
+    include '**/*'
+    into "$buildDir/configs/logstash"
+}
+
+build.dependsOn('filter')
