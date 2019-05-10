@@ -1,0 +1,10 @@
+version: '3.7'
+
+services:
+  spring:
+    image: arrakis.gradle/spring
+    ports:
+    - '8181:8080'
+    deploy:
+      mode: replicated
+      replicas: 1
