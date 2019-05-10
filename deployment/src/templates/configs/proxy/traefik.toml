@@ -1,0 +1,13 @@
+defaultEntryPoints = ["http","https"]
+    logLevel = "INFO"
+    [entryPoints]
+      [entryPoints.http]
+        address = ":80"
+        compress = true
+      [entryPoints.https]
+        address = ":443"
+        compress = true
+        [entryPoints.https.tls]
+          [entryPoints.https.tls.defaultCertificate]
+          certFile = "/cert.pem"
+          keyFile = "/key.pem"

@@ -1,0 +1,43 @@
+version: @composeSyntaxVersion@
+services:
+  registry:
+    image: ${DOCKER_REGISTRY:-docker.io}/@registryImage@:@registryVersion@
+    networks:
+      - @publicNetwork@
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: '2G'
+      labels:
+        - "traefik.docker.network=@publicNetwork@"
+        - "traefik.enable=true"
+        - "traefik.fontend.rule=Host:r.${DOMAIN:-test};Path:/v2"
+        - "traefik.port=5000"
+        - "traefik.protocol=http"
+
+
+  reg:
+    image: ${JFRAZ_REGISTRY:-r.j3ss.co}/@registryUiImage@:@registryUiVersion@
+    networks:
+      - @publicNetwork@
+      - default
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: '512M'
+      labels:
+        - "traefik.docker.network=@publicNetwork@"
+        - "traefik.enable=true"
+        - "traefik.fontend.rule=Host:r.${DOMAIN:-test}"
+        - "traefik.port=5000"
+        - "traefik.protocol=http"
+      mode: replicated
+      replicas: 1
+    command: ["server", "-r", "r.${DOMAIN:-test}", "-k", "-f"]
+
+
+networks:
+  @publicNetwork@:
+     external: true

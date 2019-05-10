@@ -1,3 +1,5 @@
+import static com.connexta.grayskull.Platform.*
+
 apply plugin: 'com.palantir.docker-compose'
 
 dependencies {
@@ -9,5 +11,10 @@ dockerCompose {
     template 'src/templates/docker-compose.yml'
     dockerComposeFile 'build/docker-compose.yml'
 }
+
+def replacements = [
+        composeSyntaxVersion: "\'${composeSyntaxVersion}\'" as String,
+        publicNetwork: publicNetwork
+]
 
 build.dependsOn('generateDockerCompose')

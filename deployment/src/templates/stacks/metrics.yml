@@ -1,0 +1,155 @@
+version: @composeSyntaxVersion@
+
+services:
+
+  prometheus:
+    image: ${DOCKER_REGISTRY:-docker.io}/@prometheusImage@:@prometheusVersion@
+    configs:
+      - source: prometheus_config
+        target: /datasource.yml
+    deploy:
+      resources:
+        limits:
+          cpus: ${PROMETHEUS_CPU_LIMIT:-1.5}
+          memory: ${PROMETHEUS_MEM_LIMIT:-3G}
+        reservations:
+          cpus: ${PROMETHEUS_CPU_RESERVATION:-1.0}
+          memory: ${PROMETHEUS_MEM_LIMIT:-2G}
+      placement:
+        constraints: [node.role != master]
+      labels:
+        - "traefik.port=9090"
+        - "traefik.docker.network=@publicNetwork@"
+        - "traefik.frontend.rule=Host:prom.ark.${DOMAIN:-ma.connexta.com}"
+        - "traefik.enable=true"
+    networks:
+      - default
+      - @publicNetwork@
+      - @monitoringNetwork@
+    command:
+      - "--config.file=/datasource.yml"
+    volumes:
+      - type: volume
+        source: prom_data
+        target: /prometheus
+
+  grafana:
+    image: ${DOCKER_REGISTRY:-docker.io}/@grafanaImage@:@grafanaVersion@
+    environment:
+      GF_SERVER_ROOT_URL: https://metrics.ark.${DOMAIN:-ma.connexta.com}
+    deploy:
+      resources:
+        limits:
+          cpus: ${GRAFANA_CPU_LIMIT:-1.5}
+          memory: ${GRAFANA_MEM_LIMIT:-3G}
+        reservations:
+          cpus: ${GRAFANA_CPU_RESERVATION:-1.0}
+          memory: ${GRAFANA_MEM_LIMIT:-2G}
+      placement:
+        constraints: [node.role != master]
+      labels:
+        - "traefik.port=3000"
+        - "traefik.docker.network=@publicNetwork@"
+        - "traefik.frontend.rule=Host:metrics.ark.${DOMAIN:-ma.connexta.com}"
+        - "traefik.enable=true"
+    configs:
+      - source: grafana_provisioning_datasource
+        target: /etc/grafana/provisioning/datasources/datasource.yml
+      - source: grafana_provisioning_dashboard
+        target: /etc/grafana/provisioning/dashboards/dashboard.yml
+      - source: grafana_dashboard_ddf
+        target: /var/lib/grafana/dashboards/DDF_dashboard.yml
+    networks:
+      - default
+      - @publicNetwork@
+      - @monitoringNetwork@
+    volumes:
+      - type: volume
+        source: grafana_data
+        target: /var/lib/grafana
+
+  cadvisor:
+    image: ${DOCKER_REGISTRY:-docker.io}/@cadvisorImage@:@cadvisorVersion@
+    networks:
+      - default
+      - @monitoringNetwork@
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
+      - type: bind
+        source: /
+        target: /rootfs
+        read_only: true
+      - type: bind
+        source: /var/run
+        target: /var/run
+      - type: bind
+        source: /sys
+        target: /sys
+        read_only: true
+      - type: bind
+        source: /var/lib/docker
+        target: /var/lib/docker
+        read_only: true
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    command: -logtostderr -docker_only
+
+  node-exporter:
+    image: ${DOCKER_REGISTRY:-docker.io}/@nodeExporterImage@:@nodeExporterVersion@
+    networks:
+      - default
+      - @monitoringNetwork@
+    volumes:
+      - type: bind
+        source: /proc
+        target: /host/proc
+        read_only: true
+      - type: bind
+        source: /sys
+        target: /host/sys
+        read_only: true
+      - type: bind
+        source: /
+        target: /rootfs
+        read_only: true
+      - type: bind
+        source: /etc/hostname
+        target: /etc/nodename
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    command:
+      - '--path.sysfs=/host/sys'
+      - '--path.procfs=/host/proc'
+      - '--collector.textfile.directory=/etc/node-exporter/'
+      - '--collector.filesystem.ignored-mount-points=^(sys|proc|dev|host|etc)($$|/)'
+      - '--no-collector.ipvs'
+configs:
+  prometheus_config:
+    file: ./configs/prometheus/prometheus.yml
+  grafana_provisioning_datasource:
+    file: ./configs/grafana/provisioning/datasources/datasource.yml
+  grafana_provisioning_dashboard:
+    file: ./configs/grafana/provisioning/dashboards/dashboard.yml
+
+networks:
+  @publicNetwork@:
+     external: true
+  @monitoringNetwork@:
+     external: true
+
+volumes:
+  prom_data:
+  grafana_data:
