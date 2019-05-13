@@ -1,0 +1,106 @@
+version: '3.7'
+
+services:
+  server1:
+    image: minio/minio
+    volumes:
+    - minio1-data:/export
+    ports:
+    - published: 9001
+      target: 9000
+    networks:
+    - minio_distributed
+    deploy:
+      restart_policy:
+        delay: 10s
+        max_attempts: 10
+        window: 60s
+      placement:
+        constraints:
+        - node.labels.server1==true
+    command: server http://tasks.server1/export http://server2/export http://server3/export http://server4/export
+    secrets:
+    - secret_key
+    - access_key
+
+  server2:
+    image: minio/minio
+    volumes:
+    - minio2-data:/export
+    ports:
+    - published: 9002
+      target: 9000
+    networks:
+    - minio_distributed
+    deploy:
+      restart_policy:
+        delay: 10s
+        max_attempts: 10
+        window: 60s
+      placement:
+        constraints:
+        - node.labels.server2==true
+    secrets:
+    - secret_key
+    - access_key
+    command: server http://server1/export http://tasks.server2/export http://server3/export http://server4/export
+
+  server3:
+    image: minio/minio
+    volumes:
+    - minio3-data:/export
+    ports:
+    - published: 9003
+      target: 9000
+    networks:
+    - minio_distributed
+    deploy:
+      restart_policy:
+          delay: 10s
+          max_attempts: 10
+          window: 60s
+      placement:
+        constraints:
+        - node.labels.server3==true
+    secrets:
+    - secret_key
+    - access_key
+    command: server http://server1/export http://server2/export http://tasks.server3/export http://server4/export
+
+  server4:
+    image: minio/minio
+    volumes:
+    - minio4-data:/export
+    ports:
+    - published: 9004
+      target: 9000
+    networks:
+    - minio_distributed
+    deploy:
+      restart_policy:
+        delay: 10s
+        max_attempts: 10
+        window: 60s
+      placement:
+        constraints:
+        - node.labels.server4==true
+    secrets:
+    - secret_key
+    - access_key
+    command: server http://server1/export http://server2/export http://server3/export http://tasks.server4/export
+
+volumes:
+  minio1-data:
+  minio2-data:
+  minio3-data:
+  minio4-data:
+
+networks:
+  minio_distributed:
+    driver: overlay
+
+secrets:
+  secret_key:
+    external: true
+  access_key:
+    external: true
