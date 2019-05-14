@@ -12,7 +12,7 @@ services:
       labels:
         - "traefik.docker.network=@publicNetwork@"
         - "traefik.enable=true"
-        - "traefik.fontend.rule=Host:r.${DOMAIN:-test};Path:/v2"
+        - "traefik.fontend.rule=Host:${REGISTRY_HOSTNAME:-r}.${DOMAIN:-test};PathPrefix:/v2"
         - "traefik.port=5000"
         - "traefik.protocol=http"
 
@@ -30,12 +30,12 @@ services:
       labels:
         - "traefik.docker.network=@publicNetwork@"
         - "traefik.enable=true"
-        - "traefik.fontend.rule=Host:r.${DOMAIN:-test}"
-        - "traefik.port=5000"
+        - "traefik.fontend.rule=Host:${REGISTRY_HOSTNAME:-r}.${DOMAIN:-test}"
+        - "traefik.port=8080"
         - "traefik.protocol=http"
       mode: replicated
       replicas: 1
-    command: ["server", "-r", "r.${DOMAIN:-test}", "-k", "-f"]
+    command: ["server", "-r", "${REGISTRY_HOSTNAME:-r}.${DOMAIN:-test}", "-k", "-f"]
 
 
 networks:

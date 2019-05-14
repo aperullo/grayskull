@@ -54,13 +54,13 @@ services:
 
 secrets:
   proxy_key:
-    file: ./secrets/key.pem
+    file: ./secrets/proxy/key.pem
   proxy_cert:
-    file: ./secrets/chain.pem
+    file: ./secrets/proxy/chain.pem
 
 configs:
   proxy_config:
-    file: ./configs/traefik.toml
+    file: ./configs/proxy/traefik.toml
 
 networks:
   @publicNetwork@:

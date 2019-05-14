@@ -20,7 +20,7 @@ services:
       labels:
         - "traefik.port=9090"
         - "traefik.docker.network=@publicNetwork@"
-        - "traefik.frontend.rule=Host:prom.ark.${DOMAIN:-ma.connexta.com}"
+        - "traefik.frontend.rule=Host:${PROMETHEUS_HOSTNAME:-prom}.${DOMAIN:-test}"
         - "traefik.enable=true"
     networks:
       - default
@@ -36,7 +36,7 @@ services:
   grafana:
     image: ${DOCKER_REGISTRY:-docker.io}/@grafanaImage@:@grafanaVersion@
     environment:
-      GF_SERVER_ROOT_URL: https://metrics.ark.${DOMAIN:-ma.connexta.com}
+      GF_SERVER_ROOT_URL: https://${GRAFANA_HOSTNAME:-metrics}.${DOMAIN:-test}
     deploy:
       resources:
         limits:
@@ -50,7 +50,7 @@ services:
       labels:
         - "traefik.port=3000"
         - "traefik.docker.network=@publicNetwork@"
-        - "traefik.frontend.rule=Host:metrics.ark.${DOMAIN:-ma.connexta.com}"
+        - "traefik.frontend.rule=Host:${GRAFANA_HOSTNAME:-metrics}.${DOMAIN:-test}"
         - "traefik.enable=true"
     configs:
       - source: grafana_provisioning_datasource
@@ -138,11 +138,11 @@ services:
       - '--no-collector.ipvs'
 configs:
   prometheus_config:
-    file: ./configs/prometheus/prometheus.yml
+    file: ./configs/metrics/prometheus/prometheus.yml
   grafana_provisioning_datasource:
-    file: ./configs/grafana/provisioning/datasources/datasource.yml
+    file: ./configs/metrics/grafana/provisioning/datasources/datasource.yml
   grafana_provisioning_dashboard:
-    file: ./configs/grafana/provisioning/dashboards/dashboard.yml
+    file: ./configs/metrics/grafana/provisioning/dashboards/dashboard.yml
 
 networks:
   @publicNetwork@:
