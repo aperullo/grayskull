@@ -1,6 +1,12 @@
+import com.connexta.grayskull.Java
+
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'com.palantir.docker'
+apply plugin: 'java'
+
+sourceCompatibility = Java.sourceCompatibility
+targetCompatibility = Java.targetCompatibility
 
 dependencyManagement {
     imports {

@@ -1,20 +1,58 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 import static com.connexta.grayskull.Platform.*
-
-apply plugin: 'com.palantir.docker-compose'
-
-dependencies {
-    implementation project(':resource-server')
-    implementation project(':gateway')
-}
-
-dockerCompose {
-    template 'src/templates/docker-compose.yml'
-    dockerComposeFile 'build/docker-compose.yml'
-}
+import static com.connexta.grayskull.Images.*
 
 def replacements = [
         composeSyntaxVersion: "\'${composeSyntaxVersion}\'" as String,
-        publicNetwork: publicNetwork
+        publicNetwork: publicNetwork,
+        prometheusImage: prometheusImage,
+        promethusVersion: prometheusVersion,
+        grafanaImage: grafanaVersion,
+        grafanaVersion: grafanaVersion,
+        proxyImage: proxyImage,
+        proxyVersion: proxyVersion,
+        registryImage: registryImage,
+        registryVersion: registryVersion,
+        registryUiImage: registryUiImage,
+        registryUiVersion: registryUiVersion,
+        portainerImage: portainerImage,
+        portainerVersion: portainerVersion,
+        portainerAgentImage: portainerAgentImage,
+        portainerAgentVersion: portainerAgentVersion,
+        cadvisorImage: cadvisorImage,
+        cadvisorVersion: cadvisorVersion,
+        nodeExporterImage: nodeExporterImage,
+        nodeExporterVersion: nodeExporterVersion
 ]
 
-build.dependsOn('generateDockerCompose')
+task filter {
+    dependsOn 'filterStacks'
+    dependsOn 'filterConfigs'
+}
+
+task filterStacks(type: Copy) {
+    from 'src/templates/stacks'
+    include '**/*'
+    into "$buildDir/install"
+
+    filter(ReplaceTokens, tokens: replacements)
+}
+
+task filterConfigs(type: Copy) {
+    from 'src/templates/configs'
+    include '**/*'
+    into "$buildDir/install/configs"
+
+    filter(ReplaceTokens, tokens: replacements)
+}
+
+// pack generated build files in tar for distribution
+task packageDistribution(type: Tar) {
+    dependsOn('filter')
+
+    compression = Compression.GZIP
+    from "$buildDir/install"
+}
+
+build.dependsOn(packageDistribution)
