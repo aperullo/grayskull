@@ -19,4 +19,10 @@ class Images {
     static final String cadvisorVersion = 'v0.33.0'
     static final String nodeExporterImage = 'prom/node-exporter'
     static final String nodeExporterVersion = 'v0.18.0'
+    static final String elasticsearchImage = 'elasticsearch/elasticsearch'
+    static final String elasticsearchVersion = '6.6.1'
+    static final String kibanaImage = 'kibana/kibana'
+    static final String kibanaVerson = '6.4.3'
+    static final String logstashImage = 'logstash/logstash'
+    static final String logstashVersion = '6.4.3'
 }

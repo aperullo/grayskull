@@ -3,22 +3,29 @@ version: @composeSyntaxVersion@
 services:
 
   elasticsearch:
-    image: ${DOCKER_ELASTIC_REGISTRY:-docker.elastic.co}/elasticsearch/elasticsearch:6.6.1
+    image: ${DOCKER_ELASTIC_REGISTRY:-docker.elastic.co}/@elasticsearchImage@:@elasticsearchVersion@
     configs:
       - source: elastic_config
         target: /usr/share/elasticsearch/config/elasticsearch.yml
     environment:
-      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+      ES_JAVA_OPTS: "-Xmx${ELASTIC_MEMORY_LIMIT:-256}m -Xms${ELASTIC_MEMORY_RESERVATION:-256}m"
     networks:
-      - @proxyNetwork@
+      - @publicNetwork@
     deploy:
       mode: replicated
       replicas: 1
+      resources:
+        limits:
+          cpus: "${ELASTIC_CPU_LIMIT:-0.50}"
+          memory: ${ELASTIC_MEMORY_LIMIT:-256}M
+        reservations:
+          cpus: "${ELASTIC_CPU_RESERVATION:-0.25}"
+          memory: ${ELASTIC_MEMORY_RESERVATION:-256}M
       labels:
         - "traefik.enable=false"
 
   logstash:
-    image: ${DOCKER_ELASTIC_REGISTRY:-docker.elastic.co}/logstash/logstash:6.4.3
+    image: ${DOCKER_ELASTIC_REGISTRY:-docker.elastic.co}/@logstashImage@:@logstashVersion@
     configs:
       - source: logstash_config
         target: /usr/share/logstash/config/logstash.yml
@@ -26,29 +33,36 @@ services:
         target: /usr/share/logstash/config/logstash.conf
     command: -f /usr/share/logstash/config/logstash.conf
     environment:
-      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+      LS_JAVA_OPTS: "-Xmx${LOGSTASH_MEMORY_LIMIT:-256}m -Xms${LOGSTASH_MEMORY_RESERVATION:-256}m"
     networks:
-      - @proxyNetwork@
+      - @publicNetwork@
     deploy:
       mode: replicated
       replicas: 1
+      resources:
+        limits:
+          cpus: "${LOGSTASH_CPU_LIMIT:-0.50}"
+          memory: ${LOGSTASH_MEMORY_LIMIT:-256}M
+        reservations:
+          cpus: "${LOGSTASH_CPU_RESERVATION:-0.25}"
+          memory: ${LOGSTASH_MEMORY_RESERVATION:-256}M
       labels:
         - "traefik.enable=false"
 
   kibana:
-    image: ${DOCKER_ELASTIC_REGISTRY:-docker.elastic.co}/kibana/kibana:6.6.1
+    image: ${DOCKER_ELASTIC_REGISTRY:-docker.elastic.co}/@kibanaImage@:@kibanaVersion@
     configs:
       - source: kibana_config
         target: /usr/share/kibana/config/kibana.yml
     networks:
-      - @proxyNetwork@
+      - @publicNetwork@
     deploy:
       mode: replicated
       replicas: 1
       labels:
         - "traefik.enable=true"
-        - "traefik.docker.network=@proxyNetwork@"
-        - "traefik.frontend.rule=Host:kibana.test"
+        - "traefik.docker.network=@publicNetwork@"
+        - "traefik.frontend.rule=Host:${KIBANA_HOSTNAME:-kibana}.${DOMAIN:-test}"
         - "traefik.port=5601"
 
 configs:
@@ -63,5 +77,5 @@ configs:
     file: ./configs/elk/kibana/kibana.yml
 
 networks:
-  @proxyNetwork@:
+  @publicNetwork@:
     external: true

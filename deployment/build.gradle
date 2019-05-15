@@ -23,7 +23,13 @@ def replacements = [
         cadvisorImage: cadvisorImage,
         cadvisorVersion: cadvisorVersion,
         nodeExporterImage: nodeExporterImage,
-        nodeExporterVersion: nodeExporterVersion
+        nodeExporterVersion: nodeExporterVersion,
+        elasticsearchImage: elasticsearchImage,
+        elasticsearchVersion: elasticsearchVersion,
+        kibanaImage: kibanaImage,
+        kibanaVersion: kibanaVerson,
+        logstashImage: logstashImage,
+        logstashVersion: logstashVersion
 ]
 
 task filter {

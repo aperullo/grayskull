@@ -1,4 +1,4 @@
 rootProject.name = 'grayskull'
 
-include 'gateway', 'resource-server', 'deployment', 'elk', 'vault:Vault-Consul-Stack', 'vault:Vault-File-Stack'
+include 'gateway', 'resource-server', 'deployment', 'vault:Vault-Consul-Stack', 'vault:Vault-File-Stack'
 
