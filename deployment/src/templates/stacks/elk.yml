@@ -54,13 +54,13 @@ services:
 configs:
 
   elastic_config:
-    file: ./configs/elasticsearch/elasticsearch.yml
+    file: ./configs/elk/elasticsearch/elasticsearch.yml
   logstash_config:
-    file: ./configs/logstash/logstash.yml
+    file: ./configs/elk/logstash/logstash.yml
   logstash_pipeline:
-    file: ./configs/logstash/logstash.conf
+    file: ./configs/elk/logstash/logstash.conf
   kibana_config:
-    file: ./configs/kibana/kibana.yml
+    file: ./configs/elk/kibana/kibana.yml
 
 networks:
   @proxyNetwork@:
