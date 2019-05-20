@@ -17,7 +17,7 @@ services:
         protocol: tcp
         mode: host
     networks:
-      - @proxyNetwork@
+      - @publicNetwork@
     volumes:
       - type: bind
         source: /var/run/docker.sock

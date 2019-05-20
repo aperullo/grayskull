@@ -6,8 +6,9 @@ import static com.connexta.grayskull.Images.*
 def replacements = [
         composeSyntaxVersion: "\'${composeSyntaxVersion}\'" as String,
         publicNetwork: publicNetwork,
+        monitoringNetwork: monitoringNetwork,
         prometheusImage: prometheusImage,
-        promethusVersion: prometheusVersion,
+        prometheusVersion: prometheusVersion,
         grafanaImage: grafanaVersion,
         grafanaVersion: grafanaVersion,
         proxyImage: proxyImage,
