@@ -1,0 +1,11 @@
+version: @composeSyntaxVersion@
+
+networks:
+  @securityNetwork@:
+     external: true
+
+services:
+  resource:
+    image: ${DOCKER_REGISTRY:-docker.io}/resource-server
+    networks:
+      - @securityNetwork@

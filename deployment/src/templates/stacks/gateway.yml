@@ -1,0 +1,23 @@
+version: @composeSyntaxVersion@
+
+networks:
+  @publicNetwork@:
+    external: true
+  @securityNetwork@:
+    external: true
+
+services:
+
+  gateway:
+    image: ${DOCKER_REGISTRY:-docker.io}/spring-gateway
+    networks:
+      - @securityNetwork@
+      - @publicNetwork@
+    deploy:
+      labels:
+        - "traefik.frontend.rule=Host:gateway.${DOMAIN:-docker.localhost}"
+        - "traefik.port=8080"
+        - "traefik.docker.network=@publicNetwork@"
+        - "traefik.frontend.passHostHeader=true"
+    environment:
+      KC_BASE-URL: http://keycloak.${DOMAIN:-docker.localhost}

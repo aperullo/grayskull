@@ -1,0 +1,51 @@
+version: @composeSyntaxVersion@
+
+networks:
+  @securityNetwork@:
+     external: true
+  @publicNetwork@:
+     external: true
+  db:
+
+volumes:
+  mysql_data:
+
+services:
+  keycloak:
+    image: ${DOCKER_REGISTRY:-docker.io}/jboss/keycloak:4.8.3.Final
+    networks:
+      - default
+      - @publicNetwork@
+      - @securityNetwork@
+      - db
+    deploy:
+      labels:
+        - "traefik.port=8080"
+        - "traefik.docker.network=@publicNetwork@"
+        - "traefik.frontend.rule=Host:keycloak.${DOMAIN:-docker.localhost}"
+        - "traefik.enable=true"
+    environment:
+      KEYCLOAK_HOSTNAME: keycloak.${DOMAIN:-docker.localhost}
+      #      KEYCLOAK_HTTP_PORT: 80
+      #KEYCLOAK_HTTPS_PORT: 443
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+      DB_VENDOR: MYSQL
+      DB_ADDR: mysql
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: password
+    depends_on:
+      - mysql
+
+  mysql:
+    image: ${DOCKER_REGISTRY:-docker.io}/mysql:5
+    networks:
+      - db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: keycloak
+      MYSQL_USER: keycloak
+      MYSQL_PASSWORD: password
+    volumes:
+      - mysql_data:/var/lib/mysql
