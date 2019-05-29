@@ -10,7 +10,13 @@ services:
       target: 9000
     networks:
     - minio_distributed
+    - proxy
     deploy:
+      labels:
+        - "traefik.port=9000"
+        - "traefik.docker.network=proxy"
+        - "traefik.frontend.rule=Host:minio.${DOMAIN:-docker.localhost}"
+        - "traefik.enable=true"
       restart_policy:
         delay: 10s
         max_attempts: 10
@@ -32,7 +38,13 @@ services:
       target: 9000
     networks:
     - minio_distributed
+    - proxy
     deploy:
+      labels:
+        - "traefik.port=9000"
+        - "traefik.docker.network=proxy"
+        - "traefik.frontend.rule=Host:minio.${DOMAIN:-docker.localhost}"
+        - "traefik.enable=true"
       restart_policy:
         delay: 10s
         max_attempts: 10
@@ -54,7 +66,13 @@ services:
       target: 9000
     networks:
     - minio_distributed
+    - proxy
     deploy:
+      labels:
+        - "traefik.port=9000"
+        - "traefik.docker.network=proxy"
+        - "traefik.frontend.rule=Host:minio.${DOMAIN:-docker.localhost}"
+        - "traefik.enable=true"
       restart_policy:
           delay: 10s
           max_attempts: 10
@@ -76,7 +94,13 @@ services:
       target: 9000
     networks:
     - minio_distributed
+    - proxy
     deploy:
+      labels:
+        - "traefik.port=9000"
+        - "traefik.docker.network=proxy"
+        - "traefik.frontend.rule=Host:minio.${DOMAIN:-docker.localhost}"
+        - "traefik.enable=true"
       restart_policy:
         delay: 10s
         max_attempts: 10
@@ -98,6 +122,8 @@ volumes:
 networks:
   minio_distributed:
     driver: overlay
+  proxy:
+    external: true
 
 secrets:
   secret_key:

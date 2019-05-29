@@ -24,10 +24,12 @@ docker node update --label-add server3=true <DOCKER-NODE3>
 docker node update --label-add server4=true <DOCKER-NODE4>
 ```
 
-To deploy, run the following:
+To deploy, make sure Traefik proxy is running with a network called `proxy`, then run the following:
 ```bash
 docker stack deploy --compose-file=minio-server.yaml stack_name
 ```
 
 To ensure the server started successfully, on a web browser, access the object browser that comes embedded with Minio Server. To do so visit the exposed port on any of the nodes:
 `http://nodeAddress:9002/minio`
+
+Or with Traefik running, visit `minio.docker.localhost`. 
