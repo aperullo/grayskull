@@ -1,0 +1,58 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+import static com.connexta.grayskull.SwarmConstants.composeSyntaxVersion
+import static com.connexta.grayskull.SwarmConstants.proxyNetwork
+import static com.connexta.grayskull.SwarmConstants.metricsNetwork
+import static com.connexta.grayskull.vault.ImageConstants.vaultImage
+import static com.connexta.grayskull.vault.ImageConstants.vaultVersion
+import static com.connexta.grayskull.vault.ImageConstants.consulImage
+import static com.connexta.grayskull.vault.ImageConstants.consulVersion
+
+plugins {
+    id 'base'
+}
+
+task filter {
+    dependsOn 'filterStacks'
+    dependsOn 'copyConsulConfigs'
+    dependsOn 'copyVaultConfigs'
+    dependsOn 'copyVaultInit'
+}
+
+task filterStacks(type: Copy) {
+    from 'src/templates/stacks'
+    include '**/*'
+    into "$buildDir"
+
+    filter(ReplaceTokens, tokens:
+            [
+                    composeSyntaxVersion: "\'${composeSyntaxVersion}\'" as String,
+                    proxyNetwork: proxyNetwork,
+                    vaultImage: vaultImage,
+                    vaultVersion: vaultVersion,
+                    consulImage: consulImage,
+                    consulVersion: consulVersion
+            ])
+}
+
+task copyConsulConfigs(type: Copy) {
+    from 'src/templates/configs/consul/config'
+    include '**/*'
+    into "$buildDir/configs/consul"
+}
+
+task copyVaultConfigs(type: Copy) {
+    from 'src/templates/configs/vault/config'
+    include '**/*'
+    into "$buildDir/configs/vault"
+}
+
+task copyVaultInit(type: Copy) {
+    from 'src/templates/configs/vault'
+    include '**.sh'
+    into "$buildDir/configs/vault"
+}
+
+
+build.dependsOn('filter')
+

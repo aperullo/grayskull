@@ -1,0 +1,86 @@
+version: "3.7"
+
+services:
+
+    # vault server
+    vault:
+        image: "vault:latest"
+        environment:
+            VAULT_ADDR: "http://0.0.0.0:8200"
+            SKIP_SETCAP: 1
+        configs:
+          - source: vault
+            target: /vault/config/config.hcl
+        command: "server"
+        networks:
+          - default
+          - proxy
+        deploy:
+            restart_policy:
+                condition: on-failure
+            labels:
+              - "traefik.enable=true"
+              - "traefik.port=8200"
+              - "traefik.frontend.rule=Host:vault.test"
+              - "traefik.docker.network=proxy"
+
+    # consul 
+    consul:
+        image: "consul:latest"
+        environment:
+            CONSUL_CLIENT_INTERFACE: eth0
+            CONSUL_BIND_INTERFACE: eth0
+        configs:
+          - source: consul
+            target: /consul/config/config.hcl
+        command: "agent -server -bootstrap-expect=1"
+        volumes:
+          - type: volume
+            source: consul_data
+            target: /consul/data
+        networks:
+          - default
+          - proxy
+        deploy:
+            labels:
+              - "traefik.enable=true"
+              - "traefik.port=8500"
+              - "traefik.frontend.rule=Host:consul.test"
+              - "traefik.docker.network=proxy"
+
+    # other consuls
+    consul-worker:
+        image: "consul:latest"
+        environment:
+            CONSUL_CLIENT_INTERFACE: eth0
+            CONSUL_BIND_INTERFACE: eth0
+        configs:
+          - source: consul
+            target: /consul/config/config.hcl
+        command: "agent -server -retry-join consul"
+        volumes:
+          - type: volume
+            source: consul_data
+            target: /consul/data
+        networks: 
+          - default
+        deploy:
+            mode: replicated
+            replicas: 0
+
+configs:
+    consul:
+        file: ./consul/config/config.hcl
+    vault:
+        file: ./vault/config/config.hcl
+
+volumes:
+    consul_data:
+        driver: local
+    vault_data:
+        driver: local
+
+networks:
+    proxy:
+        external: true
+    default:

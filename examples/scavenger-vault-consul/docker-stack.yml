@@ -1,0 +1,96 @@
+version: "3.7"
+
+services:
+
+    scavenger:
+        image: scavenger
+        networks:
+          - default
+          - proxy
+        deploy:
+            labels:
+              - "traefik.enable=true"
+              - "traefik.port=5000"
+              - "traefik.frontend.rule=Host:scav.test"
+              - "traefik.docker.network=proxy"
+
+    # vault server
+    vault:
+        image: "vault:latest"
+        configs:
+          - source: vault
+            target: /vault/config/config.json
+        environment:
+            VAULT_ADDR: "http://0.0.0.0:8200"
+            SKIP_SETCAP: 1
+        command: "server"
+        networks:
+          - default
+          - proxy
+        deploy:
+            restart_policy:
+                condition: on-failure
+            labels:
+              - "traefik.enable=true"
+              - "traefik.port=8200"
+              - "traefik.frontend.rule=Host:vault.test"
+              - "traefik.docker.network=proxy"
+
+    consul:
+        image: "consul:latest"
+        environment:
+            CONSUL_CLIENT_INTERFACE: eth0
+            CONSUL_BIND_INTERFACE: eth0
+        command: "agent -server -bootstrap-expect=1"
+        configs:
+          - source: consul
+            target: /consul/config/config.hcl
+        volumes:
+          - type: volume
+            source: consul_data
+            target: /consul/data
+        networks:
+          - default
+          - proxy
+        deploy:
+            labels:
+              - "traefik.enable=true"
+              - "traefik.port=8500"
+              - "traefik.frontend.rule=Host:consul.test"
+              - "traefik.docker.network=proxy"
+
+    consul-worker:
+        image: "consul:latest"
+        deploy:
+            mode: replicated
+            replicas: 0
+        environment:
+            CONSUL_CLIENT_INTERFACE: eth0
+            CONSUL_BIND_INTERFACE: eth0
+        networks: 
+          - default
+        command: "agent -server -retry-join consul"
+        configs:
+          - source: consul
+            target: /consul/config/config.hcl
+        volumes:
+          - type: volume
+            source: consul_data
+            target: /consul/data
+
+configs:
+    consul:
+        file: ./Vault-Consul-Stack/consul/config/config.hcl
+    vault:
+        file: ./Vault-Consul-Stack/vault/config/config.json
+
+volumes:
+    consul_data:
+        driver: local
+    vault_data:
+        driver: local
+
+networks:
+    proxy:
+        external: true
+    default:

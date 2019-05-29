@@ -1,0 +1,31 @@
+*.project
+*.settings
+*.classpath
+*.metadata
+*.iml
+*.idea
+*.checkstyle
+*.DS_Store
+*.env
+.history
+jsconfig.json
+.vscode/
+node_modules/
+node/
+atlassian-ide-plugin.xml
+*.sonar-ide.properties
+**/webapp/css/styles.css
+platform/solr/**/overlays
+
+.gradle
+**/build/
+**/out/
+
+# Ignore Gradle GUI config
+gradle-app.setting
+
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!gradle-wrapper.jar
+
+# Cache of project
+.gradletasknamecache

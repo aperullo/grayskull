@@ -1,0 +1,9 @@
+{
+    "path": {
+        "secret/scavenger": {
+            "capabilities": [
+                 "read"
+             ]
+        }
+    }
+}

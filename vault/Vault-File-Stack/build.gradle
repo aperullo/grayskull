@@ -1,0 +1,40 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+import static com.connexta.grayskull.SwarmConstants.composeSyntaxVersion
+import static com.connexta.grayskull.SwarmConstants.proxyNetwork
+import static com.connexta.grayskull.SwarmConstants.metricsNetwork
+import static com.connexta.grayskull.vault.ImageConstants.vaultImage
+import static com.connexta.grayskull.vault.ImageConstants.vaultVersion
+
+plugins {
+    id 'base'
+}
+
+task filter {
+    dependsOn 'filterStacks'
+    dependsOn 'copyVaultConfigs'
+}
+
+task filterStacks(type: Copy) {
+    from 'src/templates/stacks'
+    include '**/*'
+    into "$buildDir"
+
+    filter(ReplaceTokens, tokens:
+            [
+                    composeSyntaxVersion: "\'${composeSyntaxVersion}\'" as String,
+                    proxyNetwork: proxyNetwork,
+                    vaultImage: vaultImage,
+                    vaultVersion: vaultVersion,
+            ])
+}
+
+task copyVaultConfigs(type: Copy) {
+    from 'src/templates/config/'
+    include '**/*'
+    into "$buildDir/configs"
+}
+
+
+build.dependsOn('filter')
+

@@ -1,0 +1,42 @@
+version: @composeSyntaxVersion@
+
+services:
+  vault:
+    image: ${DOCKER_REGISTRY:-docker.io}/@vaultImage@:@vaultVersion@
+    configs:
+    - source: vault
+      target: /vault/config/config.hcl
+    command:
+    - "server"
+    
+    networks:
+    - default
+    - @proxyNetwork@
+    deploy:
+      restart_policy:
+        condition: on-failure
+      labels:
+      - "traefik.enable=true"
+      - "traefik.port=8200"
+      - "traefik.frontend.rule=Host:vault.${DOMAIN:-test}"
+      - "traefik.docker.network=@proxyNetwork@"
+      resources:
+        limits:
+          cpus: ${VAULT_CPU_LIMIT:-1.5}
+          memory: ${VAULT_MEM_LIMIT:-3G}
+        reservations:
+          cpus: ${VAULT_CPU_RESERVATION:-1.0}
+          memory: ${VAULT_MEM_LIMIT:-2G}
+    
+    environment:
+      VAULT_ADDR: http://0.0.0.0:8200
+      SKIP_SETCAP: 1
+    
+    
+configs:
+  vault:
+    file: ./configs/vault.hcl
+
+networks:
+  @proxyNetwork@:
+    external: true

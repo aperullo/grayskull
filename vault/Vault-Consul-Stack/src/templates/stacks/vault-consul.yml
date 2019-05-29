@@ -1,0 +1,107 @@
+version: @composeSyntaxVersion@
+
+services:
+
+    # vault server
+    vault:
+        image: ${DOCKER_REGISTRY:-docker.io}/@vaultImage@:@vaultVersion@
+        environment:
+            VAULT_ADDR: "http://0.0.0.0:8200"
+            SKIP_SETCAP: 1
+        configs:
+          - source: vault
+            target: /vault/config/config.hcl
+        command: "server"
+        networks:
+          - default
+          - @proxyNetwork@
+        deploy:
+            restart_policy:
+                condition: on-failure
+            labels:
+              - "traefik.enable=true"
+              - "traefik.port=8200"
+              - "traefik.frontend.rule=Host:vault.${DOMAIN:-test}"
+              - "traefik.docker.network=@proxyNetwork@"
+            resources:
+                limits:
+                    cpus: ${VAULT_CPU_LIMIT:-1.5}
+                    memory: ${VAULT_MEM_LIMIT:-3G}
+                reservations:
+                    cpus: ${VAULT_CPU_RESERVATION:-1.0}
+                    memory: ${VAULT_MEM_LIMIT:-2G}
+
+    # consul 
+    consul:
+        image: ${DOCKER_REGISTRY:-docker.io}/@consulImage@:@consulVersion@
+        environment:
+            CONSUL_CLIENT_INTERFACE: eth0
+            CONSUL_BIND_INTERFACE: eth0
+        configs:
+          - source: consul
+            target: /consul/config/config.hcl
+        command: "agent -server -bootstrap-expect=1"
+        volumes:
+          - type: volume
+            source: consul_data
+            target: /consul/data
+        networks:
+          - default
+          - @proxyNetwork@
+        deploy:
+            labels:
+              - "traefik.enable=true"
+              - "traefik.port=8500"
+              - "traefik.frontend.rule=Host:consul.${DOMAIN:-test}"
+              - "traefik.docker.network=@proxyNetwork@"
+            resources:
+                limits:
+                    cpus: ${CONSUL_CPU_LIMIT:-1.5}
+                    memory: ${CONSUL_MEM_LIMIT:-3G}
+                reservations:
+                    cpus: ${CONSUL_CPU_RESERVATION:-1.0}
+                    memory: ${CONSUL_MEM_LIMIT:-2G}
+
+    # other consuls
+    consul-worker:
+        image: ${DOCKER_REGISTRY:-docker.io}/@consulImage@:@consulVersion@
+        environment:
+            CONSUL_CLIENT_INTERFACE: eth0
+            CONSUL_BIND_INTERFACE: eth0
+        configs:
+          - source: consul
+            target: /consul/config/config.hcl
+        command: "agent -server -retry-join consul"
+        volumes:
+          - type: volume
+            source: consul_data
+            target: /consul/data
+        networks: 
+          - default
+        deploy:
+            mode: replicated
+            replicas: 0
+            resources:
+                limits:
+                    cpus: ${CONSUL_CPU_LIMIT:-1.5}
+                    memory: ${CONSUL_MEM_LIMIT:-3G}
+                reservations:
+                    cpus: ${CONSUL_CPU_RESERVATION:-1.0}
+                    memory: ${CONSUL_MEM_LIMIT:-2G}
+
+configs:
+    consul:
+        file: ./configs/consul/config.hcl
+    vault:
+        file: ./configs/vault/config.hcl
+
+volumes:
+    consul_data:
+        driver: local
+    vault_data:
+        driver: local
+
+networks:
+    @proxyNetwork@:
+        external: true
+    default:
