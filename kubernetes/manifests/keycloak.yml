@@ -1,0 +1,118 @@
+# Keycloak deployment
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: keycloak-d
+    labels:
+        app: keycloak
+spec:
+    selector:
+        matchLabels:
+            app: keycloak
+    minReadySeconds: 3
+    template:
+        metadata:
+            labels:
+                app: keycloak
+        spec:
+            containers:
+              - name: keycloak
+                image: docker.io/jboss/keycloak:4.8.3.Final
+                ports:
+                  - containerPort: 8080
+                    protocol: TCP
+                env:
+                  - name: KEYCLOAK_HOSTNAME
+                    value: 'www.key.kub'
+                  - name: KEYCLOAK_HTTP_PORT
+                    value: '80'
+                  - name: KEYCLOAK_HTTPS_PORT
+                    value: '443'
+                  - name: KEYCLOAK_USER
+                    value: 'admin'
+                  - name: KEYCLOAK_PASSWORD
+                    value: 'admin'
+                  - name: DB_VENDOR
+                    value: 'MYSQL'
+                  - name: DB_ADDR
+                    value: 'mysql-s'
+                  - name: DB_DATABASE 
+                    value: 'keycloak'
+                  - name: DB_USER
+                    value: 'keycloak'
+                  - name: DB_PASSWORD
+                    value: 'password'
+                  - name: PROXY_ADDRESS_FORWARDING
+                    value: 'true'
+                  #- name: KEYCLOAK_LOGLEVEL
+                  #  value: 'DEBUG'
+
+---
+# Keycloak service
+
+apiVersion: v1
+kind: Service
+metadata:
+    name: keycloak-s
+    labels:
+        app: keycloak
+spec:
+    type: NodePort
+    selector:
+        app: keycloak
+    ports:
+      - port: 8080
+        name: http
+      - port: 443
+        name: https
+---
+# Mysql deployment
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: mysql-d
+    labels:
+        app: mysql
+spec:
+    selector:
+        matchLabels:
+            app: mysql
+    minReadySeconds: 3
+    template:
+        metadata:
+            labels:
+                app: mysql
+        spec:
+            containers:
+              - name: mysql
+                image: docker.io/mysql:5
+                env:
+                  - name: MYSQL_ROOT_PASSWORD
+                    value: 'root'
+                  - name: MYSQL_DATABASE
+                    value: 'keycloak'
+                  - name: MYSQL_USER
+                    value: 'keycloak'
+                  - name: MYSQL_PASSWORD
+                    value: 'password'
+
+---
+# Mysql service
+
+apiVersion: v1
+kind: Service
+metadata:
+    name: mysql-s
+    labels:
+        app: mysql
+spec:
+    type: NodePort
+    selector:
+        app: mysql
+    ports:
+      - port: 80
+        name: http
+      - port: 3306
+        name: mysql

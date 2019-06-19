@@ -1,0 +1,26 @@
+controller:
+  hostNetwork: true 
+  dnsPolicy: ClusterFirstWithHostNet
+  daemonset:
+    useHostPort: true
+  service:
+    omitClusterIP: true
+
+  kind: DaemonSet
+
+  stats:
+    enabled: true
+    service:
+      omitClusterIP: true
+
+  metrics:
+    enabled: true
+    service:
+      omitClusterIP: true
+
+rbac:
+  create: true
+
+defaultBackend:
+  service:
+    omitClusterIP: true

@@ -1,0 +1,13 @@
+---
+ceph_namespace: "grayskull-storage"
+ceph_defaultStorage_enabled: true
+ceph_mon_count: 4
+ceph_objectstore_name: gsp-store
+
+ingress_url: "ceph.gsp.test"
+ingress_secretName: "ceph-gsp-tls" #TODO: make this into admin-gsp-tls
+ingress_path: "/"
+ingress_tls_cert: "{{ grayskull_dir }}/secrets/tls.crt"
+ingress_tls_key: "{{ grayskull_dir }}/secrets/tls.key"
+
+prometheusOperator_enabled: true

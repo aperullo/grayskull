@@ -1,0 +1,128 @@
+# Ingress extension, tells nginx to redirect traffic pointed to one of the host addresses to the service with name ServiceName and port ServicePort.
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+    name: ingress-who
+    labels:
+        app: ing
+spec:
+    rules:
+      - host: www.who.kub
+        http:
+            paths:
+              - backend:
+                    serviceName: who-s
+                    servicePort: 80
+      - host: www.key.kub
+        http:
+            paths:
+              - backend:                       
+                    serviceName: keycloak-s
+                    servicePort: 8080
+      - host: www.mysql.kub
+        http:
+            paths:
+              - backend:                       
+                    serviceName: mysql-s
+                    servicePort: 3306
+      - host: spring.gateway.kub
+        http:
+            paths:
+              - backend:                       
+                    serviceName: gateway-s
+                    servicePort: 8080
+      - host: resource.server.kub
+        http:
+            paths:
+              - backend:                       
+                    serviceName: resource-s
+                    servicePort: 9000
+---
+# This generic ingress controller allows us to use ingresses to control where services are routed. 
+
+# Ingress configmap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: nginx-configuration
+    labels:
+        app: ing
+---
+
+#ingress controller
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+    name: nginx-ingress-controller
+    labels:
+        app: ing
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            name: nginx-ingress
+    template:
+        metadata:
+            labels:
+                name: nginx-ingress
+        spec:
+            containers:
+              - name: nginx-ingress-controller
+                image: quay.io/kubernetes-ingress-controller/nginx-ingress-controller:0.24.1
+                args:
+                  - /nginx-ingress-controller
+                  - --configmap=$(POD_NAMESPACE)/nginx-configuration
+
+                env:
+                  - name: POD_NAME
+                    valueFrom:
+                        fieldRef:
+                            fieldPath: metadata.name
+                  - name: POD_NAMESPACE
+                    valueFrom:
+                        fieldRef:
+                            fieldPath: metadata.namespace
+                ports:
+                  - name: http
+                    containerPort: 80
+                  - name: https
+                    containerPort: 443
+
+---
+
+# Ingress service
+
+apiVersion: v1
+kind: Service
+metadata:
+    name: nginx-ingress-s
+    labels:
+        app: ing
+spec:
+    type: NodePort
+    ports:
+      - port: 80
+        targetPort: 80
+        protocol: TCP
+        name: http
+      - port: 443
+        targetPort: 443
+        protocol: TCP
+        name: https
+    selector:
+        name: nginx-ingress
+
+---
+# Ingress service account
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: nginx-ingress-serviceaccount
+    labels:
+        app: ing
+
+
+            
+

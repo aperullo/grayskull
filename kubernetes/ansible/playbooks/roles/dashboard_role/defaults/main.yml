@@ -1,0 +1,6 @@
+---
+ingress_url: "admin.gsp.test"
+ingress_secretName: "dashboard-gsp-tls"
+ingress_path: "/"
+ingress_tls_cert: "{{ grayskull_dir }}/secrets/tls.crt"
+ingress_tls_key: "{{ grayskull_dir }}/secrets/tls.key"

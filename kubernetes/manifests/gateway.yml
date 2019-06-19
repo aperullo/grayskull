@@ -1,0 +1,45 @@
+# Spring gateway deployment
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: gateway-d
+    labels:
+        app: gateway
+spec:
+    selector:
+        matchLabels:
+            app: gateway
+    minReadySeconds: 3
+    template:
+        metadata:
+            labels:
+                app: gateway
+        spec:
+            containers:
+              - name: gateway
+                image: spring-gateway
+                imagePullPolicy: Never #local image
+                ports:
+                  - containerPort: 8080
+                    protocol: TCP
+                env:
+                  - name: KC_BASE-URL
+                    value: 'http://www.key.kub/auth'
+
+---
+# Spring gateway service
+
+apiVersion: v1
+kind: Service
+metadata:
+    name: gateway-s
+    labels:
+        app: gateway
+spec:
+    type: NodePort
+    selector:
+        app: gateway
+    ports:
+      - port: 8080
+        name: http

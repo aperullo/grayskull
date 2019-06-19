@@ -1,0 +1,6 @@
+---
+prometheus_namespace: kube-system
+
+ingress_secretName: "prom-gsp-tls"
+ingress_tls_cert: "{{ grayskull_dir }}/secrets/tls.crt"
+ingress_tls_key: "{{ grayskull_dir }}/secrets/tls.key"

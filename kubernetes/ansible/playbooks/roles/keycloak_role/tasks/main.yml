@@ -1,0 +1,53 @@
+---
+- name: Keycloak | Templates list
+  set_fact:
+    keycloak_role_templates:
+      - { name: namespace, file: keycloak-namespace.yml, type: ns }
+ 
+- name: Keycloak | Create manifests
+  template:
+    src: "{{ item.file }}.j2"
+    dest: "{{ grayskull_dir }}/{{ item.file }}"
+  with_items: "{{ keycloak_role_templates }}"
+  register: keycloak_role_manifests
+  when:
+    - inventory_hostname == groups['kube-master'][0]
+
+# Namespace must be deployed before secret.
+- name: Keycloak | Apply manifests
+  kube:
+    name: "{{ item.item.name }}"
+    namespace: "{{ keycloak_namespace }}"
+    kubectl: "{{ bin_dir }}/kubectl"
+    resource: "{{ item.item.type }}"
+    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    state: "latest"
+  with_items: "{{ keycloak_role_manifests.results }}"
+  when:
+    - inventory_hostname == groups['kube-master'][0]
+
+
+#---- Create secret
+- name: Keycloak | Check for secret
+  shell: "{{ bin_dir }}/kubectl get secrets -n {{ keycloak_namespace }}"
+  register: keycloak_secret_exists
+  changed_when: false
+
+- name: Keycloak | Create secret
+  shell: "{{ bin_dir }}/kubectl create secret generic {{ ingress_secretName }} --from-file {{ ingress_tls_cert }} --from-file {{ ingress_tls_key }} -n {{ keycloak_namespace }}"
+  when: "ingress_secretName not in keycloak_secret_exists.stdout"
+
+
+#---- Deploy chart and templates
+- name: Keycloak | Add repo
+  shell: "{{ bin_dir }}/helm repo add codecentric https://codecentric.github.io/helm-charts"
+
+- name: Keycloak | Deploy chart
+  kube_chart:
+    namespace: "{{ keycloak_namespace }}"
+    chart_dest: "{{ grayskull_dir }}"
+    bin_dir: "{{ bin_dir }}"
+    chart_src: codecentric/keycloak
+    chart_version: 4.14.2
+    path_to_values: "{{ grayskull_dir }}/customizations/keycloak.yml"
+  register: result

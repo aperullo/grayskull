@@ -1,0 +1,59 @@
+# ---- Download cfssl and cfssljson
+- name: Certificate Tasks | Download cfssl binary
+  get_url: 
+    url: https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+    dest: "{{ bin_dir }}/cfssl"
+    mode: '0755'
+
+- name: Certificate Tasks | Download cfssljson binary
+  get_url: 
+    url: https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+    dest: "{{ bin_dir }}/cfssljson"
+    mode: '0755'
+
+
+# ---- Generate Certificates
+- name: Certificate Tasks | Copy over CSR 
+  copy: 
+    src: csr.json
+    dest: "{{ grayskull_dir }}/csr.json"
+
+- name: Certificate Tasks | Check if certs exist
+  stat: 
+    path: "{{ grayskull_dir }}/gsp-chain.pem"
+  register: cert_exists
+
+- name: Certificate Tasks | Create a self-signed CA
+  shell: "cd {{ grayskull_dir }} && {{ bin_dir }}/cfssl genkey -initca {{ grayskull_dir }}/csr.json | {{ bin_dir }}/cfssljson -bare gsp-ca"
+  when: cert_exists.stat.exists == false
+
+- name: Certificate Tasks | Create a cert
+  shell: "cd {{ grayskull_dir }} && {{ bin_dir }}/cfssl gencert -ca gsp-ca.pem -ca-key gsp-ca-key.pem csr.json | {{ bin_dir }}/cfssljson -bare gsp-cert"
+  when: cert_exists.stat.exists == false
+
+- name: Certificate Tasks | Create a certificate chain
+  shell: "cat {{ grayskull_dir }}/gsp-cert.pem {{ grayskull_dir }}/gsp-ca.pem > {{ grayskull_dir }}/gsp-chain.pem"
+  when: cert_exists.stat.exists == false
+
+
+# ---- Copy files to final location
+- name: Certificate Tasks | Create grayskull/secrets directory
+  file:
+    path: "{{ grayskull_dir }}/secrets"
+    state: directory
+    mode: '0755'
+  when: cert_exists.stat.exists == false
+
+- name: Certificate Tasks | Move gsp-chain
+  copy:
+    src: "{{ grayskull_dir }}/gsp-chain.pem"
+    dest: "{{ grayskull_dir }}/secrets/tls.crt"
+    remote_src: yes
+  when: cert_exists.stat.exists == false
+
+- name: Certificate Tasks | Move gsp-cert-key
+  copy:
+    src: "{{ grayskull_dir }}/gsp-cert-key.pem"
+    dest: "{{ grayskull_dir }}/secrets/tls.key"
+    remote_src: yes
+  when: cert_exists.stat.exists == false

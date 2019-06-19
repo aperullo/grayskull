@@ -1,0 +1,14 @@
+ceph:
+  mon:
+    count: 4
+  ingress:
+    enabled: true
+    path: /
+    hosts:
+      - ceph.gsp.test
+    tls:
+      - hosts:
+          - ceph.gsp.test
+        secretName: ceph-gsp-tls
+  defaultStorage:
+    enabled: true

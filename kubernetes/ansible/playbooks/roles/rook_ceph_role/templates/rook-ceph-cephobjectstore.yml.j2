@@ -1,0 +1,32 @@
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStore
+metadata:
+  name: {{ ceph_objectstore_name }}
+  namespace: {{ ceph_namespace }}
+spec:
+  # The pool spec used to create the metadata pools. Must use replication.
+  metadataPool:
+    failureDomain: host
+    replicated:
+      size: 3
+  dataPool:
+    failureDomain: host
+    replicated:
+      size: 3
+  gateway:
+    type: s3
+    sslCertificateRef:
+    port: 80
+    securePort:
+    instances: 1
+    allNodes: false
+    placement:
+    annotations:
+    resources:
+    # The requests and limits set here, allow the object store gateway Pod(s) to use half of one CPU core and 1 gigabyte of memory
+    #  limits:
+    #    cpu: "500m"
+    #    memory: "1024Mi"
+    #  requests:
+    #    cpu: "500m"
+    #    memory: "1024Mi"

@@ -1,0 +1,36 @@
+prometheus:
+  ingress:
+    enabled: true
+    paths: [/]
+    hosts:
+      - prom.gsp.test
+    tls:
+      - hosts:
+          - prom.gsp.test
+        secretName: prom-gsp-tls
+
+grafana:
+  adminPassword: "admin"
+  ingress:
+    enabled: true
+    paths: [/]
+    hosts:
+      - graph.gsp.test
+    tls:
+      - hosts:
+          - graph.gsp.test
+        secretName: prom-gsp-tls
+
+alertmanager:
+  ingress:
+    enabled: true
+    paths: [/]
+    hosts:
+      - alert.gsp.test
+    tls:
+      - hosts:
+          - alert.gsp.test
+        secretName: prom-gsp-tls
+
+kubeApiServer:
+  enabled: true

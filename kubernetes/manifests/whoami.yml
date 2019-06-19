@@ -1,0 +1,38 @@
+# Simple dep/service that gives information about the requester and itself
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: who-d
+    labels:
+        app: who
+spec:
+    selector:
+        matchLabels:
+            app: who
+    minReadySeconds: 3
+    template:
+        metadata:
+            labels:
+                app: who
+        spec:
+            containers:
+              - name: who
+                image: containous/whoami
+                #args:
+                #  - "-text=apple"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+    name: who-s
+    labels:
+        app: who 
+spec:
+    type: NodePort
+    selector:
+        app: who
+    ports:
+      - port: 80

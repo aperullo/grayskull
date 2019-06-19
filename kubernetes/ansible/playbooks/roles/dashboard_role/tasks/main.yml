@@ -1,0 +1,55 @@
+---
+#---- Create secret
+- name: Dashboard | Check for secret
+  shell: "{{ bin_dir }}/kubectl get secrets -n kube-system"
+  register: dashboard_secret_exists
+  changed_when: false
+
+- name: Dashboard | Create secret
+  shell: "{{ bin_dir }}/kubectl create secret generic {{ ingress_secretName }} --from-file {{ ingress_tls_cert }} --from-file {{ ingress_tls_key }} -n kube-system"
+  when: "ingress_secretName not in dashboard_secret_exists.stdout"
+
+
+#---- Template and apply manifests
+- name: Dashboard | Templates list
+  set_fact:
+    dashboard_role_templates:
+      - { name: dashboard-ing, file: dashboard-ingress.yml, type: ing }
+      - { name: dashboard-sa, file: dashboard-service-account.yml, type: sa }
+      - { name: dashboard-rb, file: dashboard-rolebinding.yml, type: rolebinding }
+
+- name: Dashboard | Create manifests
+  template:
+    src: "{{ item.file }}.j2"
+    dest: "{{ grayskull_dir }}/{{ item.file }}"
+  with_items: "{{ dashboard_role_templates }}"
+  register: dashboard_role_manifests
+  when:
+    - inventory_hostname == groups['kube-master'][0]
+
+- name: Dashboard | Apply manifests
+  kube:
+    name: "{{ item.item.name }}"
+    namespace: "kube-system"
+    kubectl: "{{ bin_dir }}/kubectl"
+    resource: "{{ item.item.type }}"
+    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    state: "latest"
+  with_items: "{{ dashboard_role_manifests.results }}"
+  when:
+    - inventory_hostname == groups['kube-master'][0]
+
+
+#---- Get login token
+- name: Dashboard | Get login token
+  shell: "{{ bin_dir }}/kubectl -n kube-system describe secret $({{ bin_dir }}/kubectl -n kube-system get secret | awk '/^dashboard-admin-token-/{print $1}') | awk '$1==\"token:\"{print $2}'" 
+  #shell: "{{ bin_dir }}/kubectl -n kube-system get secret | awk '/^dashboard-admin-token-/{print $1}'" 
+  register: dashboard_token
+
+- name: Dashboard | Show instructions
+  debug: 
+    msg: "Dashboard is available at https://<MASTER_NODE_IP>:6443/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/node?namespace=default"
+
+- name: Dashboard | Show token
+  debug: 
+    msg: "The dashboard login token is: {{ dashboard_token.stdout_lines[0] }}"

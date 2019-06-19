@@ -1,0 +1,14 @@
+keycloak:
+  password: "admin"
+  persistence:
+    deployPostgres: false
+    dbVendor: h2
+  ingress:
+    enabled: true
+    path: /auth
+    hosts: 
+      - auth.gsp.test
+    tls:
+      - hosts:
+          - auth.gsp.test
+        secretName: keycloak-gsp-tls

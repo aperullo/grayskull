@@ -1,0 +1,6 @@
+---
+elk_namespace: grayskull-logs
+
+ingress_secretName: "elk-gsp-tls"
+ingress_tls_cert: "{{ grayskull_dir }}/secrets/tls.crt"
+ingress_tls_key: "{{ grayskull_dir }}/secrets/tls.key"

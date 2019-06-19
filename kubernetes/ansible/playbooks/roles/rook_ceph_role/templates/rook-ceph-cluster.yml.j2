@@ -1,0 +1,40 @@
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph
+  namespace: {{ ceph_namespace }}
+spec:
+  cephVersion:
+    image: ceph/ceph:v14.2.1-20190430
+    allowUnsupported: false
+  dataDirHostPath: /var/lib/rook
+  mon:
+    count: {{ ceph_mon_count }}
+    allowMultiplePerNode: false
+  dashboard:
+    enabled: true
+  network:
+    # toggle to use hostNetwork
+    hostNetwork: false
+  rbdMirroring:
+    workers: 0
+  annotations:
+  #resources:
+  # The requests and limits set here, allow the mgr pod to use half of one CPU core and 1 gigabyte of memory
+  #    mgr:
+  #      limits:
+  #        cpu: "500m"
+  #        memory: "1024Mi"
+  #      requests:
+  #        cpu: "500m"
+  #        memory: "1024Mi"
+  # The above example requests/limits can also be added to the mon and osd components
+  #    mon:
+  #    osd:
+  storage: # cluster level storage configuration and selection
+    useAllNodes: true
+    useAllDevices: true
+    deviceFilter:
+    location:
+    config:
+    #- path: /var/lib/rook
