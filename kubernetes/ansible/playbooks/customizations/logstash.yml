@@ -1,0 +1,15 @@
+elasticsearch:
+  host: elasticsearch-master
+  port: 9200
+
+inputs:
+  main: |-
+    input {
+      tcp {
+        port => 1514
+        codec => json_lines
+      }
+      beats {
+        port => 5044
+      }
+    }

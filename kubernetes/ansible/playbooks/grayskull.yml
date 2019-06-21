@@ -1,4 +1,6 @@
 ---
+# - import_playbook: kubespray/cluster.yml
+
 - hosts: kube-master
   become: yes
   tasks:
@@ -59,7 +61,10 @@
           - { file: customizations/keycloak.yml }
           - { file: customizations/nginx-ingress.yml }
           - { file: customizations/prometheus.yml }
-          - { file: customizations/elk.yml }
+          - { file: customizations/elasticsearch.yml }
+          - { file: customizations/kibana.yml }
+          - { file: customizations/logstash.yml }
+          - { file: customizations/fluentd.yml }
 
     - name: Customization Files | Create customizations directory
       file:

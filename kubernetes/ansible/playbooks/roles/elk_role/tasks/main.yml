@@ -42,12 +42,38 @@
 - name: ELK | Add repo
   shell: "{{ bin_dir }}/helm repo add elastic https://helm.elastic.co"
 
-- name: ELK | Deploy chart
+- name: ELK | Deploy Elasticsearch chart
   kube_chart:
     namespace: "{{ elk_namespace }}"
     chart_dest: "{{ grayskull_dir }}"
     bin_dir: "{{ bin_dir }}"
     chart_src: elastic/elasticsearch
     chart_version: 7.1.1
-    path_to_values: "{{ grayskull_dir }}/customizations/elk.yml"
-  register: result
+    path_to_values: "{{ grayskull_dir }}/customizations/elasticsearch.yml"
+
+- name: ELK | Deploy Kibana chart
+  kube_chart:
+    namespace: "{{ elk_namespace }}"
+    chart_dest: "{{ grayskull_dir }}"
+    bin_dir: "{{ bin_dir }}"
+    chart_src: elastic/kibana
+    chart_version: 7.1.1
+    path_to_values: "{{ grayskull_dir }}/customizations/kibana.yml"
+
+- name: ELK | Deploy Logstash chart
+  kube_chart:
+    namespace: "{{ elk_namespace }}"
+    chart_dest: "{{ grayskull_dir }}"
+    bin_dir: "{{ bin_dir }}"
+    chart_src: stable/logstash
+    chart_version: 1.13.0
+    path_to_values: "{{ grayskull_dir }}/customizations/logstash.yml"
+
+- name: ELK | Deploy fluentd chart
+  kube_chart:
+    namespace: "{{ elk_namespace }}"
+    chart_dest: "{{ grayskull_dir }}"
+    bin_dir: "{{ bin_dir }}"
+    chart_src: stable/fluentd
+    chart_version: 1.10.0
+    path_to_values: "{{ grayskull_dir }}/customizations/fluentd.yml"

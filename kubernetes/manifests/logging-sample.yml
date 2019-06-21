@@ -1,0 +1,67 @@
+# Spring logging-sample deployment
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: logging-sample
+    labels:
+        app: logging-sample
+spec:
+    selector:
+        matchLabels:
+            app: logging-sample
+    minReadySeconds: 3
+    template:
+        metadata:
+            labels:
+                app: logging-sample
+        spec:
+            containers:
+              - name: logging-sample
+                image: rfding/test
+                ports:
+                  - containerPort: 8888
+                    protocol: TCP
+
+---
+# Spring logging-sample service
+
+apiVersion: v1
+kind: Service
+metadata:
+    name: logging-sample-s
+    labels:
+        app: logging-sample
+spec:
+    #type: NodePort
+    selector:
+        app: logging-sample
+    ports:
+      - port: 8888
+        name: http
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: logging-sample-ingress
+  namespace: grayskull-logs
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/server-snippet: |
+      proxy_ssl_verify off;
+spec:
+  tls:
+  - hosts:
+    - sample.gsp.test
+    secretName: elk-gsp-tls
+  rules:
+  - host: sample.gsp.test
+    http:
+      paths:
+        - path: /
+          backend:
+            serviceName: logging-sample-s
+            servicePort: http
