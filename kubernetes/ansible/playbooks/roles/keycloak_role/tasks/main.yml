@@ -3,7 +3,7 @@
   set_fact:
     keycloak_role_templates:
       - { name: namespace, file: keycloak-namespace.yml, type: ns }
- 
+
 - name: Keycloak | Create manifests
   template:
     src: "{{ item.file }}.j2"
@@ -44,6 +44,7 @@
 
 - name: Keycloak | Deploy chart
   kube_chart:
+    name: "{{ grayskull_name }}"
     namespace: "{{ keycloak_namespace }}"
     chart_dest: "{{ grayskull_dir }}"
     bin_dir: "{{ bin_dir }}"

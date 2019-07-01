@@ -3,7 +3,7 @@
   set_fact:
     elk_role_templates:
       - { name: namespace, file: elk-namespace.yml, type: ns }
- 
+
 - name: ELK | Create manifests
   template:
     src: "{{ item.file }}.j2"
@@ -44,6 +44,7 @@
 
 - name: ELK | Deploy Elasticsearch chart
   kube_chart:
+    name: "{{ grayskull_name }}"
     namespace: "{{ elk_namespace }}"
     chart_dest: "{{ grayskull_dir }}"
     bin_dir: "{{ bin_dir }}"
@@ -53,6 +54,7 @@
 
 - name: ELK | Deploy Kibana chart
   kube_chart:
+    name: "{{ grayskull_name }}"
     namespace: "{{ elk_namespace }}"
     chart_dest: "{{ grayskull_dir }}"
     bin_dir: "{{ bin_dir }}"
@@ -62,6 +64,7 @@
 
 - name: ELK | Deploy Logstash chart
   kube_chart:
+    name: "{{ grayskull_name }}"
     namespace: "{{ elk_namespace }}"
     chart_dest: "{{ grayskull_dir }}"
     bin_dir: "{{ bin_dir }}"
@@ -71,6 +74,7 @@
 
 - name: ELK | Deploy fluentd chart
   kube_chart:
+    name: "{{ grayskull_name }}"
     namespace: "{{ elk_namespace }}"
     chart_dest: "{{ grayskull_dir }}"
     bin_dir: "{{ bin_dir }}"

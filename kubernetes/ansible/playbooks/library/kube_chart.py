@@ -8,6 +8,11 @@ short_description: Deploy Helm charts with Kubernetes
 description:
   - Download Helm charts as .tgz and render kubernetes manifest with helm template, then deploy with kubectl apply
 options:
+    name:
+        required: false
+        default: null
+        description:
+          - The name of the release
     namespace:
         required: false
         default: null
@@ -72,6 +77,7 @@ class KubeManager(object):
             self.bin_dir =  module.get_bin_path('bin_dir', True)
 
         # Passed in arguments to the module
+        self.name = module.params.get('name')
         self.namespace = module.params.get('namespace')
         self.chart_dest = module.params.get('chart_dest')
         self.chart_src = module.params.get('chart_src')
@@ -127,6 +133,9 @@ class KubeManager(object):
             template_cmd.append(self.path_to_values)
         template_cmd.append('>')
         template_cmd.append(result_path + '.yml')
+        if self.name:
+            template_cmd.append('--name')
+            template_cmd.append(self.name)
         if self.namespace:
             template_cmd.append('--namespace')
             template_cmd.append(self.namespace)
@@ -154,6 +163,7 @@ def main():
     module = AnsibleModule(
         argument_spec =
         {
+            'name': {'required': False, 'type': 'str'},
             'namespace': {'required': False, 'type': 'str'},
             'chart_src': {'required': True, 'type': 'str'},
             'chart_version': {'required': True, 'type': 'str'},

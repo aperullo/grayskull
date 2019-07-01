@@ -3,7 +3,7 @@
   set_fact:
     prometheus_role_templates:
       - { name: namespace, file: prometheus-namespace.yml, type: ns }
- 
+
 - name: Prometheus | Create manifests
   template:
     src: "{{ item.file }}.j2"
@@ -41,6 +41,7 @@
 #---- Deploy chart and templates
 - name: Prometheus | Deploy chart
   kube_chart:
+    name: "{{ grayskull_name }}"
     namespace: "{{ prometheus_namespace }}"
     chart_dest: "{{ grayskull_dir }}"
     bin_dir: "{{ bin_dir }}"
@@ -48,4 +49,3 @@
     chart_version: 5.12.3
     path_to_values: "{{ grayskull_dir }}/customizations/prometheus.yml"
   register: result
-
