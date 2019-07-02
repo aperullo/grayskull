@@ -13,3 +13,13 @@ inputs:
         port => 5044
       }
     }
+
+outputs:
+  main: |-
+    output {
+      elasticsearch {
+        hosts => ["${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}"]
+        manage_template => false
+        index => "%{[app_name]}-%{+YYYY.MM.dd}"
+      }
+    }

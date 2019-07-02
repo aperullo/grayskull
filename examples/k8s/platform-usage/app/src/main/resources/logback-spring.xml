@@ -25,7 +25,9 @@
 
     <appender name="STASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
         <destination>${LOGSTASH_HOST}</destination>
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"app_name":"logging-sample"}</customFields>
+        </encoder>
     </appender>
 
     <logger name="${LOGGER_NAME}" level="${LOGGER_LEVEL:-DEBUG}" additivity="false">
