@@ -48,6 +48,9 @@
       register: helm_init_result
       changed_when: "'already installed' not in helm_init_result.stdout"
 
+    - name: Setup | Update Helm repos
+      command: "{{ bin_dir }}/helm repo update"
+
 
     # ---- Make Certificates
     - include: certificate-tasks.yml

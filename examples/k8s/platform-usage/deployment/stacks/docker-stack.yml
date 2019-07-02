@@ -10,9 +10,6 @@ services:
             target: /config/application.properties
         networks:
           - db-net
-        environment:
-          REDIS_HOST: "${REDIS_HOST}"
-
     sample-db:
         image: @redisImage@:@redisVersion@
         command: ["redis-server", "--appendonly", "yes"]

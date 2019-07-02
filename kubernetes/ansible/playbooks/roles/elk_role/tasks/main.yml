@@ -69,7 +69,7 @@
     chart_dest: "{{ grayskull_dir }}"
     bin_dir: "{{ bin_dir }}"
     chart_src: stable/logstash
-    chart_version: 1.13.0
+    chart_version: 2.1.0
     path_to_values: "{{ grayskull_dir }}/customizations/logstash.yml"
 
 - name: ELK | Deploy fluentd chart
