@@ -68,7 +68,6 @@
           - { file: customizations/kibana.yml }
           - { file: customizations/logstash.yml }
           - { file: customizations/fluentd.yml }
-          - { file: customizations/postgresql.yml }
 
     - name: Customization Files | Create customizations directory
       file:
