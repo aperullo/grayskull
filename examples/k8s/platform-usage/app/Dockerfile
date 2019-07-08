@@ -1,4 +1,5 @@
 FROM openjdk:8-jdk-alpine
-COPY ./libs/app-1.0-SNAPSHOT.jar /app.jar
+RUN apk add --no-cache bash
+COPY ./libs/app-1.0-SNAPSHOT.jar /app
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","/app.jar"]
+ENTRYPOINT ["/app"]

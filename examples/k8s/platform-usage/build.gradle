@@ -4,24 +4,3 @@ buildscript {
         mavenCentral()
     }
 }
-
-apply plugin: 'java'
-apply plugin: 'application'
-
-mainClassName = 'acc.Application'
-
-repositories {
-    mavenCentral()
-}
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-
-//project(':constants') {
-//    dependencies {
-//        project(':deployment')
-//    }
-//}
-
-build.dependsOn(':deployment:filter')

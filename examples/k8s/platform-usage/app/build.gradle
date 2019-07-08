@@ -16,6 +16,9 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter-web")
     compile("org.springframework.boot:spring-boot-starter-data-redis")
     compile("org.springframework.boot:spring-boot-starter-actuator")
+
+    compile("net.logstash.logback:logstash-logback-encoder:5.3")
+    compile("ch.qos.logback:logback-classic:1.2.3")
 }
 
 
@@ -31,9 +34,13 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
 docker {
-    name "spring-usage"
+    name "platform-usage"
     dockerfile file('Dockerfile')
     copySpec.from("build/libs").into("libs")
+}
+
+bootJar {
+    launchScript()
 }
 
 build.dependsOn('docker')

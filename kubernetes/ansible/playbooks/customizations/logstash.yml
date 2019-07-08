@@ -13,3 +13,23 @@ inputs:
         port => 5044
       }
     }
+
+filters:
+  main: |-
+    filter {
+      if [app_name] {
+        mutate { add_field => { "[@metadata][index]" => "%{[app_name]}" } }
+      } else {
+        mutate { add_field => { "[@metadata][index]" => "logstash" } }
+      }
+    }
+
+outputs:
+  main: |-
+    output {
+      elasticsearch {
+        hosts => ["${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}"]
+        manage_template => false
+        index => "%{[@metadata][index]}-%{+YYYY.MM.dd}"
+      }
+    }
