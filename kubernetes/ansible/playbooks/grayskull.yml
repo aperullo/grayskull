@@ -5,7 +5,7 @@
   become: yes
   tasks:
 
-    # ---- Helm and Kubectl set up
+    #---- Helm and Kubectl set up
     - name: Setup | Export KUBECONFIG env var
       lineinfile:
         path: /etc/profile
@@ -65,6 +65,7 @@
           - { file: customizations/kibana.yml }
           - { file: customizations/logstash.yml }
           - { file: customizations/fluentd.yml }
+          - { file: customizations/postgresql.yml }
 
     - name: Customization Files | Create customizations directory
       file:
@@ -97,6 +98,20 @@
         chart_version: 1.6.16
         path_to_values: "{{ grayskull_dir }}/customizations/nginx-ingress.yml"
 
+    # - name: Nginx-Ingress | Deploy chart
+    #   helm_chart:
+    #     name: gsp-nginx
+    #     namespace: grayskull-ingress
+    #     bin_dir: "{{ bin_dir }}"
+    #     chart_src: stable/nginx-ingress
+    #     chart_version: 1.6.16
+    #     upgrade: yes
+    #     path_to_values: "{{ grayskull_dir }}/customizations/nginx-ingress.yml"
+    #   register: result
+
+    # - name: print
+    #   debug: 
+    #     var: result
 
 - hosts: kube-master
   become: yes

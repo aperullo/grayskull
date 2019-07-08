@@ -50,14 +50,15 @@
   shell: "{{ bin_dir }}/helm repo add rook-release https://charts.rook.io/release"
 
 - name: Rook Ceph | Deploy chart
-  kube_chart:
-    name: "{{ grayskull_name }}"
+  helm_chart:
+    name: gsp-rook
     namespace: "{{ ceph_namespace }}"
-    chart_dest: "{{ grayskull_dir }}"
     bin_dir: "{{ bin_dir }}"
     chart_src: rook-release/rook-ceph
     chart_version: v1.0.2
+    upgrade: no
     path_to_values: "{{ grayskull_dir }}/customizations/ceph.yml"
+
 
 - name: Rook Ceph | Apply manifests
   kube:

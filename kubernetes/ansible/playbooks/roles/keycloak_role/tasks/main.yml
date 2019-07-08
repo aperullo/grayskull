@@ -43,12 +43,11 @@
   shell: "{{ bin_dir }}/helm repo add codecentric https://codecentric.github.io/helm-charts"
 
 - name: Keycloak | Deploy chart
-  kube_chart:
-    name: "{{ grayskull_name }}"
+  helm_chart:
+    name: gsp-keycloak
     namespace: "{{ keycloak_namespace }}"
-    chart_dest: "{{ grayskull_dir }}"
     bin_dir: "{{ bin_dir }}"
     chart_src: codecentric/keycloak
     chart_version: 4.14.2
+    upgrade: no
     path_to_values: "{{ grayskull_dir }}/customizations/keycloak.yml"
-  register: result
