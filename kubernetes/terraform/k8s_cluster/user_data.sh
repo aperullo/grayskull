@@ -30,3 +30,7 @@ sudo vgextend VolGroup00 /dev/nvme0n1p3
 sudo lvextend -l +100%FREE /dev/mapper/VolGroup00-rootVol
 sudo resize2fs /dev/mapper/VolGroup00-rootVol
 sudo yum install -y python2
+
+# Disable the firewall initially. This should be enabled and configured later by ansible
+sudo systemctl disable firewalld
+sudo systemctl stop firewalld

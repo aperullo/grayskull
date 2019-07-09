@@ -10,7 +10,7 @@ resource "aws_security_group" "k8s_ports" {
     protocol    = "tcp"
     # Please restrict your ingress to only necessary IPs and ports.
     # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
-    cidr_blocks = ["172.31.0.0/32"] # add a CIDR block here
+    cidr_blocks = ["172.31.0.0/16"] # add a CIDR block here
   }
 
 }
