@@ -15,12 +15,13 @@ jsonData,_ = subprocess.Popen([getJsonCmd], shell=True, stdout=subprocess.PIPE).
 
 data = json.loads(jsonData)['resources']
 
-instances = []
+environments = {}
 resources = list(filter(lambda x: x['type'] == "aws_instance", data))
 for resource in resources:
         k8s_type = resource['name']
         for instance in resource['instances']:
             attr = instance['attributes']
+            environment = attr['tags']['Environment']
             real_type = ""
             if k8s_type == "k8s_worker":
                 real_type = "worker"
@@ -32,9 +33,15 @@ for resource in resources:
                 "private_ip": attr['private_ip'],
                 "private_dns": attr['private_dns'],
                 "name": attr['tags']['Name'],
-                "type": real_type
+                "type": real_type,
+                "env": environment
 
             }
-            instances.append(data)
+            if not environments.get(environment):
+                environments[environment] = []
+            environments[environment].append(data)
 
-print(template.render(instances=instances))
+for e in environments.keys():
+    print("#Environment:", e)
+    print(template.render(instances=environments[e]))
+
