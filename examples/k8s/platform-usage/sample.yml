@@ -30,7 +30,8 @@ spec:
             - mountPath: /config
               name: config
           ports:
-          - containerPort: 8080
+          - name: http
+            containerPort: 8080
       volumes:
         - name: config
           configMap:
@@ -43,14 +44,27 @@ metadata:
   labels:
     app: platform-usage
 spec:
-#  type: NodePort
   selector:
     app: platform-usage
   ports:
     - name: http
-#      protocol: TCP
       port: 8080
-#      nodePort: 30080
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: platform-usage
+  labels:
+    release: gsp-prometheus
+spec:
+  selector:
+    matchLabels:
+      app: platform-usage
+  endpoints:
+    - port: http
+      interval: 5s
+      path: '/actuator/prometheus'
 
 ---
 apiVersion: extensions/v1beta1
