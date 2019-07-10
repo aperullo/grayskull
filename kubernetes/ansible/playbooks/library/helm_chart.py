@@ -44,6 +44,12 @@ options:
         default: false
         description:
           - A flag for whether this should upgrade the existing chart or leave it alone. Only matters if chart is already deployed.
+    atomic:
+        required: false
+        default: true
+        description:
+          - A flag for whether this should try to install atomically.
+
 requirements:
   - kubectl
   - helm
@@ -81,6 +87,7 @@ class KubeManager(object):
         self.chart_version = module.params.get('chart_version')
         self.path_to_values = module.params.get('path_to_values')
         self.upgrade = module.params.get('upgrade')
+        self.atomic = module.params.get('atomic')
 
 
     # Runs the commands after joining them and also handles failing commands.
@@ -142,7 +149,8 @@ class KubeManager(object):
                 chart_upgrade_cmd.append('upgrade')
                 chart_upgrade_cmd.append(self.name)
                 chart_upgrade_cmd.append(self.chart_src)
-                chart_upgrade_cmd.append('--atomic')    # lets make sure deploy either worked or nothing changed
+                if self.atomic:
+                    chart_upgrade_cmd.append('--atomic')    # lets make sure deploy either worked or nothing changed
 
                 if self.path_to_values:
                     chart_upgrade_cmd.append('--values')
@@ -161,7 +169,7 @@ class KubeManager(object):
                 return self._execute(chart_upgrade_cmd)
 
             else:
-                return "Release already exists, not upgrading. Use upgrade parameter to override.", False
+                return "Release already exists, not upgrading. Use upgrade parameter to override.", "skip"
 
         else:
         # not deployed, install it
@@ -170,9 +178,11 @@ class KubeManager(object):
             chart_install_cmd = self.helm_cmd[:]
             chart_install_cmd.append('install')
             chart_install_cmd.append(self.chart_src)
-            chart_install_cmd.append('--atomic')    # lets make sure deploy either worked or nothing changed
             chart_install_cmd.append('--name')
             chart_install_cmd.append(self.name)
+
+            if self.atomic:
+                chart_install_cmd.append('--atomic')    # lets make sure deploy either worked or nothing changed
 
             if self.path_to_values:
                 chart_install_cmd.append('--values')
@@ -200,6 +210,7 @@ def main():
             'chart_version': {'required': True, 'type': 'str'},
             'path_to_values': {'required': False, 'type': 'str'},
             'upgrade': {'default': False, 'type': 'bool'},
+            'atomic': {'default': True, 'type': 'bool'},
             'bin_dir': {'required': True, 'type': 'str'}
         }
     )
@@ -208,7 +219,9 @@ def main():
 
     result, changed = manager.fetch_and_apply_chart()
 
-    module.exit_json(changed=changed,
+    
+    module.exit_json(changed= changed if changed != "skip" else False,
+                    skipped = True if changed == "skip" else False,
                      msg='success: {}'.format(result)
                      )
 

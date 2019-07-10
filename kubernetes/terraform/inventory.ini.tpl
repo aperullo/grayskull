@@ -10,6 +10,9 @@
 {% endif -%}
 {% endfor %}
 
+[kube-setup-delegate]
+{{ (instances | selectattr("type", "equalto", "master") | first())["name"] }}
+
 [kube-node]
 {% for host in instances -%}
 {{ host.name }}
@@ -23,6 +26,7 @@ supplementary_addresses_in_ssl_keys='["{{ instances|join('", "', attribute='publ
 grayskull_dir=/grayskull
 grayskull_name=gsp
 helm_enabled=True
+bin_dir=/usr/local/bin
 
 [etcd]
 {% for host in instances -%}

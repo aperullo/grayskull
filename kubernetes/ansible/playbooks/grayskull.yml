@@ -1,7 +1,7 @@
 ---
 # - import_playbook: kubespray/cluster.yml
 
-- hosts: kube-master
+- hosts: kube-setup-delegate
   become: yes
   tasks:
 
@@ -33,7 +33,7 @@
 
     - name: Setup | Retrieve helm binary archive
       unarchive:
-        src: https://storage.googleapis.com/kubernetes-helm/helm-v2.13.1-linux-amd64.tar.gz
+        src: https://storage.googleapis.com/kubernetes-helm/helm-v2.14.0-linux-amd64.tar.gz
         dest: /tmp
         creates: "{{ bin_dir }}/helm"
         remote_src: yes
@@ -91,31 +91,26 @@
       shell: "{{ bin_dir }}/kubectl create namespace grayskull-ingress"
       when: "'grayskull-ingress' not in ingress_ns_exists.stdout"
 
-    - name: Nginx-Ingress | Deploy chart
-      kube_chart:
-        namespace: "grayskull-ingress"
-        chart_dest: "{{ grayskull_dir }}"
-        bin_dir: "{{ bin_dir }}"
-        chart_src: stable/nginx-ingress
-        chart_version: 1.6.16
-        path_to_values: "{{ grayskull_dir }}/customizations/nginx-ingress.yml"
-
     # - name: Nginx-Ingress | Deploy chart
-    #   helm_chart:
-    #     name: gsp-nginx
-    #     namespace: grayskull-ingress
+    #   kube_chart:
+    #     namespace: "grayskull-ingress"
+    #     chart_dest: "{{ grayskull_dir }}"
     #     bin_dir: "{{ bin_dir }}"
     #     chart_src: stable/nginx-ingress
     #     chart_version: 1.6.16
-    #     upgrade: yes
     #     path_to_values: "{{ grayskull_dir }}/customizations/nginx-ingress.yml"
-    #   register: result
 
-    # - name: print
-    #   debug: 
-    #     var: result
+    - name: Nginx-Ingress | Deploy chart
+      helm_chart:
+        name: gsp-nginx
+        namespace: grayskull-ingress
+        bin_dir: "{{ bin_dir }}"
+        chart_src: stable/nginx-ingress
+        chart_version: 1.6.16
+        atomic: no
+        path_to_values: "{{ grayskull_dir }}/customizations/nginx-ingress.yml"
 
-- hosts: kube-master
+- hosts: kube-setup-delegate
   become: yes
   roles:
     - prometheus_role   # must be deployed before rook-ceph
