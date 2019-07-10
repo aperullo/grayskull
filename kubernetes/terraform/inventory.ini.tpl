@@ -19,7 +19,7 @@
 docker_daemon_graph=/storage/docker
 kubeadm_enabled=True
 helm_enabled=True
-supplementary_addresses_in_ssl_keys={{ instances|join(', ', attribute='public_ip') }}
+supplementary_addresses_in_ssl_keys='["{{ instances|join('", "', attribute='public_ip') }}"]'
 grayskull_dir=/grayskull
 grayskull_name=gsp
 helm_enabled=True
