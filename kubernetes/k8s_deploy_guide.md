@@ -73,6 +73,7 @@ In this step we deploy grayskull itself. Grayskull is the platform, it deploys s
 - A kubernetes dashboard
 - Prometheus metrics database
 
+To enable or disable these roles, you can set `<role_name>_enabled=True/False` in the inventory.
 
 In `kubernetes/ansible/playbooks` run 
 ```
