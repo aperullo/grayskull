@@ -23,10 +23,6 @@ dependencies {
     compile("io.micrometer:micrometer-registry-prometheus")
 }
 
-//processResources {
-//    expand(project.properties)
-//}
-
 allprojects {
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
