@@ -10,6 +10,9 @@
 {% endif -%}
 {% endfor %}
 
+[kube-setup-delegate]
+{{ (instances | selectattr("type", "equalto", "master") | first())["name"] }}
+
 [kube-node]
 {% for host in instances -%}
 {{ host.name }}
@@ -17,6 +20,13 @@
 
 [kube-node:vars]
 docker_daemon_graph=/storage/docker
+kubeadm_enabled=True
+helm_enabled=True
+supplementary_addresses_in_ssl_keys='["{{ instances|join('", "', attribute='public_ip') }}"]'
+grayskull_dir=/grayskull
+grayskull_name=gsp
+helm_enabled=True
+bin_dir=/usr/local/bin
 
 [etcd]
 {% for host in instances -%}
