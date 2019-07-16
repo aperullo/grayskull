@@ -1,3 +1,4 @@
+# Sections for sample app
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -5,7 +6,6 @@ metadata:
 data:
   application.properties: |
     spring.application.name=avocados-from-mexico
-    spring.redis.host=${REDIS_SRVC_SERVICE_HOST}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -30,8 +30,8 @@ spec:
             - mountPath: /config
               name: config
           ports:
-          - name: http
-            containerPort: 8080
+            - name: http
+              containerPort: 8080
       volumes:
         - name: config
           configMap:
@@ -50,23 +50,9 @@ spec:
     - name: http
       port: 8080
 
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: platform-usage
-  labels:
-    release: gsp-prometheus
-spec:
-  selector:
-    matchLabels:
-      app: platform-usage
-  endpoints:
-    - port: http
-      interval: 5s
-      path: '/actuator/prometheus'
 
 ---
+# Ingress for sample app
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -91,9 +77,27 @@ spec:
               serviceName: platform-usage-s
               servicePort: http
 
+
+---
+# Prometheus
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: platform-usage
+  labels:
+    release: gsp-prometheus
+spec:
+  selector:
+    matchLabels:
+      app: platform-usage
+  endpoints:
+    - port: http
+      interval: 5s
+      path: '/actuator/prometheus'
+
+
 --- 
 # Redis
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -117,9 +121,6 @@ spec:
             name: redis-store
           ports:
           - containerPort: 6379
-          env:
-          - name: REDIS_HOST
-            value: "${REDIS_SRVC_SERVICE_HOST}"
       volumes:
         - name: redis-store
           persistentVolumeClaim:
