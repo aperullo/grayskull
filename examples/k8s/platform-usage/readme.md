@@ -6,6 +6,14 @@ This is a sample Spring Boot application that demonstrates how to use the follow
 
 This app is built by Gradle and Dockerized using a Dockerfile.
 
+# Table of Contents
+
+  - [Building and Running](#building-and-running)
+  - [Kubernetes Manifest](#kubernetes-manifest)
+  - [Prometheus](#prometheus)
+  - [ELK](#elk)
+  - [Rook Ceph](#rook-ceph)
+
 ## Building and Running
 
 To build, run
@@ -85,9 +93,91 @@ persistentvolumeclaim/redis-pvc created
 
 The parts of the Kubernetes manifest (`sample.yml`) that are used to get the app itself up and running are the `ConfigMap`, `Deployment`, and `Service` sections at the top of the file. The `Ingress` section is used to expose the app to external users. 
 
+```yml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spring-config
+data:
+  application.properties: |
+    spring.application.name=avocados-from-mexico    # overrides values in application.properties
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: platform-usage
+    labels:
+      app: platform-usage
+spec:
+  selector:
+    matchLabels:
+      app: platform-usage
+  template:
+    metadata:
+      labels:
+        app: platform-usage
+    spec:
+      containers:
+        - name: platform-usage
+          image: rfding/platform-usage
+          imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: /config
+              name: config
+          ports:
+            - name: http
+              containerPort: 8080
+      volumes:
+        - name: config
+          configMap:
+            name: spring-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: platform-usage-s
+  labels:
+    app: platform-usage
+spec:
+  selector:
+    app: platform-usage
+  ports:
+    - name: http
+      port: 8080
+
+
+---
+# Ingress for sample app
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: platform-usage-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/server-snippet: |
+      proxy_ssl_verify off;
+spec:
+  tls:
+    - hosts:
+        - sample.gsp.test
+      secretName: elk-gsp-tls
+  rules:
+    - host: sample.gsp.test
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: platform-usage-s
+              servicePort: http
+```
+
 ## Prometheus
 
-The sample app exposes metrics using Spring Boot Actuator, then sends metrics to Prometheus using a CustomResourceDefinition (CRD) called `ServiceMonitor`. When the Prometheus operator is deployed on the platform, it creates 4 CRDS: `Prometheus`, `ServiceMonitor`, `PrometheusRule`, and `Alertmanager`.
+The sample app exposes metrics using Spring Boot Actuator, then sends metrics to Prometheus using a CustomResourceDefinition (CRD) called `ServiceMonitor`. When the Prometheus operator is deployed on the platform, it creates 4 CRDs: `Prometheus`, `ServiceMonitor`, `PrometheusRule`, and `Alertmanager`.
 
 To expose Prometheus metrics using Spring Boot Actuator, make sure the following lines are in `build.gradle` and `application.properties`.
 
@@ -114,15 +204,15 @@ kind: ServiceMonitor
 metadata:
   name: platform-usage
   labels:
-    release: gsp-prometheus			# important
+    release: gsp-prometheus		# important
 spec:
   selector:
     matchLabels:
-      app: platform-usage 			# must match the label of the app service
+      app: platform-usage 		# must match the label of the app service
   endpoints:
     - port: http
       interval: 5s
-      path: '/actuator/prometheus'		# path to metrics
+      path: '/actuator/prometheus'	# path to metrics
 ```
 Make sure that the metadata labels include `release: gsp-prometheus` because that is the label that Prometheus will search for to find services it needs to monitor. Also be careful to include the label of your app in `matchLabels` because that is how the ServiceMonitor will find your service. You can specify whatever endpoints you want. In this case, we only have one exposed port named `http`, so that is the only port we specify.
 
@@ -158,7 +248,7 @@ If you just want to send logs to Logstash, make sure the following is in `logbac
 
 The logger name should be the name of the package of the logger(s). In this case, the package name is `acc` and is set in `application.properties`.
 
-The Logstash Logback appender needs to know the location of the Logstash host in order to send logs to it. In our app, we set the location in `application.properties` and read it in to `logback-spring.xml`. The location of the Logstash host in the Kubernetes cluster is `gsp-logstash.grayskull-logs:1514`. However, if the application is in the same namespace as the Logstash host, the namespace can be omitted to become `gsp-logstash:1514`.
+The Logstash Logback encoder needs to know the location of the Logstash host in order to send logs to it. In our app, we set the location in `application.properties` and read it in to `logback-spring.xml`. The location of the Logstash host in the Kubernetes cluster is `gsp-logstash.grayskull-logs:1514`. However, if the application is in the same namespace as the Logstash host, the namespace can be omitted to become `gsp-logstash:1514`.
 
 You can read properties from `application.properties` into `logback-spring.xml` by using the `springProperty` tag.
 
