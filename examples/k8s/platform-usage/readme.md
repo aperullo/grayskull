@@ -9,7 +9,7 @@ This app is built by Gradle and Dockerized using a Dockerfile.
 # Table of Contents
 
   - [Building and Running](#building-and-running)
-  - [Kubernetes Manifest](#kubernetes-manifest)
+  - [Basic App Manifest](#basic-app-manifest)
   - [Prometheus](#prometheus)
   - [ELK](#elk)
   - [Rook Ceph](#rook-ceph)
@@ -89,9 +89,11 @@ service/redis-srvc created
 persistentvolumeclaim/redis-pvc created
 ```
 
-## Kubernetes Manifest
+## Basic App Manifest
 
-The parts of the Kubernetes manifest (`sample.yml`) that are used to get the app itself up and running are the `ConfigMap`, `Deployment`, and `Service` sections at the top of the file. The `Ingress` section is used to expose the app to external users. 
+The parts of the Kubernetes manifest (`sample.yml`) that are used to get the app itself up and running are the `ConfigMap`, `Deployment`, and `Service` sections at the top of the file. 
+
+The `application.properties` section in `ConfigMap` override values that are set in `application.properties`.
 
 ```yml
 apiVersion: v1
@@ -100,7 +102,7 @@ metadata:
   name: spring-config
 data:
   application.properties: |
-    spring.application.name=avocados-from-mexico    # overrides values in application.properties
+    spring.application.name=avocados-from-mexico    # overrides value in application.properties
 
 ---
 apiVersion: apps/v1
@@ -146,10 +148,11 @@ spec:
   ports:
     - name: http
       port: 8080
+```
 
+We use an `Ingress` to expose the app to external users. The sample app uses a secret that has already been created (`elk-gsp-tls`), which is why it has to be deployed into the `grayskull-logs` namespace.
 
----
-# Ingress for sample app
+```
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -171,8 +174,8 @@ spec:
         paths:
           - path: /
             backend:
-              serviceName: platform-usage-s
-              servicePort: http
+              serviceName: platform-usage-s   # app service name
+              servicePort: http       # app service port name
 ```
 
 ## Prometheus
@@ -268,7 +271,7 @@ The Logstash service that is used on the platform is configured to name logs bas
 
 ## Rook Ceph
 
-To use the Rook Ceph storage, we use Redis' Docker image. Redis needs a `Deployment`, `Service`, and `PersistentVolumeClaim`.
+To use the Rook Ceph storage, we need a `PersistentVolumeClaim`, and we also need a `volumes` and a `volumeMounts` section in the `Deployment` for the database. We will use Redis as an example database that requires persistence.
 
 `sample.yml`:
 ```yml
@@ -302,20 +305,6 @@ spec:
 
 ---
 apiVersion: v1
-kind: Service
-metadata:
-  name: redis-srvc
-  labels:
-    app: redis
-spec:
-  selector:
-    app: redis
-  ports:
-    - protocol: TCP
-      port: 6379
-
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: redis-pvc
@@ -327,10 +316,4 @@ spec:
   resources:
     requests:
       storage: 30Mi			# size of storage needed
-```
-
-In `application.properties`, we need to set `spring.redis.host` to the name of the Redis service we created.
-
-```ini
-spring.redis.host=redis-srvc
 ```
