@@ -150,9 +150,9 @@ spec:
       port: 8080
 ```
 
-We use an `Ingress` to expose the app to external users. The sample app uses a secret that has already been created (`elk-gsp-tls`), which is why it has to be deployed into the `grayskull-logs` namespace.
+We use an `Ingress` to expose the app to external users. The sample app uses a secret that has already been created (`elk-gsp-tls`), which is why it has to be deployed into the `grayskull-logs` namespace. The `Ingress` objects are picked up by the Ingress controller, which lives in the `grayskull-ingress` namespace.
 
-```
+```yml
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -175,7 +175,7 @@ spec:
           - path: /
             backend:
               serviceName: platform-usage-s   # app service name
-              servicePort: http       # app service port name
+              servicePort: http               # app service port name
 ```
 
 ## Prometheus
