@@ -109,3 +109,4 @@
     - { role: keycloak_role, when: (keycloak_role_enabled | default(True)) } 
     - { role: dashboard_role, when: (dashboard_role_enabled | default(True)) }
     - { role: elk_role, when: (elk_role_enabled | default(True)) }
+    - { role: rook_cassandra_role, when: (rook_cassandra_role_enabled | default(True)) }

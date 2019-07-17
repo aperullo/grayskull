@@ -1,0 +1,35 @@
+---
+# cassandra-operator StatefulSet.
+ apiVersion: apps/v1
+ kind: StatefulSet
+ metadata:
+   name: rook-cassandra-operator
+   namespace: {{ rook_cas_op_namespace }}
+   labels:
+     app: rook-cassandra-operator
+ spec:
+   replicas: 1
+   serviceName: "rook-cassandra-service"
+   selector:
+     matchLabels:
+       app: rook-cassandra-operator
+   template:
+     metadata:
+       labels:
+         app: rook-cassandra-operator
+     spec:
+       serviceAccountName: rook-cassandra-operator
+       containers:
+       - name: rook-cassandra-operator
+         image: rook/cassandra:master
+         imagePullPolicy: "Always"
+         args: ["cassandra", "operator"]
+         env:
+         - name: POD_NAME
+           valueFrom:
+             fieldRef:
+               fieldPath: metadata.name
+         - name: POD_NAMESPACE
+           valueFrom:
+             fieldRef:
+               fieldPath: metadata.namespace
