@@ -76,7 +76,7 @@ spec:
 ...
 ```
 
-Then to run the application, run
+Then to run the application on the Grayskull platform, run
 ```shell
 > kubectl -n grayskull-logs apply -f sample.yml
 configmap/spring-config created
@@ -88,6 +88,8 @@ deployment.apps/redis-dplymnt created
 service/redis-srvc created
 persistentvolumeclaim/redis-pvc created
 ```
+
+Note: The sample app uses a secret that is created during platform deployment and exists within the `grayskull-logs` namespace, which is why you must deploy it in the same namespace. If your `kubectl` is not set up for remote administration, look [here](https://github.com/connexta/grayskull/blob/kubernetes/kubernetes/k8s_deploy_guide.md#set-up-remote-administration) for instructions.
 
 ## Basic App Manifest
 
