@@ -18,7 +18,7 @@ services:
         - "traefik.enable=false"
 
   logstash:
-    image: ${DOCKER_ELASTIC_REGISTRY:-docker.elastic.co}/logstash/logstash:6.4.3
+    image: ${DOCKER_ELASTIC_REGISTRY:-docker.elastic.co}/logstash/logstash:6.6.1
     configs:
       - source: logstash_config
         target: /usr/share/logstash/config/logstash.yml
