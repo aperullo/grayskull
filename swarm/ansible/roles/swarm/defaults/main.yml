@@ -1,0 +1,6 @@
+---
+swarm_advertise_interface: eth0
+swarm_listen_host: 0.0.0.0
+swarm_listen_port: 2377
+docker_daemon_host: 0.0.0.0
+docker_daemon_listen_port: 2375

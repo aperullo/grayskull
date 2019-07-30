@@ -1,0 +1,8 @@
+---
+- hosts: docker
+  roles:
+    - docker
+
+- hosts: swarm
+  roles:
+    - swarm
