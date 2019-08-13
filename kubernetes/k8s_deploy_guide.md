@@ -5,28 +5,45 @@ This document represents instructions on how to deploy grayskull and its service
 
 ## Prerequisites
 
-A number of vms to act as nodes.
-Clone the [Kubespray repo](ttps://github.com/kubernetes-sigs/kubespray) and go through installation and set up instructions. This will require setting up ansible (an automated deployment tool). Kubespray is a tool for setting up kubernetes nodes and connecting them to a cluster, automating nodes with production-grade settings. 
-When using Kubespray use Centos for all K8s nodes.
-Firewall on the nodes will need to be off, or set up to allow only the correct ports
+### Cluster prerequisites
+
+- A number of vms to act as nodes.
+- When using Kubespray use Centos for all K8s nodes.
+- Firewall on the nodes will need to be off, or set up to allow only the correct ports
 `sudo systemctl stop firewalld`
+- (Optional) AWS command line tool through an account for provisioning nodes.
 
 Run the git command to load the submodule:
 `git submodule update --init --recursive`
 
+### Local machine prerequisites
+
+- Ansible version `2.7.10`
+- Hashicorp terraform
+
 ## Process
+
+### Provision the virtual machines
+
+If your aws command line tool is set up, you can navigate to `kubernetes/terraform.`
+
+1. `terraform plan`. Verify the plan looks as you expect
+2. `terraform apply`. Provision the VMs.
+3. `scripts/generate_inventory > ../ansible/inventory/myinv.ini`. Create an ansible inventory to be used later
+4. `scripts/generate_ssh_config > /tmp/ssh_config`. Create a temporary set of ssh credentials for you and ansible to use on the VMs
+5. `eval $(ssh-agent)`
+6. `ssh-add ~/.ssh/grayskull-admin`
 
 ### Deploy Kubernetes
 
-The first step is to deploy kubernetes itself, which is the orchestrator. We accomplish this via kubespray, which sets up a production-ready cluster given an inventory. 
+The next step is to deploy kubernetes itself, which is the orchestrator. We accomplish this via kubespray, which sets up a production-ready cluster given an inventory. 
 
-An example inventory is available in `kubernetes/ansible/inventory/ma.ini` for use. Otherwise you will need to
-set up the ansible inventory with the proper node names and addresses.
+An example inventory is available in `kubernetes/ansible/inventory/ma.ini` for use. Otherwise you will need to set up the ansible inventory with the proper node names and addresses. Or if you used terraform you can use the script mentioned above.
 
-1. From inside the root of the kubernetes directory, run the ansible playbook with
+1. From inside the root of the `kubernetes/ansible` directory, run the ansible playbook with
 
 ```
-> ansible-playbook -i <inventory_settings> -b -e '{kubeadm_enabled: True}' ansible/playbooks/kubespray/cluster.yml
+> ansible-playbook -i <inventory_settings> -b playbooks/kubespray/cluster.yml
 ... *********************************************************************************************************************************************************************************************************************************************************************
 localhost                  : ok=1    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 node1                      : ok=436  changed=73   unreachable=0    failed=0    skipped=622  rescued=0    ignored=0
@@ -35,19 +52,32 @@ node3                      : ok=309  changed=45   unreachable=0    failed=0    s
 node4                      : ok=258  changed=41   unreachable=0    failed=0    skipped=306  rescued=0    ignored=0
 
 ```
-Ansible will set up the nodes and connect them to the master. 
+Ansible will set up the nodes and connect them to the master(s). 
 
 TODO: Contribute back docs to kubespray on working with multiple network interfaces and ssl certs for those. 
 
 TODO: Rook custom resource definitions need annonation for https://helm.sh/docs/developing_charts/#defining-a-crd-with-the-crd-install-hook. Maybe contribute back. (https://github.com/helm/helm/pull/3982)
  
 ### Set up remote administration
+
+You will need a corrected kubeconfig file to be able to send commands to the cluster.
+
+```
+> ansible-playbook -i inventory/staging.ini playbooks/credentials.yml
+TASK [debug] *********************************************************************************************************
+ok: [localhost] => {
+    "msg": [
+        "New kubeconfig available at /tmp/grayskull/admin.conf"
+    ]
+}
+```
+
+Find the file in the location the task mentions and combine it with your kubeconfig.
  
 Get the kube config file and merge it with your current to allow remote administration of the new cluster.
 ```
-> scp <user@master>:/etc/kubernetes/admin.conf ~/.kube/admin.conf
 > cp ~/.kube/config ~/.kube/config.old      # Backup the old config in case something goes wrong.
-> KUBECONFIG=~/.kube/admin.conf:~/.kube/config.old kubectl config view --flatten > ~/.kube/config       # merge your current kubernetes config with the one obtained from the master.
+> KUBECONFIG=tmp/grayskull/admin.conf:~/.kube/config.old kubectl config view --flatten > ~/.kube/config       # merge your current kubernetes config with the one obtained from the master.
 ```
 
 Once the new config is in place, we will use it to switch to our remote cluster context.
@@ -88,7 +118,7 @@ To customize the values for the non-helm services add them to `roles/<role>/vars
 There are a number of places you can make customizations to grayskull's deployment.
 
 #### Customizations
-These values are for customizing the helm chart. Refer to each charts specific documentation for more information on possible settings.
+These values are for customizing the helm chart. Refer to each chart's specific documentation for more information on possible settings.
 
 `kubernetes/ansible/playbooks/customizations/<chart_name>.yml` - Contains customizations to be applied to the helm chart of the given name
 
@@ -103,16 +133,17 @@ These values are for customizing the manifests within roles.
 ### Ingress controller
 The ingress controller acts as a reverse proxy allowing services inside K8s to be reached from outside the cluster. It is deployed automatically; however, you have to redirect your dns to the top level domain you want to use for the services. See [wildcard DNS docs](../docs/wildcard-dns.md). 
 
-### Get to the Dashboard
+### Get to the kubernetes Dashboard
 
 Goto the address you specified in the customizations and you should be able to reach the dashboard. 
 
 To retrieve the token to log in to the dashboard, run
 ```
 > kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | awk '/^dashboard-admin-token-/{print $1}') | awk '$1=="token:"{print $2}' 
+
 eyJhbGciOiJSUzI1NiIsImtpZC...<rest of token> ...IGVfskl
 ```
-Use the token to log in to dashboard. 
+Use the token to log in to dashboard. (`admin.gsp.test` by default)
 
 ### Rook - S3/Object Storage
 
@@ -131,7 +162,6 @@ Make the customizations to the `ceph.yml` to configure where the dashboard appea
 
 For more details and full walkthrough, see [rook ceph dashboard docs](https://rook.io/docs/rook/master/ceph-dashboard.html).
 
-
 The default username for the ceph dashboard is `admin` and the secret for accessing it can be found using the following command:
 ```
 > kubectl -n grayskull-storage get secret rook-ceph-dashboard-password -o jsonpath="{['data']['password']}" | base64 --decode && echo
@@ -139,11 +169,11 @@ The default username for the ceph dashboard is `admin` and the secret for access
 hjA2A4kndL
 ```
 
-### Keycloak 
+### Keycloak
+
 TODO: fill out keycloak section 
 
-
-### Set up admin role and namespaced roles.
+### Set up admin role and namespaced roles
 
 TODO: Revisit once proper way of doing auth is created.
 
