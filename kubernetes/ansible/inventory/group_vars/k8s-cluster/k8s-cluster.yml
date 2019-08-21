@@ -1,0 +1,20 @@
+## It is possible to activate / deactivate selected authentication methods (basic auth, static token auth)
+kube_oidc_auth: true
+# kube_basic_auth: false
+# kube_token_auth: false
+
+
+## Variables for OpenID Connect Configuration https://kubernetes.io/docs/admin/authentication/
+## To use OpenID you have to deploy additional an OpenID Provider (e.g Dex, Keycloak, ...)
+
+kube_oidc_url: https://auth.gsp.test/auth/realms/master #/.well-known/openid-configuration
+kube_oidc_client_id: kubernetes
+## Optional settings for OIDC
+kube_oidc_ca_file: "{{ kube_cert_dir }}/ca.crt"
+kube_oidc_username_claim: preferred_username
+# kube_oidc_username_prefix: oidc:
+kube_oidc_groups_claim: groups
+# kube_oidc_groups_prefix: oidc:
+
+# An alternative flexvolume plugin directory. Fixes rook
+kubelet_flexvolumes_plugins_dir: /usr/libexec/kubernetes/kubelet-plugins/volume/exec

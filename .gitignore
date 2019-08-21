@@ -38,6 +38,13 @@ gradle-app.setting
 # Ansible
 **/*.retry
 
+# Inventories to non-local clusters like staging.
+**/staging.ini
+
+# Secrets
+**/secrets/*
+!**/secrets/.gitkeep
+
 
 # Terraform Ignore: https://raw.githubusercontent.com/github/gitignore/master/Terraform.gitignore
 # Local .terraform directories
@@ -69,3 +76,4 @@ override.tf.json
 
 # Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
 # example: *tfplan*
+

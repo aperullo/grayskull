@@ -1,0 +1,28 @@
+---
+- name: Ion | Templates list
+  set_fact:
+    ion_role_templates:
+      - { name: namespace, file: ion-namespace.yml, type: ns }
+      - { name: namespace, file: ion-rolebinding.yml, type: RoleBinding }
+
+- name: Ion | Create manifests
+  template:
+    src: "{{ item.file }}.j2"
+    dest: "{{ grayskull_dir }}/{{ item.file }}"
+  with_items: "{{ ion_role_templates }}"
+  register: ion_role_manifests
+  when:
+    - inventory_hostname == groups['kube-master'][0]
+
+# Namespace must be deployed before secret.
+- name: Ion | Apply manifests
+  kube:
+    name: "{{ item.item.name }}"
+    namespace: "{{ ion_ms_namespace }}"
+    kubectl: "{{ bin_dir }}/kubectl"
+    resource: "{{ item.item.type }}"
+    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    state: "latest"
+  with_items: "{{ ion_role_manifests.results }}"
+  when:
+    - inventory_hostname == groups['kube-master'][0]

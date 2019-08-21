@@ -1,0 +1,85 @@
+---
+- name: Authorization | Templates list
+  set_fact:
+    auth_role_templates:
+      - { name: namespace, file: auth-namespace.yml, type: ns }
+      - { name: namespace, file: auth-configmap.yml, type: cm }
+
+- name: Authorization | Create manifests
+  template:
+    src: "{{ item.file }}.j2"
+    dest: "{{ grayskull_dir }}/{{ item.file }}"
+  with_items: "{{ auth_role_templates }}"
+  register: auth_role_manifests
+  when:
+    - inventory_hostname == groups['kube-master'][0]
+
+- name: Authorization | Apply manifests
+  kube:
+    name: "{{ item.item.name }}"
+    namespace: "{{ auth_namespace }}"
+    kubectl: "{{ bin_dir }}/kubectl"
+    resource: "{{ item.item.type }}"
+    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    state: "latest"
+  with_items: "{{ auth_role_manifests.results }}"
+  when:
+    - inventory_hostname == groups['kube-master'][0]
+
+- name: Authorization | Create secret/auth directory
+  file:
+    path: "{{ auth_secrets_dir }}"
+    state: directory
+    mode: 0755
+
+- name: Authorization | Move passwd file
+  copy: 
+    src: "files/secrets/password"
+    dest: "{{ auth_passwd_file }}"
+    mode: 0755
+
+
+#---- Create certificate from kubernetes CA. Allows oidc to trust kubernetes ca
+- name: Certificate Tasks | Create a cert
+  shell: "cd {{ grayskull_dir }} && {{ bin_dir }}/cfssl gencert -ca {{ ingress_ca_cert }} -ca-key {{ ingress_ca_key }} csr.json | {{ bin_dir }}/cfssljson -bare {{ grayskull_dir }}/kube-cert"
+
+- name: Certificate Tasks | Create a certificate chain
+  shell: "cat {{ grayskull_dir }}/kube-cert.pem {{ ingress_ca_cert }} > {{ grayskull_dir }}/kube-chain.crt"
+
+- name: Certificate Tasks | Copy kube-chain to secrets dir
+  shell: "cp {{ grayskull_dir }}/kube-cert.pem {{ auth_secrets_dir }}/tls.crt"
+
+- name: Certificate Tasks | Copy kube-cert-key to secrets dir
+  shell: "cp {{ grayskull_dir }}/kube-cert-key.pem {{ auth_secrets_dir }}/tls.key"
+
+
+#---- Create secret
+
+- name: Authorization | Check for secret
+  shell: "{{ bin_dir }}/kubectl get secrets -n {{ auth_namespace }}"
+  register: auth_secret_exists
+  changed_when: false
+
+- name: Authorization | Create secret
+  shell: "{{ bin_dir }}/kubectl create secret generic {{ ingress_secretName }} --from-file {{ ingress_tls_cert }} --from-file {{ ingress_tls_key }} --from-file ca.crt=/etc/kubernetes/ssl/ca.crt -n {{ auth_namespace }}"
+  when: "ingress_secretName not in auth_secret_exists.stdout"
+
+- name: Authorization | Create pass secret
+  shell: "{{ bin_dir }}/kubectl create secret generic {{ auth_passwd_secretName }} --from-file {{ auth_passwd_file }} -n {{ auth_namespace }}"
+  when: "auth_passwd_secretName not in auth_secret_exists.stdout"
+
+
+#---- Deploy chart and templates
+- name: Authorization | Add repo
+  shell: "{{ bin_dir }}/helm repo add codecentric https://codecentric.github.io/helm-charts"
+
+- name: Authorization | Deploy chart
+  helm_chart:
+    name: gsp-auth
+    namespace: "{{ auth_namespace }}"
+    bin_dir: "{{ bin_dir }}"
+    chart_src: codecentric/keycloak
+    chart_version: 4.14.2
+    upgrade: no
+    atomic: no # We only use the atomic option on charts that are prone to fail, as it slows down deploy.
+    path_to_values: "{{ grayskull_dir }}/customizations/keycloak.yml"

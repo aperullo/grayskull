@@ -11,7 +11,6 @@ This document represents instructions on how to deploy grayskull and its service
 - When using Kubespray use Centos for all K8s nodes.
 - Firewall on the nodes will need to be off, or set up to allow only the correct ports
 `sudo systemctl stop firewalld`
-- (Optional) AWS command line tool through an account for provisioning nodes.
 
 Run the git command to load the submodule:
 `git submodule update --init --recursive`
@@ -20,6 +19,7 @@ Run the git command to load the submodule:
 
 - Ansible version `2.7.10`
 - Hashicorp terraform
+- (Optional) AWS command line tool through an account for provisioning nodes.
 
 ## Process
 
@@ -30,7 +30,7 @@ If your aws command line tool is set up, you can navigate to `kubernetes/terrafo
 1. `terraform plan`. Verify the plan looks as you expect
 2. `terraform apply`. Provision the VMs.
 3. `scripts/generate_inventory > ../ansible/inventory/myinv.ini`. Create an ansible inventory to be used later
-4. `scripts/generate_ssh_config > /tmp/ssh_config`. Create a temporary set of ssh credentials for you and ansible to use on the VMs
+4. `scripts/generate_ssh_config > /tmp/ssh_config`. Create a temporary set of ssh credentials for you and ansible to use on the VMs.
 5. `eval $(ssh-agent)`
 6. `ssh-add ~/.ssh/grayskull-admin`
 
@@ -43,7 +43,7 @@ An example inventory is available in `kubernetes/ansible/inventory/ma.ini` for u
 1. From inside the root of the `kubernetes/ansible` directory, run the ansible playbook with
 
 ```
-> ansible-playbook -i <inventory_settings> -b playbooks/kubespray/cluster.yml
+> ansible-playbook -i inventory/<inventory_settings>.ini -b playbooks/kubespray/cluster.yml
 ... *********************************************************************************************************************************************************************************************************************************************************************
 localhost                  : ok=1    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 node1                      : ok=436  changed=73   unreachable=0    failed=0    skipped=622  rescued=0    ignored=0
@@ -63,7 +63,7 @@ TODO: Rook custom resource definitions need annonation for https://helm.sh/docs/
 You will need a corrected kubeconfig file to be able to send commands to the cluster.
 
 ```
-> ansible-playbook -i inventory/staging.ini playbooks/credentials.yml
+> ansible-playbook -i inventory/<inventory_settings>.ini playbooks/credentials.yml
 TASK [debug] *********************************************************************************************************
 ok: [localhost] => {
     "msg": [
@@ -74,7 +74,7 @@ ok: [localhost] => {
 
 Find the file in the location the task mentions and combine it with your kubeconfig.
  
-Get the kube config file and merge it with your current to allow remote administration of the new cluster.
+One way to merge with your current to allow remote administration of the new cluster is the following:
 ```
 > cp ~/.kube/config ~/.kube/config.old      # Backup the old config in case something goes wrong.
 > KUBECONFIG=tmp/grayskull/admin.conf:~/.kube/config.old kubectl config view --flatten > ~/.kube/config       # merge your current kubernetes config with the one obtained from the master.
@@ -94,23 +94,35 @@ Switched to context "kubernetes-admin@cluster.local".
 kubernetes-admin@cluster.local
 ```
 
-### Run platform playbook
+### Deploy grayskull
+
+#### Secrets
+
+As part of the deploy we need to specify some secrets to manually. 
+
+Keycloak password:
+1. Create a file called `password` in `kubernetes/ansible/playbooks/roles/auth_role/files/secrets`
+2. Fill this file with some value, like `admin`.
+
+
+#### Run platform playbook
 
 In this step we deploy grayskull itself. Grayskull is the platform, it deploys several services:
 - An ingress load balancer
 - Rook-ceph storage operator
 - Keycloak authenticator
 - A kubernetes dashboard
+- An ELK stack
 - Prometheus metrics database
 
 To enable or disable these roles, you can set `<role_name>_enabled=True/False` in the inventory.
 
 In `kubernetes/ansible/playbooks` run 
 ```
-> ansible-playbook -i <inventory_settings> grayskull.yml
+> ansible-playbook -i <inventory_settings>.ini playbooks/grayskull.yml
 
 PLAY RECAP ***********************************************************
-node1: ok=5    changed=5    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+node1: ok=61    changed=61    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ``` 
 
 ### Customizing the deployment
@@ -128,7 +140,7 @@ These values are for customizing the manifests within roles.
 `kubernetes/ansible/playbooks/roles/<role>/vars/main.yml` - Contains custom variable definitions that override the defaults
 
 #### Inventory settings
-`kubernetes/ansible/inventory/group-vars/k8s-cluster/kube-master.yml` - Contains deploy wide variable defintions
+`kubernetes/ansible/inventory/group-vars/k8s-cluster/k8s-cluster.yml` - Contains deploy wide variable defintions, mostly for OIDC.
 
 ### Ingress controller
 The ingress controller acts as a reverse proxy allowing services inside K8s to be reached from outside the cluster. It is deployed automatically; however, you have to redirect your dns to the top level domain you want to use for the services. See [wildcard DNS docs](../docs/wildcard-dns.md). 
@@ -147,6 +159,8 @@ Use the token to log in to dashboard. (`admin.gsp.test` by default)
 
 ### Rook - S3/Object Storage
 
+To learn how to request persistent storage from the rook operator, see the [platform usage example](../examples/k8s/platform-usage/readme.md).
+
 For more details and full walkthrough, see the rook [object storage documents](https://rook.io/docs/rook/master/ceph-object.html).
 
 You can find the rook-toolkit in `kubernetes/tools/ceph-toolbox.yaml`.
@@ -158,7 +172,7 @@ To get into the rook toolkit:
 
 ### Rook Ceph dashboard
 
-Make the customizations to the `ceph.yml` to configure where the dashboard appears.
+Make the customizations to the `ceph.yml` to configure where the dashboard appears. `ceph.gsp.test` by default.
 
 For more details and full walkthrough, see [rook ceph dashboard docs](https://rook.io/docs/rook/master/ceph-dashboard.html).
 
@@ -171,11 +185,31 @@ hjA2A4kndL
 
 ### Keycloak
 
-TODO: fill out keycloak section 
+Keycloak is configured automatically. Customize it by making changes to `customizations/keycloak.yml`. The default username for keycloak is `keycloak` and the password is specified by you as part of running the grayskull playbook.
+
+This keycloak instance is automatically set up to look for an internal LDAP in the same namespace as it. To deploy the example one:
+
+```
+> kubectl -n grayskull-auth apply -f ../manifests/ldap.yml
+deployment.apps/ldap created
+service/ldap created
+configmap/ldif created
+```
+
+Before anyone can authenticate with keycloak, you must log in to keycloak -> clients -> kubernetes, go to the credentials tab, and hit *regenerate secret*.
+
+#### As an identity provider
+
+Keycloak exists to act as an **identity provider** to the kubernetes api through OIDC. This way developers can be provided access to work and develop inside their own namespace without having to give them access to the entire kubernetes cluster. 
+
+The LDAP contains the user accounts associated with the developers; their accounts are also assigned to groups inside the LDAP indicating which namespace they should be given access to. Keycloak handles logging in the users, it then maps them to corresponding groups inside keycloak. Finally it constructs an OIDC identity token and refresh token, which it provides to **kubelogin**, which is a kubectl-client wrapper for OIDC. 
+
+For detailed set up instructions if you are a developer trying to get access to a cluster, see the *Keycloak/Authentication* of the [Grayskull guide for teams](Grayskull_Guide_for_teams.md). 
+
 
 ### Set up admin role and namespaced roles
 
-TODO: Revisit once proper way of doing auth is created.
+**OUTDATED**: This material is outdated, see *as an identity provider* for the proper way to authenticate now. This section kept for historical reference.
 
 K8s comes with a `cluster-admin` role which can do anything in any namespace. It also comes with an `admin` which is the same, but for a single namespace.
 
@@ -223,7 +257,7 @@ metadata:
 This will create a secret token which you can retrieve with:
 
 ```
-> kcl get secrets -n caching
+> kubectl get secrets -n caching
 NAME                               TYPE                                  DATA   AGE
 jane-token-hnwwf   kubernetes.io/service-account-token   3      23h
 

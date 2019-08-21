@@ -3,6 +3,9 @@
 {{ host.name }} ansible_host={{ host.private_dns }} ip={{ host.private_ip }} ansible_user=maintuser ansible_ssh_host={{ host.public_dns }} public_ip={{ host.public_ip }}
 {% endfor %}
 
+[all:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
 [kube-master]
 {% for host in instances -%}
 {% if host.type == "master" -%}
@@ -25,7 +28,6 @@ helm_enabled=True
 supplementary_addresses_in_ssl_keys='["{{ instances|join('", "', attribute='public_ip') }}"]'
 grayskull_dir=/grayskull
 grayskull_name=gsp
-helm_enabled=True
 bin_dir=/usr/local/bin
 
 [etcd]

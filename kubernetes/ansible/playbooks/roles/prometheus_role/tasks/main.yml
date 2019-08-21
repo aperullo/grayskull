@@ -37,7 +37,7 @@
   shell: "{{ bin_dir }}/kubectl create secret generic {{ ingress_secretName }} --from-file {{ ingress_tls_cert }} --from-file {{ ingress_tls_key }} -n {{ prometheus_namespace }}"
   when: "ingress_secretName not in prometheus_secret_exists.stdout"
 
-- name: Prometheus | Deploy chart
+- name: Prometheus | Deploy chart operator
   helm_chart:
     name: gsp-prometheus
     namespace: "{{ prometheus_namespace }}"
@@ -45,4 +45,6 @@
     chart_src: stable/prometheus-operator
     chart_version: 5.12.3
     upgrade: no
+    atomic: no
     path_to_values: "{{ grayskull_dir }}/customizations/prometheus.yml"
+
