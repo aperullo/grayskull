@@ -1,4 +1,6 @@
 controller:
+  config:
+    proxy-buffer-size: "64k"
   hostNetwork: true 
   dnsPolicy: ClusterFirstWithHostNet
   daemonset:

@@ -24,6 +24,7 @@
     - { role: auth_role, vars: { task_mode: 'remove' }, when: (auth_role_enabled | default(True)) }
     - { role: elk_role, vars: { task_mode: 'remove' }, when: (elk_role_enabled | default(True)) }
     - { role: dashboard_role, vars: { task_mode: 'remove' }, when: (dashboard_role_enabled | default(True)) }
+    - { role: dash_proxy_role, vars: { task_mode: 'remove' }, when: (dash_proxy_role_enabled | default(True)) }  
     - { role: ion_role, vars: { task_mode: 'remove', ms_name: "cdr", ms_namespace: "cdr", is_cluster_admin: false }, when: (ion_role_enabled | default(True)) }
     - { role: ion_role, vars: { task_mode: 'remove', ms_name: "transform", ms_namespace: "transform", is_cluster_admin: false }, when: (ion_role_enabled | default(True)) }
     - { role: ion_role, vars: { task_mode: 'remove', ms_name: "replication", ms_namespace: "replication", is_cluster_admin: false }, when: (ion_role_enabled | default(True)) }

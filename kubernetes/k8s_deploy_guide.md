@@ -196,7 +196,7 @@ service/ldap created
 configmap/ldif created
 ```
 
-Before anyone can authenticate with keycloak, you must log in to keycloak -> clients -> kubernetes, go to the credentials tab, and hit *regenerate secret*.
+Before anyone can authenticate with keycloak, you must give them the client secret. Go to keycloak -> clients -> kubernetes, go to the credentials tab, and copy the `client secret`.
 
 #### As an identity provider
 
@@ -207,7 +207,7 @@ The LDAP contains the user accounts associated with the developers; their accoun
 For detailed set up instructions if you are a developer trying to get access to a cluster, see the *Keycloak/Authentication* of the [Grayskull guide for teams](Grayskull_Guide_for_teams.md). 
 
 
-### Set up admin role and namespaced roles
+### OUDATED: Set up admin role and namespaced roles
 
 **OUTDATED**: This material is outdated, see *as an identity provider* for the proper way to authenticate now. This section kept for historical reference.
 

@@ -152,7 +152,8 @@ class KubeManager(object):
             else:
                 return "Release already exists, not upgrading. Use state: 'latest' parameter to override.", "skip"
 
-        elif self.state == 'present':
+
+        elif self.state == 'present' or self.state == 'latest':
         # not deployed, install it
             return self.install_chart()
 

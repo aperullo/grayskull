@@ -498,8 +498,8 @@ data:
         "surrogateAuthRequired" : false,
         "enabled" : true,
         "clientAuthenticatorType" : "client-secret",
-        "secret" : "**********",
-        "redirectUris" : [ "https://auth.gsp.test/auth/oauth/callback", "http://localhost:18000", "http://localhost:8000" ],
+        "secret" : "{{ client_UUID | default('') }}",
+        "redirectUris" : [ "https://auth.gsp.test/auth/oauth/callback", "http://localhost:18000", "http://localhost:8000", "http://admin.gsp.test/oauth/callback", "https://admin.gsp.test/oauth/callback" ],
         "webOrigins" : [ ],
         "notBefore" : 0,
         "bearerOnly" : false,
@@ -541,6 +541,32 @@ data:
             "claim.name" : "groups",
             "multivalued" : "true",
             "userinfo.token.claim" : "true"
+          }
+        }, {
+          "id" : "2b8a88d5-3c6c-4eaf-9f4a-70aca9a7d207",
+          "name" : "aud",
+          "protocol" : "openid-connect",
+          "protocolMapper" : "oidc-audience-mapper",
+          "consentRequired" : false,
+          "config" : {
+            "included.client.audience" : "kubernetes",
+            "id.token.claim" : "true",
+            "access.token.claim" : "true"
+          }
+        }, {
+          "id" : "1f844561-d1e7-4b81-b508-18803611b694",
+          "name" : "proxy-groups",
+          "protocol" : "openid-connect",
+          "protocolMapper" : "oidc-usermodel-client-role-mapper",
+          "consentRequired" : false,
+          "config" : {
+            "usermodel.clientRoleMapping.rolePrefix" : "kubernetes:",
+            "multivalued" : "true",
+            "userinfo.token.claim" : "true",
+            "id.token.claim" : "true",
+            "access.token.claim" : "true",
+            "claim.name" : "groups",
+            "usermodel.clientRoleMapping.clientId" : "kubernetes"
           }
         } ],
         "defaultClientScopes" : [ "web-origins", "role_list", "profile", "roles", "email" ],
