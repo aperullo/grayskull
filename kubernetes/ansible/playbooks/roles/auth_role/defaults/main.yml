@@ -13,3 +13,6 @@ ingress_tls_key: "{{ auth_secrets_dir }}/tls.key"
 ingress_ca_cert: "/etc/kubernetes/ssl/ca.crt"
 ingress_ca_key: "/etc/kubernetes/ssl/ca.key"
 
+task_mode: "install"
+
+helm_keycloak_name: "{{ platform_prefix }}-keycloak"

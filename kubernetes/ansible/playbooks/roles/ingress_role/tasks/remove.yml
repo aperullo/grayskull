@@ -1,0 +1,36 @@
+---
+- name: Ingress | Templates list
+  set_fact:
+    ingress_role_templates:
+      - { name: namespace, file: ingress-namespace.yml, type: ns }
+
+- name: Ingress | Create manifests
+  template:
+    src: "{{ item.file }}.j2"
+    dest: "{{ grayskull_dir }}/{{ item.file }}"
+  with_items: "{{ ingress_role_templates }}"
+  register: ingress_role_manifests
+  when:
+    - inventory_hostname == groups['kube-master'][0]
+
+- name: Ingress | Remove chart
+  helm_chart:
+    name: "{{ helm_ingress_name }}"
+    namespace: "{{ ingress_namespace }}"
+    bin_dir: "{{ bin_dir }}"
+    chart_src: stable/nginx-ingress
+    chart_version: 1.6.16
+    state: absent
+    path_to_values: "{{ grayskull_dir }}/customizations/nginx-ingress.yml"
+
+- name: Ingress | Remove manifest products
+  kube:
+    name: "{{ item.item.name }}"
+    namespace: "{{ ingress_namespace }}"
+    kubectl: "{{ bin_dir }}/kubectl"
+    resource: "{{ item.item.type }}"
+    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    state: "absent"
+  with_items: "{{ ingress_role_manifests.results }}"
+  when:
+    - inventory_hostname == groups['kube-master'][0]

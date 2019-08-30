@@ -1,0 +1,57 @@
+---
+# This playbook triggers a series of tasks which uninstall/remove the various platform services 
+# and objects created/deployed by grayskull.
+
+- hosts: kube-setup-delegate
+  become: yes
+  tasks:
+  # For the other roles to run we need this directory and tiller set up. We'll tear them down later
+  - name: Teardown | Create grayskull directory
+    file:
+      path: "{{ grayskull_dir }}"
+      state: directory
+
+  - name: Teardown | Set up Helm and Tiller
+    command: "{{ bin_dir }}/helm init --service-account tiller --wait"
+    register: helm_init_result
+    changed_when: "'already installed' not in helm_init_result.stdout"
+
+- hosts: kube-setup-delegate
+  become: yes
+  roles:
+    - { role: ingress_role, vars: { task_mode: 'remove' }, when: (ingress_role_enabled | default(True)) }
+    # Auth and elk rely on rook for storage so they must be deleted first or the pods will enter limbo.
+    - { role: auth_role, vars: { task_mode: 'remove' }, when: (auth_role_enabled | default(True)) }
+    - { role: elk_role, vars: { task_mode: 'remove' }, when: (elk_role_enabled | default(True)) }
+    - { role: dashboard_role, vars: { task_mode: 'remove' }, when: (dashboard_role_enabled | default(True)) }
+    - { role: ion_role, vars: { task_mode: 'remove', ms_name: "cdr", ms_namespace: "cdr", is_cluster_admin: false }, when: (ion_role_enabled | default(True)) }
+    - { role: ion_role, vars: { task_mode: 'remove', ms_name: "transform", ms_namespace: "transform", is_cluster_admin: false }, when: (ion_role_enabled | default(True)) }
+    - { role: ion_role, vars: { task_mode: 'remove', ms_name: "replication", ms_namespace: "replication", is_cluster_admin: false }, when: (ion_role_enabled | default(True)) }
+    - { role: ion_role, vars: { task_mode: 'remove', ms_name: "platform", ms_namespace: "platform", is_cluster_admin: true }, when: (ion_role_enabled | default(True)) }
+    - { role: ion_role, vars: { task_mode: 'remove', ms_name: "security", ms_namespace: "security", is_cluster_admin: true }, when: (ion_role_enabled | default(True)) }
+
+# This task needs to be run on all hosts
+- hosts: all
+  become: yes
+  roles:
+    - { role: rook_ceph_role, vars: { task_mode: 'remove' }, when: (rook_ceph_role_enabled | default(True)) } 
+
+# Run the remaining tasks that come after rook.
+- hosts: kube-setup-delegate
+  become: yes
+  roles:
+    # Rook relies on prometheus when the integration is enabled, so it must be deleted first.
+    - { role: rook_cassandra_role, vars: { task_mode: 'remove' }, when: (rook_cassandra_role_enabled | default(True)) }
+    - { role: prometheus_role, vars: { task_mode: 'remove' }, when: (prometheus_role_enabled | default(True)) }   # must be deleted after rook-ceph
+
+# Remove helm and delete the directory.    
+- hosts: kube-setup-delegate
+  become: yes
+  tasks:
+  - name: Teardown | Remove Helm and Tiller
+    command: "{{ bin_dir }}/helm reset"
+
+  - name: Teardown | Remove grayskull directory
+    file:
+      path: "{{ grayskull_dir }}"
+      state: absent

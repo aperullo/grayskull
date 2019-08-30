@@ -1,0 +1,6 @@
+---
+ingress_namespace: grayskull-ingress
+
+task_mode: "install"
+
+helm_ingress_name: "{{ platform_prefix }}-ingress"

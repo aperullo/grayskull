@@ -1,0 +1,67 @@
+#---- Remove the charts
+- name: ELK | Remove Elasticsearch chart
+  helm_chart:
+    name: "{{ helm_elasticsearch_name }}"
+    namespace: "{{ elk_namespace }}"
+    bin_dir: "{{ bin_dir }}"
+    chart_src: elastic/elasticsearch
+    chart_version: 7.1.1
+    state: absent
+    path_to_values: "{{ grayskull_dir }}/customizations/elasticsearch.yml"
+
+- name: ELK | Remove Kibana chart
+  helm_chart:
+    name: "{{ helm_kibana_name }}"
+    namespace: "{{ elk_namespace }}"
+    bin_dir: "{{ bin_dir }}"
+    chart_src: elastic/kibana
+    chart_version: 7.1.1
+    state: absent
+    path_to_values: "{{ grayskull_dir }}/customizations/kibana.yml"
+
+- name: ELK | Remove Logstash chart
+  helm_chart:
+    name: "{{ helm_logstash_name }}"
+    namespace: "{{ elk_namespace }}"
+    bin_dir: "{{ bin_dir }}"
+    chart_src: stable/logstash
+    chart_version: 1.13.0
+    state: absent
+    path_to_values: "{{ grayskull_dir }}/customizations/logstash.yml"
+
+- name: ELK | Remove fluentd chart
+  helm_chart:
+    name: "{{ helm_fluentd_name }}"
+    namespace: "{{ elk_namespace }}"
+    bin_dir: "{{ bin_dir }}"
+    chart_src: stable/fluentd
+    chart_version: 1.10.0
+    state: absent
+    path_to_values: "{{ grayskull_dir }}/customizations/fluentd.yml"
+
+#---- Copy over the templates to be used with kubectl delete -f. 
+- name: ELK | Templates list
+  set_fact:
+    elk_role_templates:
+      - { name: namespace, file: elk-namespace.yml, type: ns }
+
+- name: ELK | Create manifests
+  template:
+    src: "{{ item.file }}.j2"
+    dest: "{{ grayskull_dir }}/{{ item.file }}"
+  with_items: "{{ elk_role_templates }}"
+  register: elk_role_manifests
+  when:
+    - inventory_hostname == groups['kube-master'][0]
+
+- name: ELK | Remove manifest products
+  kube:
+    name: "{{ item.item.name }}"
+    namespace: "{{ elk_namespace }}"
+    kubectl: "{{ bin_dir }}/kubectl"
+    resource: "{{ item.item.type }}"
+    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    state: "absent"
+  with_items: "{{ elk_role_manifests.results }}"
+  when:
+    - inventory_hostname == groups['kube-master'][0]

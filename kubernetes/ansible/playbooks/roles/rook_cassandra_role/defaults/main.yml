@@ -2,3 +2,4 @@
 rook_cas_namespace: "default"   # Represents which namespace the actual cluster is deployed to
 rook_cas_op_namespace: "grayskull-cassandra"   # where the operator will live
 
+task_mode: "install"

@@ -1,0 +1,30 @@
+---
+#---- Template and apply manifests
+- name: Rook Cassandra | Templates list
+  set_fact:
+    cassandra_role_templates:
+      - { name: rook-cas-ns, file: rook-cassandra-namespace.yml, type: ns }
+      - { name: rook-cas-crd, file: rook-cassandra-crd.yml, type: crd }
+      - { name: rook-cas-role, file: rook-cassandra-clusterrole.yml, type: clusterrole }
+      - { name: rook-cas-op, file: rook-cassandra-operator.yml, type: statefulset }
+
+- name: Rook Cassandra | Create manifests
+  template:
+    src: "{{ item.file }}.j2"
+    dest: "{{ grayskull_dir }}/{{ item.file }}"
+  with_items: "{{ cassandra_role_templates }}"
+  register: cassandra_role_manifests
+  when:
+    - inventory_hostname == groups['kube-master'][0]
+
+- name: Rook Cassandra | Apply manifests
+  kube:
+    name: "{{ item.item.name }}"
+    namespace: "{{ rook_cas_op_namespace }}"
+    kubectl: "{{ bin_dir }}/kubectl"
+    resource: "{{ item.item.type }}"
+    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    state: "latest"
+  with_items: "{{ cassandra_role_manifests.results }}"
+  when:
+    - inventory_hostname == groups['kube-master'][0]

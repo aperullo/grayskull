@@ -6,3 +6,5 @@
 
 # Don't set this, unless changing the ion prefix.
 ion_ms_namespace: "ion-{{ ms_namespace }}"
+
+task_mode: "install"

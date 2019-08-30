@@ -1,6 +1,6 @@
 ceph:
   mon:
-    count: 4
+    count: 5
   ingress:
     enabled: true
     path: /

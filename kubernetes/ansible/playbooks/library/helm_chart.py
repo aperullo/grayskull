@@ -44,9 +44,18 @@ options:
         default: false
         description:
           - A flag for whether this should upgrade the existing chart or leave it alone. Only matters if chart is already deployed.
+    state:
+        required: false
+        choices: ['present', 'absent', 'latest']
+        default: present
+        description:
+          - present checks existence or creating if definition file provided,
+            absent handles deleting resource(s) if exists,
+            latest creates or upgrades based on existence
+
     atomic:
         required: false
-        default: true
+        default: false
         description:
           - A flag for whether this should try to install atomically.
 
@@ -63,7 +72,7 @@ EXAMPLES = """
     bin_dir: /usr/local/bin
     chart_src: stable/postgresql
     chart_version: 5.3.11
-    upgrade: yes
+    state: present
     path_to_values: "/dest/postgresql-value.yml"
 
 
@@ -86,8 +95,12 @@ class KubeManager(object):
         self.chart_src = module.params.get('chart_src')
         self.chart_version = module.params.get('chart_version')
         self.path_to_values = module.params.get('path_to_values')
-        self.upgrade = module.params.get('upgrade')
+        self.state = module.params.get('state')
         self.atomic = module.params.get('atomic')
+
+        # Format the commands
+        self.kubectl_cmd = ['{}/kubectl'.format(self.bin_dir)]
+        self.helm_cmd = ['{}/helm'.format(self.bin_dir)]
 
 
     # Runs the commands after joining them and also handles failing commands.
@@ -103,19 +116,51 @@ class KubeManager(object):
                 msg='error running ({}) command: {}'.format(' '.join(cmd), str(exc)))
         return out, rc == 0
 
+
     def _execute_nofail(self, cmd):
         rc, out, err = self.module.run_command(' '.join(cmd))
         if rc != 0:
             return err
-        return out, rc == 0
-
+        return out
+        
 
     def fetch_and_apply_chart(self):
         # helm template with values.yml
 
-        self.kubectl_cmd = ['{}/kubectl'.format(self.bin_dir)]
-        self.helm_cmd = ['{}/helm'.format(self.bin_dir)]
+        result, success = self.create_namespace()
 
+        if not success:
+        # we couldn't create the namespace for some reason
+            return result, success
+
+        # Get all release names
+        chart_check_cmd = self.helm_cmd[:]
+        chart_check_cmd.append('list')
+        chart_check_cmd.append('--short')
+        result, __ = self._execute(chart_check_cmd)
+
+        # Does the release name already exist?
+        if self.name in result:
+        # already deployed
+
+            if self.state == 'latest':    # upgrade chart
+                return self.upgrade_chart()
+
+            elif self.state == 'absent': # it exists and we don't want it to
+                return self.delete_chart()
+            
+            else:
+                return "Release already exists, not upgrading. Use state: 'latest' parameter to override.", "skip"
+
+        elif self.state == 'present':
+        # not deployed, install it
+            return self.install_chart()
+
+        else:
+            return "Nothing to be done", "skip"
+
+
+    def create_namespace(self):
         # Don't make a namespace if it exists already
         if self.namespace:
             ns_check_cmd = self.kubectl_cmd[:]
@@ -130,75 +175,74 @@ class KubeManager(object):
                 ns_create_cmd.append(self.namespace)
 
                 result, success = self._execute(ns_create_cmd)
+                return result, success
 
-                if not success:     # we couldn't create the namespace for some reason
-                    return result, success
-
-        chart_check_cmd = self.helm_cmd[:]
-        chart_check_cmd.append('list')
-        chart_check_cmd.append('--short')
-        result, __ = self._execute(chart_check_cmd)
-
-        if self.name in result:
-        # already deployed
-
-            if self.upgrade:    # upgrade chart
-
-                # run helm upgrade
-                chart_upgrade_cmd = self.helm_cmd[:]
-                chart_upgrade_cmd.append('upgrade')
-                chart_upgrade_cmd.append(self.name)
-                chart_upgrade_cmd.append(self.chart_src)
-                if self.atomic:
-                    chart_upgrade_cmd.append('--atomic')    # lets make sure deploy either worked or nothing changed
-
-                if self.path_to_values:
-                    chart_upgrade_cmd.append('--values')
-                    chart_upgrade_cmd.append(self.path_to_values)
-
-                if self.namespace:
-                    chart_upgrade_cmd.append('--namespace')
-                    chart_upgrade_cmd.append(self.namespace)
-
-                if self.chart_version:
-                    chart_upgrade_cmd.append('--version')
-                    chart_upgrade_cmd.append(self.chart_version)
+            return "No namespace made", True
 
 
+    def upgrade_chart(self):
+        # run helm upgrade
 
-                return self._execute(chart_upgrade_cmd)
+        chart_upgrade_cmd = self.helm_cmd[:]
+        chart_upgrade_cmd.append('upgrade')
+        chart_upgrade_cmd.append(self.name)
+        chart_upgrade_cmd.append(self.chart_src)
+        if self.atomic:
+            chart_upgrade_cmd.append('--atomic')    # lets make sure deploy either worked or nothing changed
 
-            else:
-                return "Release already exists, not upgrading. Use upgrade parameter to override.", "skip"
+        if self.path_to_values:
+            chart_upgrade_cmd.append('--values')
+            chart_upgrade_cmd.append(self.path_to_values)
 
-        else:
-        # not deployed, install it
+        if self.namespace:
+            chart_upgrade_cmd.append('--namespace')
+            chart_upgrade_cmd.append(self.namespace)
 
-            # run helm install
-            chart_install_cmd = self.helm_cmd[:]
-            chart_install_cmd.append('install')
-            chart_install_cmd.append(self.chart_src)
-            chart_install_cmd.append('--name')
-            chart_install_cmd.append(self.name)
+        if self.chart_version:
+            chart_upgrade_cmd.append('--version')
+            chart_upgrade_cmd.append(self.chart_version)
 
-            if self.atomic:
-                chart_install_cmd.append('--atomic')    # lets make sure deploy either worked or nothing changed
-
-            if self.path_to_values:
-                chart_install_cmd.append('--values')
-                chart_install_cmd.append(self.path_to_values)
-
-            if self.namespace:
-                chart_install_cmd.append('--namespace')
-                chart_install_cmd.append(self.namespace)
-
-            if self.chart_version:
-                chart_install_cmd.append('--version')
-                chart_install_cmd.append(self.chart_version)
-
-            return self._execute(chart_install_cmd)
+        return self._execute(chart_upgrade_cmd)
 
 
+    def install_chart(self):
+        # run helm install
+
+        chart_install_cmd = self.helm_cmd[:]
+        chart_install_cmd.append('install')
+        chart_install_cmd.append(self.chart_src)
+        chart_install_cmd.append('--name')
+        chart_install_cmd.append(self.name)
+
+        if self.atomic:
+            chart_install_cmd.append('--atomic')    # lets make sure deploy either worked or nothing changed
+
+        if self.path_to_values:
+            chart_install_cmd.append('--values')
+            chart_install_cmd.append(self.path_to_values)
+
+        if self.namespace:
+            chart_install_cmd.append('--namespace')
+            chart_install_cmd.append(self.namespace)
+
+        if self.chart_version:
+            chart_install_cmd.append('--version')
+            chart_install_cmd.append(self.chart_version)
+
+        return self._execute(chart_install_cmd)
+
+
+    def delete_chart(self):
+        # run helm delete 
+
+        chart_install_cmd = self.helm_cmd[:]
+        chart_install_cmd.append('delete')
+        chart_install_cmd.append(self.name)
+        chart_install_cmd.append('--purge')
+
+        return self._execute(chart_install_cmd)
+
+            
 def main():
 
     module = AnsibleModule(
@@ -209,8 +253,8 @@ def main():
             'chart_src': {'required': True, 'type': 'str'},
             'chart_version': {'required': True, 'type': 'str'},
             'path_to_values': {'required': False, 'type': 'str'},
-            'upgrade': {'default': False, 'type': 'bool'},
-            'atomic': {'default': True, 'type': 'bool'},
+            'state': {'default': 'present', 'type': 'str'},
+            'atomic': {'default': False, 'type': 'bool'},
             'bin_dir': {'required': True, 'type': 'str'}
         }
     )
@@ -219,8 +263,11 @@ def main():
 
     result, changed = manager.fetch_and_apply_chart()
 
-    
-    module.exit_json(changed= changed if changed != "skip" else False,
+    # Changed can be either true, false, or "skip". Once we know its not a string
+    # we know its a boolean, so we can use its value as boolean like in "changed".
+    # Meanwhile the expression next to "skipped" will handle converting it to a 
+    # boolean if its a string.
+    module.exit_json(changed = changed if changed != "skip" else False,
                     skipped = True if changed == "skip" else False,
                      msg='success: {}'.format(result)
                      )

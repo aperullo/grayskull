@@ -1,0 +1,38 @@
+#---- Template and apply manifests
+- name: Dashboard | Templates list
+  set_fact:
+    dashboard_role_templates:
+      - { name: dashboard-ing, file: dashboard-ingress.yml, type: ing }
+      - { name: dashboard-sa, file: dashboard-service-account.yml, type: sa }
+      - { name: dashboard-rb, file: dashboard-rolebinding.yml, type: rolebinding }
+
+- name: Dashboard | Create manifests
+  template:
+    src: "{{ item.file }}.j2"
+    dest: "{{ grayskull_dir }}/{{ item.file }}"
+  with_items: "{{ dashboard_role_templates }}"
+  register: dashboard_role_manifests
+  when:
+    - inventory_hostname == groups['kube-master'][0]
+
+- name: Dashboard | Remove manifest products
+  kube:
+    name: "{{ item.item.name }}"
+    namespace: "kube-system"
+    kubectl: "{{ bin_dir }}/kubectl"
+    resource: "{{ item.item.type }}"
+    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    state: "latest"
+  with_items: "{{ dashboard_role_manifests.results }}"
+  when:
+    - inventory_hostname == groups['kube-master'][0]
+
+#---- Delete secret
+- name: Dashboard | Check for secret
+  shell: "{{ bin_dir }}/kubectl get secrets -n kube-system"
+  register: dashboard_secret_exists
+  changed_when: false
+
+- name: Dashboard | Remove secret
+  shell: "{{ bin_dir }}/kubectl delete secret {{ ingress_secretName }} -n kube-system"
+  when: "ingress_secretName in dashboard_secret_exists.stdout"
