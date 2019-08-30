@@ -1,0 +1,31 @@
+
+---
+- name: Setup | Stat for UUID file
+  stat:
+    path: "{{ grayskull_dir }}/customizations/uuid"
+  register: stat_result
+
+- name: Setup | Check for UUID file or create
+  when: stat_result is defined and not stat_result.stat.exists
+  block: 
+  - name: Setup | Generate UUID
+    set_fact: 
+      client_UUID: "{{ 99999999 | random | to_uuid }}"
+      cacheable: no
+      
+  - name: Setup | Write UUID to file
+    copy: 
+      content: "{{ client_UUID }}"
+      dest: "{{ grayskull_dir }}/customizations/uuid"
+
+- name: Setup | Get UUID file contents 
+  when: stat_result is defined and stat_result.stat.exists
+  block:
+  - name: Setup | Slurp file
+    slurp: 
+      src: "{{ grayskull_dir }}/customizations/uuid"
+    register: slurp_contents
+
+  - name: Setup | Reuse UUID
+    set_fact:
+      client_UUID: "{{ slurp_contents.content | b64decode }}"

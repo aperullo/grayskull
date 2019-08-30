@@ -1,0 +1,4 @@
+- name: Dash-proxy | Import tasks for install or remove
+  import_tasks: "{{ task_mode }}.yml"
+
+

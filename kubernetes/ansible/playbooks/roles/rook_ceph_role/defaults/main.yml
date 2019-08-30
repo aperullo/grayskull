@@ -4,6 +4,10 @@ ceph_defaultStorage_enabled: true
 ceph_mon_count: 4
 ceph_objectstore_name: gsp-store
 
+task_mode: "install"
+
+helm_rook_ceph_name: "{{ platform_prefix }}-rook-ceph"
+
 ingress_url: "ceph.gsp.test"
 ingress_secretName: "ceph-gsp-tls" #TODO: make this into admin-gsp-tls
 ingress_path: "/"

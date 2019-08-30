@@ -1,0 +1,18 @@
+proxy:
+  oidc:
+    discoveryURL: https://auth.gsp.test/auth/realms/master
+    clientID: kubernetes
+    clientSecret: 
+    redirectURL: http://admin.gsp.test
+  extraArgs:
+    - --skip-openid-provider-tls-verify
+    - --secure-cookie=false
+
+ingress:
+  enabled: true
+  hosts: 
+    - admin.gsp.test
+  tls:
+    - hosts:
+        - admin.gsp.test
+      secretName: dashboard-gsp-tls

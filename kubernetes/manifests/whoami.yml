@@ -36,3 +36,19 @@ spec:
         app: who
     ports:
       - port: 80
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+    name: ingress-who
+    labels:
+        app: ing
+spec:
+    rules:
+      - host: who.gsp.test
+        http:
+            paths:
+              - backend:
+                    serviceName: who-s
+                    servicePort: 80

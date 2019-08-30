@@ -1,8 +1,14 @@
 keycloak:
-  password: "admin"
+  existingSecret: auth-gsp-passwd
+
+  # https://access.redhat.com/documentation/en-us/red_hat_single_sign-on/7.0/html/server_administration_guide/export_import
+  #extraArgs: "-Dkeycloak.migration.action=export -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/opt/jboss/export.json"
+  #can do this on a running instance by modifying the config map
+  extraArgs: "-Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/opt/jboss/import.json -Dkeycloak.migration.strategy=OVERWRITE_EXISTING"
   persistence:
-    deployPostgres: false
-    dbVendor: h2
+    deployPostgres: true
+    dbVendor: postgres
+
   ingress:
     enabled: true
     path: /auth
@@ -11,4 +17,23 @@ keycloak:
     tls:
       - hosts:
           - auth.gsp.test
-        secretName: keycloak-gsp-tls
+        secretName: auth-gsp-tls
+
+  # Mount the import file
+  # 365 permissions works. 755 doesn't. 
+  extraVolumes: |
+    - name: import-vol
+      configMap:
+        name: auth-import
+        defaultMode: 365 
+  extraVolumeMounts: |
+    - name: import-vol
+      mountPath: /opt/jboss/import.json
+      subPath: import.json
+
+postgresql:
+  postgresqlUser: "keycloak"
+  persistence:
+    enabled: true
+  volumePermissions:
+    enabled: true

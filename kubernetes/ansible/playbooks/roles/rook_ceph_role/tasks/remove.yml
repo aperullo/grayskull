@@ -1,0 +1,108 @@
+---
+- name: Rook Ceph | Master tasks
+  when:
+    - inventory_hostname == groups['kube-master'][0]
+  block:
+  - name: Rook Ceph | Templates list
+    set_fact:
+      rook_ceph_role_templates:
+        - { name: namespace, file: rook-ceph-namespace.yml, type: ns }
+        - { name: block-sc, file: rook-ceph-block-sc.yml, type: sc }
+        - { name: blockpool, file: rook-ceph-cephblockpool.yml, type: CephBlockPool }
+        - { name: objectstore, file: rook-ceph-cephobjectstore.yml, type: CephObjectStore }
+        - { name: cluster, file: rook-ceph-cluster.yml, type: CephCluster }
+        - { name: dashboard-ingress, file: rook-ceph-dashboard-ingress.yml, type: ing }
+        - { name: object-user, file: rook-ceph-object-user.yml, type: CephObjectStoreUser }
+        - { name: prometheus-servicemonitor, file: rook-ceph-prometheus-servicemonitor.yml, type: ServiceMonitor }
+        - { name: prometheusrule, file: rook-ceph-prometheusrule.yml, type: PrometheusRule }
+
+  - name: Rook Ceph | Create manifests
+    template:
+      src: "{{ item.file }}.j2"
+      dest: "{{ grayskull_dir }}/{{ item.file }}"
+    with_items: "{{ rook_ceph_role_templates }}"
+    register: rook_ceph_role_manifests
+
+  #---- remove block and file artifacts
+  # reference: https://github.com/rook/rook/blob/master/Documentation/ceph-teardown.md
+  - name: Rook Ceph | Ignore errors
+    ignore_errors: yes
+    block: 
+    - name: Rook Ceph | Remove replicapool
+      shell: "{{ bin_dir }}/kubectl delete cephblockpool replicapool -n {{ ceph_namespace }}"
+
+    - name: Rook Ceph | Remove storage class
+      shell: "{{ bin_dir }}/kubectl delete storageclass rook-ceph-block -n {{ ceph_namespace }}"
+
+    - name: Rook Ceph | Patch cephcluster finalizer
+      shell: "{{ bin_dir }}/kubectl patch cephcluster rook-ceph --type merge -p '{\"metadata\":{\"finalizers\": [null]}}' -n {{ ceph_namespace }}"
+
+    - name: Rook Ceph | Remove cephcluster
+      shell: "{{ bin_dir }}/kubectl delete cephcluster rook-ceph -n {{ ceph_namespace }}"
+
+  #---- Deploy chart and templates
+  - name: Rook Ceph | Remove chart
+    helm_chart:
+      name: "{{ helm_rook_ceph_name }}"
+      namespace: "{{ ceph_namespace }}"
+      bin_dir: "{{ bin_dir }}"
+      chart_src: rook-release/rook-ceph
+      chart_version: v1.0.2
+      state: absent
+      path_to_values: "{{ grayskull_dir }}/customizations/ceph.yml"
+
+  - name: Rook Ceph | Remove manifest products
+    kube:
+      name: "{{ item.item.name }}"
+      namespace: "{{ ceph_namespace }}"
+      kubectl: "{{ bin_dir }}/kubectl"
+      resource: "{{ item.item.type }}"
+      filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+      state: absent
+    with_items: "{{ rook_ceph_role_manifests.results }}"
+
+  #---- Create secret
+  - name: Rook Ceph | Check for secret
+    shell: "{{ bin_dir }}/kubectl get secrets -n {{ ceph_namespace }}"
+    register: rook_ceph_secret_exists
+    changed_when: false
+
+  - name: Rook Ceph | Remove secret
+    shell: "{{ bin_dir }}/kubectl delete secret {{ ingress_secretName }} -n {{ ceph_namespace }}"
+    when: 
+      - "ingress_secretName in rook_ceph_secret_exists.stdout"
+
+
+  #---- Delete namespace
+
+  - name: Rook Ceph | Delete namespace
+    kube:
+      name: namespace
+      namespace: "{{ ceph_namespace }}"
+      kubectl: "{{ bin_dir }}/kubectl"
+      resource: ns
+      filename: "{{ grayskull_dir }}/rook-ceph-namespace.yml"
+      state: absent
+
+
+#---- Remove all ceph stuff from hosts
+- name: Rook Ceph | Ignore errors
+  ignore_errors: true
+  block:
+  - name: Rook Ceph | Remove rook directory
+    shell: "rm -rf /var/lib/rook"
+
+  - name: Rook Ceph | Zap disk
+    shell: "sgdisk --zap-all /dev/nvme1n1"
+
+  - name: Rook Ceph | Remove device
+    shell: "ls /dev/mapper/ceph-* | xargs -I% -- dmsetup remove %"
+
+  - name: Rook Ceph | Remove Ceph
+    shell: "rm -rf /dev/ceph-*"
+
+  - name: Rook Ceph | Remove Ceph device from mapper
+    shell: "rm -rf /dev/mapper/ceph-*"
+
+
+  

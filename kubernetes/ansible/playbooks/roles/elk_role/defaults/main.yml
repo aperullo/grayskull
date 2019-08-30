@@ -1,6 +1,13 @@
 ---
 elk_namespace: grayskull-logs
 
+task_mode: "install"
+
 ingress_secretName: "elk-gsp-tls"
 ingress_tls_cert: "{{ grayskull_dir }}/secrets/tls.crt"
 ingress_tls_key: "{{ grayskull_dir }}/secrets/tls.key"
+
+helm_elasticsearch_name: "{{ platform_prefix }}-elasticsearch"
+helm_kibana_name: "{{ platform_prefix }}-kibana"
+helm_logstash_name: "{{ platform_prefix }}-logstash"
+helm_fluentd_name: "{{ platform_prefix }}-fluentd"

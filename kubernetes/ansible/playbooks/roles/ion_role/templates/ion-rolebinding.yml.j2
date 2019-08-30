@@ -1,0 +1,14 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: "{{ 'ClusterRoleBinding' if is_cluster_admin else 'RoleBinding' }}"
+metadata:
+  name: "{{ ms_name }}-admin-role"
+  namespace: "{{ ion_ms_namespace }}"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: "{{ 'cluster-admin' if is_cluster_admin else 'admin' }}" # this must match the name of the Role or ClusterRole you wish to bind to
+subjects:
+- kind: Group
+  name: "{{ ms_name }}-admin"
+  namespace: "{{ ion_ms_namespace }}"

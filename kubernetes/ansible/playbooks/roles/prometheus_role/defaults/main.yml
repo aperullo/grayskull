@@ -1,6 +1,10 @@
 ---
 prometheus_namespace: kube-system
 
+task_mode: "install"
+
+helm_prometheus_name: "{{ platform_prefix }}-prometheus"
+
 ingress_secretName: "prom-gsp-tls"
 ingress_tls_cert: "{{ grayskull_dir }}/secrets/tls.crt"
 ingress_tls_key: "{{ grayskull_dir }}/secrets/tls.key"

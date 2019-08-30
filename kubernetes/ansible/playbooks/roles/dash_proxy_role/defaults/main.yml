@@ -1,0 +1,7 @@
+dash_proxy_namespace: kube-system
+dash_proxy_file_location: "{{ grayskull_dir }}/customizations/dash-proxy.yml"
+
+task_mode: "install"
+
+helm_dash_proxy_name: "{{ platform_prefix }}-dash-proxy"
+

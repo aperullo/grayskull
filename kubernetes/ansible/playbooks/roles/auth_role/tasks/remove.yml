@@ -1,0 +1,84 @@
+---
+#---- Remove chart
+- name: Authorization | Remove chart
+  helm_chart:
+    name: "{{ helm_keycloak_name }}"
+    namespace: "{{ auth_namespace }}"
+    bin_dir: "{{ bin_dir }}"
+    chart_src: codecentric/keycloak
+    chart_version: 4.14.2
+    state: absent
+    path_to_values: "{{ grayskull_dir }}/customizations/keycloak.yml"
+
+
+#---- Remove secret
+- name: Authorization | Check for secret
+  shell: "{{ bin_dir }}/kubectl get secrets -n {{ auth_namespace }}"
+  register: auth_secret_exists
+  changed_when: false
+
+- name: Authorization | Remove secret
+  shell: "{{ bin_dir }}/kubectl delete secret {{ ingress_secretName }} -n {{ auth_namespace }}"
+  when: "ingress_secretName in auth_secret_exists.stdout"
+
+- name: Authorization | Remove pass secret
+  shell: "{{ bin_dir }}/kubectl delete secret {{ auth_passwd_secretName }} -n {{ auth_namespace }}"
+  when: "auth_passwd_secretName in auth_secret_exists.stdout"
+
+
+#---- Remove certificate made from kubernetes CA.
+- name: Authorization | Stat secrets directory
+  stat:
+    path: "{{ auth_secrets_dir }}"
+  register: stat_result
+
+- name: Authorization | Check if directory exists
+  when: stat_result is defined and stat_result.stat.exists
+  block:
+  - name: Authorization | Delete auth secrets directory
+    file: 
+      path: "{{ auth_secrets_dir }}"
+      state: absent
+
+  - name: Authorization | Delete kube-cert.pem
+    file: 
+      path: "{{ grayskull_dir }}/kube-cert.pem"
+      state: absent
+
+  - name: Authorization | Delete kube-cert-key.pem
+    file: 
+      path: "{{ grayskull_dir }}/kube-cert-key.pem"
+      state: absent
+
+  - name: Authorization | Delete kube-chain.pem
+    file: 
+      path: "{{ grayskull_dir }}/kube-chain.pem"
+      state: absent
+
+#---- Remove manifests
+- name: Authorization | Templates list
+  set_fact:
+    auth_role_templates:
+      - { name: configmap, file: auth-configmap.yml, type: cm }
+      - { name: namespace, file: auth-namespace.yml, type: ns }
+      
+- name: Authorization | Create manifests
+  template:
+    src: "{{ item.file }}.j2"
+    dest: "{{ grayskull_dir }}/{{ item.file }}"
+  with_items: "{{ auth_role_templates }}"
+  register: auth_role_manifests
+  when:
+    - inventory_hostname == groups['kube-master'][0]
+
+- name: Authorization | Remove manifest products
+  kube:
+    name: "{{ item.item.name }}"
+    namespace: "{{ auth_namespace }}"
+    kubectl: "{{ bin_dir }}/kubectl"
+    resource: "{{ item.item.type }}"
+    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    state: absent
+  with_items: "{{ auth_role_manifests.results }}"
+  when:
+    - inventory_hostname == groups['kube-master'][0]

@@ -1,0 +1,32 @@
+#---- Amend customizations with UUID secret
+- name: Dash-proxy | Stat secrets directory
+  stat:
+    path: "{{ dash_proxy_file_location }}"
+  register: stat_result
+
+- name: Dash-proxy | Check for file or fail
+  fail:
+    msg: "{{ dash_proxy_file_location }} does not exist, can't add UUID so can't deploy dash-proxy. Ensure the file got copied"
+  when: stat_result is defined and not stat_result.stat.exists
+
+- name: Dash-proxy | Amend customization file with UUID
+  lineinfile:
+    path: "{{ dash_proxy_file_location }}"
+    regexp: '.*clientSecret: '
+    line: "    clientSecret: {{ client_UUID }}"
+
+
+#---- Deploy chart
+- name: Dash-proxy | Add repo
+  shell: "{{ bin_dir }}/helm repo add int128.github.io https://int128.github.io/helm-charts"
+
+- name: Dash-proxy | Deploy chart
+  helm_chart:
+    name: "{{ helm_dash_proxy_name }}"
+    namespace: "{{ dash_proxy_namespace }}"
+    bin_dir: "{{ bin_dir }}"
+    chart_src: int128.github.io/kubernetes-dashboard-proxy
+    chart_version: 1.6.0
+    path_to_values: "{{ grayskull_dir }}/customizations/dash-proxy.yml"
+
+#TODO: see about making the adding the cert so keycloak proxy can use it, and removing insecure params from customization file.
