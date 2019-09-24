@@ -127,9 +127,9 @@ services:
       mode: global
       resources:
         limits:
-          memory: 128m
+          memory: {{cadvisor_memory_limit}}
         reservations:
-          memory: 64m
+          memory: {{cadvisor_memory_reservation}}
     command:
       - '--path.sysfs=/host/sys'
       - '--path.procfs=/host/proc'

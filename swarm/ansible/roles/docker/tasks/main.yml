@@ -1,10 +1,4 @@
 ---
-# - name: "LVM | Create primary partition for LVM"
-#   parted:
-#     device: /dev/nvme1n1
-#     number: 1
-#     flags: [ lvm ]
-#     state: present
 
 - name: "LVM | Create VolGroup"
   lvg:

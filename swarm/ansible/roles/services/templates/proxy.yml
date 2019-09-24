@@ -35,6 +35,7 @@ services:
         delay: 10s
       restart_policy:
         condition: on-failure
+    # TODO: certs
     # secrets:
     #   - source: proxy_key
     #     target: /key.pem
@@ -52,6 +53,7 @@ services:
       - "--docker.watch"
       - "--insecureSkipVerify=true"
 
+# TODO: certs
 # secrets:
 #   proxy_key:
 #     file: ./secrets/proxy/key.pem

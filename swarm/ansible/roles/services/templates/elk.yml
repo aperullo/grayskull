@@ -8,7 +8,7 @@ services:
       - source: elastic_config
         target: /usr/share/elasticsearch/config/elasticsearch.yml
     environment:
-      ES_JAVA_OPTS: "-Xmx{{elastic_memory_limit}}m -Xms{{elastic_memory_reservation}}m"
+      ES_JAVA_OPTS: "-Xmx{{elastic_memory_limit}} -Xms{{elastic_memory_reservation}}"
     networks:
       - {{proxy_network}}
     deploy:
@@ -33,7 +33,7 @@ services:
         target: /usr/share/logstash/config/logstash.conf
     command: -f /usr/share/logstash/config/logstash.conf
     environment:
-      LS_JAVA_OPTS: "-Xmx${LOGSTASH_MEMORY_LIMIT:-256}m -Xms${LOGSTASH_MEMORY_RESERVATION:-256}m"
+      LS_JAVA_OPTS: "-Xmx{{logstash_memory_limit}} -Xms{{logstash_memory_reservation}}"
     networks:
       - {{proxy_network}}
     deploy:

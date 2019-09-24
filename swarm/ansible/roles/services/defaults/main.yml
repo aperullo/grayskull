@@ -13,9 +13,13 @@ proxy_network: proxy
 registry_hostname: r
 registry_image: registry
 registry_version: 2.5.2
+registry_cpu_limit: 2
+registry_memory_limit: 2G
 registry_ui_registry: r.j3ss.co
 registry_ui_image: reg
 registry_ui_version: v0.16.0
+registry_ui_cpu_limit: 0.50
+registry_ui_memory_limit: 512m
 
 portainer_image: 'portainer/portainer'
 portainer_version: '1.20.2'
@@ -25,6 +29,7 @@ portainer_hostname: swarm
 
 gateway_image: spring-gateway
 gateway_version: latest
+gateway_hostname: gateway
 
 resource_image: resource-server
 resource_version: latest
@@ -74,6 +79,8 @@ grafana_memory_reservation: 2G
 grafana_hostname: metrics
 cadvisor_image: 'google/cadvisor'
 cadvisor_version: 'v0.33.0'
+cadvisor_memory_limit: 128m
+cadvisor_memory_reservation: 64m
 node_exporter_image: 'prom/node-exporter'
 node_exporter_version: 'v0.18.0'
 monitoring_network: metrics
