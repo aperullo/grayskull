@@ -1,0 +1,79 @@
+---
+compose_syntax_version: '3.7'
+
+docker_registry: docker.io
+domain: test
+
+grayskull_dir: /grayskull
+
+proxy_image: traefik
+proxy_version: 1.7
+proxy_network: proxy
+
+registry_hostname: r
+registry_image: registry
+registry_version: 2.5.2
+registry_ui_registry: r.j3ss.co
+registry_ui_image: reg
+registry_ui_version: v0.16.0
+
+portainer_image: 'portainer/portainer'
+portainer_version: '1.20.2'
+portainer_agent_image: 'portainer/agent'
+portainer_agent_version: '1.2.1'
+portainer_hostname: swarm
+
+gateway_image: spring-gateway
+gateway_version: latest
+
+resource_image: resource-server
+resource_version: latest
+
+keycloak_image: jboss/keycloak
+keycloak_version: 4.8.3.Final
+keycloak_hostname: keycloak
+mysql_image: mysql
+mysql_version: 5
+security_network: security
+
+elastic_registry: docker.elastic.co
+elasticsearch_image: 'elasticsearch/elasticsearch'
+elasticsearch_version: '6.6.1'
+kibana_image: 'kibana/kibana'
+kibana_version: '6.4.3'
+logstash_image: 'logstash/logstash'
+logstash_version: '6.4.3'
+elastic_cpu_limit: 0.50
+elastic_cpu_reservation: 0.25
+elastic_memory_limit: 256m
+elastic_memory_reservation: 256m
+logstash_cpu_limit: 0.50
+logstash_cpu_reservation: 0.25
+logstash_memory_limit: 256m
+logstash_memory_reservation: 256m
+kibana_cpu_limit: 0.50
+kibana_cpu_reservation: 0.25
+kibana_memory_limit: 256m
+kibana_memory_reservation: 256m
+kibana_hostname: kibana
+
+
+prometheus_image: "prom/prometheus"
+prometheus_version: "v2.9.2"
+prometheus_cpu_limit: 1.5
+prometheus_cpu_reservation: 1.0
+prometheus_memory_limit: 3G
+prometheus_memory_reservation: 2G
+prometheus_hostname: prom
+grafana_image: "grafana/grafana"
+grafana_version: "6.1.6"
+grafana_cpu_limit: 1.5
+grafana_cpu_reservation: 1.0
+grafana_memory_limit: 3G
+grafana_memory_reservation: 2G
+grafana_hostname: metrics
+cadvisor_image: 'google/cadvisor'
+cadvisor_version: 'v0.33.0'
+node_exporter_image: 'prom/node-exporter'
+node_exporter_version: 'v0.18.0'
+monitoring_network: metrics

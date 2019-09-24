@@ -1,0 +1,23 @@
+version: '{{compose_syntax_version}}'
+
+networks:
+  {{proxy_network}}:
+    external: true
+  {{security_network}}:
+    external: true
+
+services:
+
+  gateway:
+    image: {{docker_registry}}/{{gateway_image}}:{{gateway_version}}
+    networks:
+      - {{security_network}}
+      - {{proxy_network}}
+    deploy:
+      labels:
+        - "traefik.frontend.rule=Host:gateway.{{domain}}"
+        - "traefik.port=8080"
+        - "traefik.docker.network={{proxy_network}}"
+        - "traefik.frontend.passHostHeader=true"
+    environment:
+      KC_BASE-URL: http://keycloak.{{domain}}

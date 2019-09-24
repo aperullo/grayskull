@@ -1,0 +1,59 @@
+version: '{{compose_syntax_version}}'
+
+services:
+  portainer:
+    image: {{docker_registry}}/{{portainer_image}}:{{portainer_version}}
+    networks:
+      - {{proxy_network}}
+      - default
+    command: -H tcp://tasks.agent:9001 --tlsskipverify
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 1024M
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - "traefik.port=9000"
+        - "traefik.docker.network={{proxy_network}}"
+        - "traefik.frontend.rule=Host:{{portainer_hostname}}.{{domain}}"
+        - "traefik.enable=true"
+    volumes:
+      - type: volume
+        source: portainer_data
+        target: /data
+
+  agent:
+    image: {{docker_registry}}/{{portainer_agent_image}}:{{portainer_agent_version}}
+    environment:
+      AGENT_CLUSTER_ADDR: tasks.agent
+      CAP_HOST_MANAGEMENT: 1
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+      - type: bind
+        source: /var/lib/docker/volumes
+        target: /var/lib/docker/volumes
+      - type: bind
+        source: /
+        target: /host
+    networks:
+      - default
+    deploy:
+      mode: global
+      placement:
+        constraints: [node.platform.os == linux]
+
+volumes:
+  portainer_data:
+
+networks:
+  default:
+  {{proxy_network}}:
+    external: true

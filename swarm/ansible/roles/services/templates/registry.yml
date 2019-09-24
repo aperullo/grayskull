@@ -1,0 +1,43 @@
+version: '{{compose_syntax_version}}'
+services:
+  registry:
+    image: {{docker_registry}}/{{registry_image}}:{{registry_version}}
+    networks:
+      - {{proxy_network}}
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: '2G'
+      labels:
+        - "traefik.docker.network={{proxy_network}}"
+        - "traefik.enable=true"
+        - "traefik.fontend.rule=Host:{{registry_hostname}}.{{domain}};PathPrefix:/v2"
+        - "traefik.port=5000"
+        - "traefik.protocol=http"
+
+
+  reg:
+    image: {{registry_ui_registry}}/{{registry_ui_image}}:{{registry_ui_version}}
+    networks:
+      - {{proxy_network}}
+      - default
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: '512M'
+      labels:
+        - "traefik.docker.network={{proxy_network}}"
+        - "traefik.enable=true"
+        - "traefik.fontend.rule=Host:{{registry_hostname}}.{{domain}}"
+        - "traefik.port=8080"
+        - "traefik.protocol=http"
+      mode: replicated
+      replicas: 1
+    command: ["server", "-r", "{{registry_hostname}}.{{domain}}", "-k", "-f"]
+
+
+networks:
+  {{proxy_network}}:
+     external: true

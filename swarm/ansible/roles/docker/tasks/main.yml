@@ -1,4 +1,36 @@
 ---
+# - name: "LVM | Create primary partition for LVM"
+#   parted:
+#     device: /dev/nvme1n1
+#     number: 1
+#     flags: [ lvm ]
+#     state: present
+
+- name: "LVM | Create VolGroup"
+  lvg:
+    pvs: /dev/nvme1n1
+    vg: docker
+
+- name: "LVM | Provision Storage"
+  lvol:
+    pvs: /dev/nvme1n1
+    vg: docker
+    lv: storage
+    size: 100%FREE
+  ignore_errors: true
+
+- name: "LVM | Format Filesystem"
+  filesystem:
+    dev: /dev/mapper/docker-storage
+    fstype: ext4
+
+- name: "LVM | mount"
+  mount:
+    src: /dev/mapper/docker-storage
+    path: /storage
+    state: mounted
+    fstype: ext4
+
 - name: "disable firewall"
   service:
     name: firewalld
@@ -20,16 +52,17 @@
 
 - name: "add docker repository | Docker CE Stable"
   yum_repository:
-    name: docker
+    name: docker-stable
     description: Docker CE Stable - $basearch
     baseurl: https://download.docker.com/linux/centos/7/$basearch/stable
     gpgcheck: yes
     gpgkey: https://download.docker.com/linux/centos/gpg
+    enabled: yes
   when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
 - name: "add docker repository | Docker CE Stable - Debuginfo"
   yum_repository:
-    name: docker
+    name: docker-stable-debuginfo
     description: Docker CE Stable - Debuginfo $basearch
     baseurl: https://download.docker.com/linux/centos/7/debug-$basearch/stable
     gpgcheck: yes
@@ -39,7 +72,7 @@
 
 - name: "add docker repository | Docker CE Stable - Sources"
   yum_repository:
-    name: docker
+    name: docker-stable-sources
     description: Docker CE Stable - Sources 
     baseurl: https://download.docker.com/linux/centos/7/source/stable
     gpgcheck: yes
@@ -49,7 +82,7 @@
 
 - name: "add docker repository | Docker CE Edge - $basearch"
   yum_repository:
-    name: docker
+    name: docker-edge
     description: Docker CE Edge - $basearch
     baseurl: https://download.docker.com/linux/centos/7/$basearch/edge
     gpgcheck: yes
@@ -59,7 +92,7 @@
 
 - name: "add docker repository | Docker CE Edge - Debuginfo $basearch"
   yum_repository:
-    name: docker
+    name: docker-edge-debuginfo
     description: Docker CE Edge - Debuginfo $basearch
     baseurl: https://download.docker.com/linux/centos/7/debug-$basearch/edge
     gpgcheck: yes
@@ -69,7 +102,7 @@
 
 - name: "add docker repository | Docker CE Edge - Sources"
   yum_repository:
-    name: docker
+    name: docker-edge
     description: Docker CE Edge - Sources
     baseurl: https://download.docker.com/linux/centos/7/source/edge
     gpgcheck: yes
@@ -79,7 +112,7 @@
 
 - name: "add docker repository | Docker CE Test - $basearch"
   yum_repository:
-    name: docker
+    name: docker-test
     description: Docker CE Test - $basearch
     baseurl: https://download.docker.com/linux/centos/7/$basearch/test
     gpgcheck: yes
@@ -89,7 +122,7 @@
 
 - name: "add docker repository | Docker CE Test - Debuginfo $basearch"
   yum_repository:
-    name: docker
+    name: docker-test-debuginfo
     description: Docker CE Test - Debuginfo $basearch
     baseurl: https://download.docker.com/linux/centos/7/debug-$basearch/test
     gpgcheck: yes
@@ -99,7 +132,7 @@
 
 - name: "add docker repository | Docker CE Test - Sources"
   yum_repository:
-    name: docker
+    name: docker-test-sources
     description: Docker CE Test - Sources
     baseurl: https://download.docker.com/linux/centos/7/source/test
     gpgcheck: yes
@@ -109,7 +142,7 @@
 
 - name: "add docker repository | Docker CE Nightly - $basearch"
   yum_repository:
-    name: docker
+    name: docker-nightly
     description: Docker CE Nightly - $basearch
     baseurl: https://download.docker.com/linux/centos/7/$basearch/nightly
     gpgcheck: yes
@@ -119,7 +152,7 @@
 
 - name: "add docker repository | Docker CE Nightly - Debuginfo $basearch"
   yum_repository:
-    name: docker
+    name: docker-nightly-debuginfo
     description: Docker CE Nightly - Debuginfo $basearch
     baseurl: https://download.docker.com/linux/centos/7/debug-$basearch/nightly
     gpgcheck: yes
@@ -129,7 +162,7 @@
 
 - name: "add docker repository | Docker CE Nightly - Sources"
   yum_repository:
-    name: docker
+    name: docker-nightly-sources
     description: Docker CE Nightly - Sources
     baseurl: https://download.docker.com/linux/centos/7/source/nightly
     gpgcheck: yes
@@ -141,6 +174,12 @@
   yum:
     name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
     state: present
+
+- name: "Enable EPEL Repo"
+  replace:
+    path: /etc/yum.repos.d/epel.repo
+    regexp: 'enabled=0'
+    replace: 'enabled=1'
 
 - name: "install docker ce"
   apt:
@@ -163,7 +202,19 @@
       - python-pip
   when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
+- name: "Swarm | Template list"
+  set_fact:
+    swarm_templates:
+      - { name: dockerd-config, file: daemon.json, location: /etc/docker }
 
 - name: "install python docker sdk"
   pip:
     name: docker
+
+- name: "Swarm | Start docker daemon"
+  systemd:
+    state: started
+    daemon_reload: yes
+    name: docker
+    enabled: yes
+  when: inventory_hostname in groups['swarm-node']

@@ -1,0 +1,81 @@
+version: '{{compose_syntax_version}}'
+
+services:
+
+  elasticsearch:
+    image: {{elastic_registry}}/{{elasticsearch_image}}:{{elasticsearch_version}}
+    configs:
+      - source: elastic_config
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+    environment:
+      ES_JAVA_OPTS: "-Xmx{{elastic_memory_limit}}m -Xms{{elastic_memory_reservation}}m"
+    networks:
+      - {{proxy_network}}
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: '{{elastic_cpu_limit}}'
+          memory: {{elastic_memory_limit}}
+        reservations:
+          cpus: '{{elastic_cpu_reservation}}'
+          memory: {{elastic_memory_reservation}}
+      labels:
+        - "traefik.enable=false"
+
+  logstash:
+    image: {{elastic_registry}}/{{logstash_image}}:{{logstash_version}}
+    configs:
+      - source: logstash_config
+        target: /usr/share/logstash/config/logstash.yml
+      - source: logstash_pipeline
+        target: /usr/share/logstash/config/logstash.conf
+    command: -f /usr/share/logstash/config/logstash.conf
+    environment:
+      LS_JAVA_OPTS: "-Xmx${LOGSTASH_MEMORY_LIMIT:-256}m -Xms${LOGSTASH_MEMORY_RESERVATION:-256}m"
+    networks:
+      - {{proxy_network}}
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: '{{logstash_cpu_limit}}'
+          memory: {{logstash_memory_limit}}
+        reservations:
+          cpus: '{{logstash_cpu_reservation}}'
+          memory: {{logstash_memory_reservation}}
+      labels:
+        - "traefik.enable=false"
+
+  kibana:
+    image: {{elastic_registry}}/{{kibana_image}}:{{kibana_version}}
+    configs:
+      - source: kibana_config
+        target: /usr/share/kibana/config/kibana.yml
+    networks:
+      - {{proxy_network}}
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network={{proxy_network}}"
+        - "traefik.frontend.rule=Host:{{kibana_hostname}}.{{domain}}"
+        - "traefik.port=5601"
+
+configs:
+
+  elastic_config:
+    file: config/elk/elasticsearch.yml
+  logstash_config:
+    file: config/elk/logstash.yml
+  logstash_pipeline:
+    file: config/elk/logstash.conf
+  kibana_config:
+    file: config/elk/kibana.yml
+
+networks:
+  {{proxy_network}}:
+    external: true
