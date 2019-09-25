@@ -30,37 +30,3 @@ sudo vgextend VolGroup00 /dev/nvme0n1p3
 sudo lvextend -l +100%FREE /dev/mapper/VolGroup00-rootVol
 sudo resize2fs /dev/mapper/VolGroup00-rootVol
 sudo yum install -y python2
-
-#sudo touch /1.txt
-
-# #--- Install docker, add the user to the group, and start docker
-# #sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-# #sudo yum install -y docker-ce-18.06.3.ce-3.el7
-# sudo yum install docker -y
-# sudo touch /2.txt
-# #sudo chkconfig docker on
-# #sudo sed -i -e 's/slave/shared/g' /lib/systemd/system/docker.service
-# #sudo systemctl daemon-reload
-# sudo systemctl enable docker
-# sudo service docker start
-# #from std image
-# sudo groupadd docker
-# sudo usermod -aG docker maintuser
-# #sudo chgrp docker /lib/systemd/system/docker.socket
-# #sudo chmod g+w /lib/systemd/system/docker.socket
-
-# #--- Relocate where docker stores images for more room
-# sudo touch /3.txt
-# #TODO: CURRENTLY TESTING THIS
-# sudo mkdir -p /storage/docker
-# sudo service docker stop
-# sudo mv /var/lib/docker /storage/
-#sudo ln -s /storage/docker /var/lib/docker
-
-# sudo service docker restart
-
-# #--- disable fireall and restart docker to clear ip table rules
-# sudo touch /4.txt
-# sudo systemctl disable firewalld
-# sudo systemctl stop firewalld
-# sudo service docker restart

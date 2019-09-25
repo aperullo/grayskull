@@ -21,7 +21,7 @@ services:
       labels:
         - "traefik.port=9000"
         - "traefik.docker.network={{proxy_network}}"
-        - "traefik.frontend.rule=Host:{{portainer_hostname}}.{{domain}}"
+        - "traefik.frontend.rule=Host:{{hostname}};PathPrefixStrip:{{portainer_path}}"
         - "traefik.enable=true"
     volumes:
       - type: volume

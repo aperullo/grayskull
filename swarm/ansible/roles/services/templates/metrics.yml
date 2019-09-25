@@ -20,7 +20,7 @@ services:
       labels:
         - "traefik.port=9090"
         - "traefik.docker.network={{proxy_network}}"
-        - "traefik.frontend.rule=Host:{{prometheus_hostname}}.{{domain}}"
+        - "traefik.frontend.rule=Host:{{hostname}};PathPrefixStrip:{{prometheus_path}}"
         - "traefik.enable=true"
     networks:
       - default
@@ -36,7 +36,7 @@ services:
   grafana:
     image: {{docker_registry}}/{{grafana_image}}:{{grafana_version}}
     environment:
-      GF_SERVER_ROOT_URL: https://{{grafana_hostname}}.{{domain}}
+      GF_SERVER_ROOT_URL: https://{{hostname}}{{grafana_path}}
     deploy:
       resources:
         limits:
@@ -50,21 +50,28 @@ services:
       labels:
         - "traefik.port=3000"
         - "traefik.docker.network={{proxy_network}}"
-        - "traefik.frontend.rule=Host:{{grafana_hostname}}.{{domain}}"
+        - "traefik.frontend.rule=Host:{{hostname}};PathPrefixStrip:{{grafana_path}}"
         - "traefik.enable=true"
+    volumes:
+      - type: volume
+        source: grafana_data
+        target: /var/lib/grafana
     configs:
       - source: grafana_provisioning_datasource
         target: /etc/grafana/provisioning/datasources/datasource.yml
       - source: grafana_provisioning_dashboard
         target: /etc/grafana/provisioning/dashboards/dashboard.yml
+      - source: grafana_docker_prometheus_monitoring
+        target: /var/lib/grafana/dashboards/docker-prometheus-monitoring.json
+      - source: grafana_docker_swarm_monitoring
+        target: /var/lib/grafana/dashboards/docker-swarm-container-overview.json
+      - source: grafana_main_overview
+        target: /var/lib/grafana/dashboards/main-overview.json
     networks:
       - default
       - {{proxy_network}}
       - {{monitoring_network}}
-    volumes:
-      - type: volume
-        source: grafana_data
-        target: /var/lib/grafana
+    
 
   cadvisor:
     image: {{docker_registry}}/{{cadvisor_image}}:{{cadvisor_version}}
@@ -143,6 +150,12 @@ configs:
     file: config/metrics/grafana-datasource.yml
   grafana_provisioning_dashboard:
     file: config/metrics/grafana-dashboard.yml
+  grafana_docker_prometheus_monitoring:
+    file: config/metrics/docker-prometheus-monitoring.json
+  grafana_docker_swarm_monitoring:
+    file: config/metrics/docker-swarm-container-overview.json
+  grafana_main_overview:
+    file: config/metrics/main-overview.json
 
 networks:
   {{proxy_network}}:

@@ -15,9 +15,9 @@ services:
       - {{proxy_network}}
     deploy:
       labels:
-        - "traefik.frontend.rule=Host:{{gateway_hostname}}.{{domain}}"
+        - "traefik.frontend.rule=Host:{{hostname}};PathPrefix:{{gateway_path}}"
         - "traefik.port=8080"
         - "traefik.docker.network={{proxy_network}}"
         - "traefik.frontend.passHostHeader=true"
     environment:
-      KC_BASE-URL: http://{{keycloak_hostname}}.{{domain}}
+      KC_BASE-URL: http://{{hostname}}{{keycloak_path}}

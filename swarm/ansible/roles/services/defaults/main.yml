@@ -2,7 +2,7 @@
 compose_syntax_version: '3.7'
 
 docker_registry: docker.io
-domain: test
+hostname: "{{hostvars[groups['swarm-master'][0]]['public_ip']}}"
 
 grayskull_dir: /grayskull
 
@@ -10,7 +10,7 @@ proxy_image: traefik
 proxy_version: 1.7
 proxy_network: proxy
 
-registry_hostname: r
+registry_path: /
 registry_image: registry
 registry_version: 2.5.2
 registry_cpu_limit: 2
@@ -25,18 +25,18 @@ portainer_image: 'portainer/portainer'
 portainer_version: '1.20.2'
 portainer_agent_image: 'portainer/agent'
 portainer_agent_version: '1.2.1'
-portainer_hostname: swarm
+portainer_path: /swarm
 
 gateway_image: spring-gateway
 gateway_version: latest
-gateway_hostname: gateway
+gateway_path: /gateway
 
 resource_image: resource-server
 resource_version: latest
 
 keycloak_image: jboss/keycloak
 keycloak_version: 4.8.3.Final
-keycloak_hostname: keycloak
+keycloak_path: /keycloak
 mysql_image: mysql
 mysql_version: 5
 security_network: security
@@ -60,7 +60,7 @@ kibana_cpu_limit: 0.50
 kibana_cpu_reservation: 0.25
 kibana_memory_limit: 256m
 kibana_memory_reservation: 256m
-kibana_hostname: kibana
+kibana_path: /kibana
 
 
 prometheus_image: "prom/prometheus"
@@ -69,14 +69,14 @@ prometheus_cpu_limit: 1.5
 prometheus_cpu_reservation: 1.0
 prometheus_memory_limit: 3G
 prometheus_memory_reservation: 2G
-prometheus_hostname: prom
+prometheus_path: /prom
 grafana_image: "grafana/grafana"
-grafana_version: "6.1.6"
+grafana_version: "6.3.6"
 grafana_cpu_limit: 1.5
 grafana_cpu_reservation: 1.0
 grafana_memory_limit: 3G
 grafana_memory_reservation: 2G
-grafana_hostname: metrics
+grafana_path: /grafana
 cadvisor_image: 'google/cadvisor'
 cadvisor_version: 'v0.33.0'
 cadvisor_memory_limit: 128m

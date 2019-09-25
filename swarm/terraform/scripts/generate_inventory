@@ -27,7 +27,6 @@ def determine_data(eips, attr, real_type, environment):
                 "env": environment
             }
 
-    #TODO: EIP associations dont have public dns
     #assume one eip at most per instance
     for eip in eips:
         eip = eip['instances'][0]['attributes']

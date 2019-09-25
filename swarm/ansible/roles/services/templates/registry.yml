@@ -10,12 +10,11 @@ services:
           cpus: '{{registry_cpu_limit}}'
           memory: {{registry_memory_limit}}
       labels:
-        - "traefik.docker.network={{proxy_network}}"
-        - "traefik.enable=true"
-        - "traefik.fontend.rule=Host:{{registry_hostname}}.{{domain}};PathPrefix:/v2"
         - "traefik.port=5000"
+        - "traefik.docker.network={{proxy_network}}"
+        - "traefik.frontend.rule=Host:{{hostname}};PathPrefix:/v2"
+        - "traefik.enable=true"
         - "traefik.protocol=http"
-
 
   reg:
     image: {{registry_ui_registry}}/{{registry_ui_image}}:{{registry_ui_version}}
@@ -28,14 +27,14 @@ services:
           cpus: '{{registry_ui_cpu_limit}}'
           memory: {{registry_ui_memory_limit}}
       labels:
-        - "traefik.docker.network={{proxy_network}}"
-        - "traefik.enable=true"
-        - "traefik.fontend.rule=Host:{{registry_hostname}}.{{domain}}"
         - "traefik.port=8080"
+        - "traefik.docker.network={{proxy_network}}"
+        - "traefik.frontend.rule=Host:{{hostname}}"
+        - "traefik.enable=true"
         - "traefik.protocol=http"
       mode: replicated
       replicas: 1
-    command: ["server", "-r", "{{registry_hostname}}.{{domain}}", "-k", "-f"]
+    command: ["server", "-r", "registry:5000", "-k", "-f"]
 
 
 networks:

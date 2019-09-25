@@ -175,6 +175,26 @@
     regexp: 'enabled=0'
     replace: 'enabled=1'
 
+- name: "create docker folder"
+  file:
+    path: /var/lib/docker
+    mode: '0755'
+    state: directory
+
+- name: "create docker folder"
+  file:
+    path: /storage/docker
+    mode: '0755'
+    state: directory
+
+- name: "create docker symlink"
+  file:
+    src: /storage/docker
+    dest: /var/lib/docker
+    #mode: '0755'
+    state: link
+    force: yes
+
 - name: "install docker ce"
   apt:
     name: "{{ packages }}"

@@ -62,7 +62,7 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.docker.network={{proxy_network}}"
-        - "traefik.frontend.rule=Host:{{kibana_hostname}}.{{domain}}"
+        - "traefik.frontend.rule=Host:{{hostname}};PathPrefixStrip:{{kibana_path}}"
         - "traefik.port=5601"
 
 configs:

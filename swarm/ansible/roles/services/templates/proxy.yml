@@ -47,9 +47,7 @@ services:
     command:
       - "--api"
       - "--configFile=/config/traefik.toml"
-      - "--docker"
       - "--docker.swarmMode"
-      - "--docker.domain={{domain}}"
       - "--docker.watch"
       - "--insecureSkipVerify=true"
 
