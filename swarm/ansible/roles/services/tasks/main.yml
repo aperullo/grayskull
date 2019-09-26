@@ -1,4 +1,5 @@
 ---
+#--- Install dependencies
 # Docker_stack module needs these to run
 - name: Services | install dependencies
   pip:
@@ -8,6 +9,7 @@
   pip:
     name: pyyaml
 
+#--- Gather files needing transferring
 - name: Services | Templates list
   set_fact:
     service_role_templates:
@@ -19,13 +21,6 @@
       - { stack_name: metrics, file: metrics.yml }
       - { stack_name: resource, file: resource.yml }
       - { stack_name: security, file: security.yml }
-
-
-- name: Services | Create grayskull directory
-  file:
-    path: "{{ grayskull_dir }}"
-    state: directory
-    mode: '0755'
 
 - name: Services | Files list
   set_fact:
@@ -42,27 +37,7 @@
       - { name: grafana-docker-swarm-monitoring, stack_name: metrics, file: config/metrics/docker-swarm-container-overview.json }
       - { name: grafana-main-overview, stack_name: metrics, file: config/metrics/main-overview.json }
 
-
-- name: Services | directory create
-  file:
-    path: "{{ grayskull_dir }}/config/{{ item.stack_name }}"
-    state: directory
-    mode: '0755'
-  with_items: "{{ service_role_files }}"
-
-- name: Services | File copy
-  copy:
-    src: "{{ item.file }}"
-    dest: "{{ grayskull_dir }}/{{ item.file }}"
-  with_items: "{{ service_role_files }}"
-
-- name: Services | Create manifests
-  template:
-    src: "{{ item.file }}"
-    dest: "{{ grayskull_dir }}/{{ item.file }}"
-  with_items: "{{ service_role_templates }}"
-  register: service_role_manifests
-
+#--- Create external networks
 - name: Services | Create proxy network
   docker_network:
     name: "{{ proxy_network }}"
@@ -80,6 +55,33 @@
     name: "{{ monitoring_network }}"
     driver: overlay
     #attachable: true
+
+#--- Copy files and Apply templates 
+- name: Services | Create grayskull directory
+  file:
+    path: "{{ grayskull_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Services | Create config subfolders
+  file:
+    path: "{{ grayskull_dir }}/config/{{ item.stack_name }}"
+    state: directory
+    mode: '0755'
+  with_items: "{{ service_role_files }}"
+
+- name: Services | Copy files
+  copy:
+    src: "{{ item.file }}"
+    dest: "{{ grayskull_dir }}/{{ item.file }}"
+  with_items: "{{ service_role_files }}"
+
+- name: Services | Create manifests
+  template:
+    src: "{{ item.file }}"
+    dest: "{{ grayskull_dir }}/{{ item.file }}"
+  with_items: "{{ service_role_templates }}"
+  register: service_role_manifests
 
 - name: Services | Apply manifests
   docker_stack:

@@ -5,6 +5,7 @@
 
 [all:vars]
 ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+grayskull_dir=/grayskull
 
 [swarm-master]
 {% for host in instances -%}
@@ -31,8 +32,7 @@ ansible_ssh_common_args='-o StrictHostKeyChecking=no'
 [swarm-node:vars]
 docker_daemon_graph=/storage/docker
 supplementary_addresses_in_ssl_keys='["{{ instances|join('", "', attribute='public_ip') }}"]'
-grayskull_dir=/grayskull
-platform_prefix=gsp
+
 
 [swarm-cluster:children]
 swarm-worker

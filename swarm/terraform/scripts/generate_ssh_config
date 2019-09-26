@@ -21,19 +21,12 @@ for resource in resources:
         k8s_type = resource['name']
         for instance in resource['instances']:
             attr = instance['attributes']
-            real_type = ""
-            if k8s_type == "k8s_worker":
-                real_type = "worker"
-            if k8s_type == "k8s_master":
-                real_type = "master"
             data = {
                 "public_ip": attr['public_ip'],
                 "public_dns": attr['public_dns'],
                 "private_ip": attr['private_ip'],
                 "private_dns": attr['private_dns'],
-                "name": attr['tags']['Name'],
-                "type": real_type
-
+                "name": attr['tags']['Name']
             }
             instances.append(data)
 

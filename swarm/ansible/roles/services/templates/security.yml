@@ -32,17 +32,17 @@ services:
       KEYCLOAK_PASSWORD: admin
       DB_VENDOR: MYSQL
       DB_ADDR: mysql
+      # TODO: passwords really shouldn't be here
       DB_DATABASE: keycloak
       DB_USER: keycloak
       DB_PASSWORD: password
-    #depends_on:
-    #  - mysql
 
   mysql:
     image: {{docker_registry}}/{{mysql_image}}:{{mysql_version}}
     networks:
       - db
     environment:
+      # TODO: passwords really shouldn't be here
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: keycloak
       MYSQL_USER: keycloak

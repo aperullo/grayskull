@@ -1,5 +1,6 @@
 ---
 
+#--- Mount space for docker storage
 - name: "LVM | Create VolGroup"
   lvg:
     pvs: /dev/nvme1n1
@@ -25,6 +26,8 @@
     state: mounted
     fstype: ext4
 
+
+#--- Add docker registries
 - name: "disable firewall"
   service:
     name: firewalld
@@ -175,6 +178,11 @@
     regexp: 'enabled=0'
     replace: 'enabled=1'
 
+
+#--- Symlink docker folder to new storage
+# This is nessecary because the centos image we used is partitioned so that /var/lib is <2GB.
+# This quickly fills up as docker downloads image. Docker recommends symlinking elsewhere to 
+# change the data directory. So we symlink to 200gb of additional storage.
 - name: "create docker folder"
   file:
     path: /var/lib/docker
@@ -183,18 +191,19 @@
 
 - name: "create docker folder"
   file:
-    path: /storage/docker
+    path: "{{ docker_storage_folder }}"
     mode: '0755'
     state: directory
 
 - name: "create docker symlink"
   file:
-    src: /storage/docker
+    src: "{{ docker_storage_folder }}"
     dest: /var/lib/docker
-    #mode: '0755'
     state: link
     force: yes
 
+
+#--- Install docker
 - name: "install docker ce"
   apt:
     name: "{{ packages }}"

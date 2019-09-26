@@ -1,4 +1,7 @@
 ---
+- include: certificate-tasks.yml
+
+#--- Configure docker daemon
 - name: "Swarm | Template list"
   set_fact:
     swarm_templates:
@@ -20,12 +23,14 @@
     name: docker
   when: inventory_hostname in groups['swarm-master']
 
+
+#--- Create the swarm
 - name: "Swarm | Initialize Primary Master"
   docker_swarm:
     state: present
     listen_addr: "{{ swarm_listen_host }}:{{ swarm_listen_port }}"
   register: swarm_info
-  when: inventory_hostname == groups['swarm-master'][0]
+  when: inventory_hostname == groups['swarm-setup-delegate'][0]
 
 - name: "Swarm | Join Tokens"
   set_fact: 
@@ -34,7 +39,7 @@
     swarm_manager_advertise_addr: "{{ ansible_default_ipv4.address }}"
     swarm_manager_remote_addr: "{{ ansible_default_ipv4.address }}"
     swarm_listen_port: "{{ swarm_listen_port }}"
-  when: inventory_hostname == groups["swarm-master"][0]
+  when: inventory_hostname == groups['swarm-setup-delegate'][0]
 
 - name: "Swarm | Join Swarm-master"
   docker_swarm:
@@ -43,8 +48,8 @@
     join_token: "{{ hostvars[groups['swarm-master'][0]]['swarm_join_token_manager'] }}"
     remote_addrs: [ "{{ hostvars[groups['swarm-master'][0]]['ip'] }}:{{ swarm_listen_port }}" ]
   when: 
-    - inventory_hostname in groups["swarm-master"]
-    - inventory_hostname != groups["swarm-master"][0]
+    - inventory_hostname in groups['swarm-master']
+    - inventory_hostname != groups['swarm-setup-delegate']
 
 - name: "Swarm | Join Worker"
   docker_swarm:
@@ -52,5 +57,5 @@
     join_token: "{{ hostvars[groups['swarm-master'][0]]['swarm_join_token_worker'] }}"
     advertise_addr: "{{ swarm_advertise_interface }}:{{ swarm_listen_port }}"
     remote_addrs: [ "{{ hostvars[groups['swarm-master'][0]]['ip'] }}:{{ swarm_listen_port }}" ]
-  when: inventory_hostname in groups["swarm-worker"]
+  when: inventory_hostname in groups['swarm-worker']
   

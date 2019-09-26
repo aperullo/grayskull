@@ -1,0 +1,38 @@
+#--- Download cfssl and cfssljson
+- name: Certificate Tasks | Download cfssl binary
+  get_url: 
+    url: https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+    dest: "{{ bin_dir }}/cfssl"
+    mode: '0755'
+
+- name: Certificate Tasks | Download cfssljson binary
+  get_url: 
+    url: https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+    dest: "{{ bin_dir }}/cfssljson"
+    mode: '0755'
+
+
+#--- Generate Certificates
+- name: Services | Create grayskull directory
+  file:
+    path: "{{ grayskull_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Certificate Tasks | Copy over CSR 
+  copy: 
+    src: csr.json
+    dest: "{{ grayskull_dir }}/csr.json"
+
+- name: Certificate Tasks | Check if certs exist
+  stat: 
+    path: "{{ grayskull_dir }}/cert.pem"
+  register: cert_exists
+
+- name: Certificate Tasks | Create a self-signed CA
+  shell: "cd {{ grayskull_dir }} && {{ bin_dir }}/cfssl genkey -initca {{ grayskull_dir }}/csr.json | {{ bin_dir }}/cfssljson -bare ca"
+  when: cert_exists.stat.exists == false
+
+- name: Certificate Tasks | Create a cert
+  shell: "cd {{ grayskull_dir }} && {{ bin_dir }}/cfssl gencert -ca ca.pem -ca-key ca-key.pem csr.json | {{ bin_dir }}/cfssljson -bare cert"
+  when: cert_exists.stat.exists == false
