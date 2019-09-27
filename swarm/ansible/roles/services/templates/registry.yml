@@ -15,6 +15,11 @@ services:
         - "traefik.frontend.rule=Host:{{hostname}};PathPrefix:/v2"
         - "traefik.enable=true"
         - "traefik.protocol=http"
+    volumes:
+      - type: volume
+        source: registry_volume
+        target: /var/lib/registry
+
 
   reg:
     image: {{registry_ui_registry}}/{{registry_ui_image}}:{{registry_ui_version}}
@@ -34,9 +39,12 @@ services:
         - "traefik.protocol=http"
       mode: replicated
       replicas: 1
-    command: ["server", "-r", "registry:5000", "-k", "-f"]
+    command: ["server", "-r", "{{hostname}}", "-k", "-f", "--interval", "30s"]
 
 
 networks:
   {{proxy_network}}:
      external: true
+
+volumes:
+  registry_volume:

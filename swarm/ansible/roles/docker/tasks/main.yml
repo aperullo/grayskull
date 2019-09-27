@@ -230,6 +230,20 @@
     swarm_templates:
       - { name: dockerd-config, file: daemon.json, location: /etc/docker }
 
+- name: "create docker folder"
+  file:
+    path: "/etc/docker"
+    mode: '0755'
+    state: directory
+
+- name: "Swarm | Configure Docker"
+  template:
+    src: "{{ item.file }}.j2"
+    dest: "{{ item.location }}/{{ item.file }}"
+  with_items: "{{ swarm_templates }}"
+  register: swarm_files
+  when: inventory_hostname in groups['swarm-node']
+
 - name: "install python docker sdk"
   pip:
     name: docker

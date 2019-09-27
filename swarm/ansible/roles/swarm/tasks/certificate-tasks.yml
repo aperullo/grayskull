@@ -12,13 +12,15 @@
     mode: '0755'
 
 
-#--- Generate Certificates
+
 - name: Services | Create grayskull directory
   file:
     path: "{{ grayskull_dir }}"
     state: directory
     mode: '0755'
 
+
+#--- Generate Certificates
 - name: Certificate Tasks | Copy over CSR 
   copy: 
     src: csr.json
@@ -33,6 +35,10 @@
   shell: "cd {{ grayskull_dir }} && {{ bin_dir }}/cfssl genkey -initca {{ grayskull_dir }}/csr.json | {{ bin_dir }}/cfssljson -bare ca"
   when: cert_exists.stat.exists == false
 
-- name: Certificate Tasks | Create a cert
-  shell: "cd {{ grayskull_dir }} && {{ bin_dir }}/cfssl gencert -ca ca.pem -ca-key ca-key.pem csr.json | {{ bin_dir }}/cfssljson -bare cert"
+- name: Certificate Tasks | Create a server cert
+  shell: "cd {{ grayskull_dir }} && {{ bin_dir }}/cfssl gencert -ca ca.pem -ca-key ca-key.pem csr.json | {{ bin_dir }}/cfssljson -bare server"
+  when: cert_exists.stat.exists == false
+
+- name: Certificate Tasks | Create a client cert
+  shell: "cd {{ grayskull_dir }} && {{ bin_dir }}/cfssl gencert -ca ca.pem -ca-key ca-key.pem -profile=client csr.json | {{ bin_dir }}/cfssljson -bare client"
   when: cert_exists.stat.exists == false
