@@ -1,11 +1,5 @@
 version: '{{compose_syntax_version}}'
 
-networks:
-  {{proxy_network}}:
-    external: true
-  {{security_network}}:
-    external: true
-
 services:
 
   gateway:
@@ -21,3 +15,9 @@ services:
         - "traefik.frontend.passHostHeader=true"
     environment:
       KC_BASE-URL: http://{{hostname}}{{keycloak_path}}
+
+networks:
+  {{proxy_network}}:
+    external: true
+  {{security_network}}:
+    external: true

@@ -42,19 +42,16 @@
   docker_network:
     name: "{{ proxy_network }}"
     driver: overlay
-    #attachable: true
 
 - name: Services | Create security network
   docker_network:
     name: "{{ security_network }}"
     driver: overlay
-    #attachable: true
 
-- name: Services | Create mmonitoring network
+- name: Services | Create monitoring network
   docker_network:
     name: "{{ monitoring_network }}"
     driver: overlay
-    #attachable: true
 
 #--- Copy files and Apply templates 
 - name: Services | Create grayskull directory
