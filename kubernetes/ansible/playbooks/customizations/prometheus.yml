@@ -10,7 +10,6 @@ prometheus:
         secretName: prom-gsp-tls
 
 grafana:
-  adminPassword: "admin"
   ingress:
     enabled: true
     paths: [/]
