@@ -3,4 +3,9 @@ swarm_advertise_interface: eth0
 swarm_listen_host: 0.0.0.0
 swarm_listen_port: 2377
 docker_daemon_host: 0.0.0.0
-docker_daemon_listen_port: 2375
+docker_daemon_listen_port: 2376
+tlsverify: true
+bin_dir: /usr/local/bin
+tlscacert: "{{grayskull_dir}}/ca.pem"
+tlscert: "{{grayskull_dir}}/server.pem"
+tlskey: "{{grayskull_dir}}/server-key.pem"

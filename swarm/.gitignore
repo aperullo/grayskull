@@ -1,0 +1,7 @@
+ansible/inventory/*
+!ansible/inventory/.gitkeep
+**/*.retry
+**/.terraform/*
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/*.pem

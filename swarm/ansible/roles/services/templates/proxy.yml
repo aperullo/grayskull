@@ -1,0 +1,67 @@
+version: '{{compose_syntax_version}}'
+
+services:
+  proxy:
+    image: {{docker_registry}}/{{proxy_image}}:{{proxy_version}}
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
+      - target: 8080
+        published: 8080
+        protocol: tcp
+        mode: host
+    networks:
+      - {{proxy_network}}
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: '0.5G'
+      mode: global
+      placement:
+        constraints: [node.role == manager]
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    # TODO: certs
+    # secrets:
+    #   - source: proxy_key
+    #     target: /key.pem
+    #   - source: proxy_cert
+    #     target: /cert.pem
+    configs:
+      - source: proxy_config
+        target: /config/traefik.toml
+    command:
+      - "--api"
+      - "--configFile=/config/traefik.toml"
+      - "--docker.swarmMode"
+      - "--docker.watch"
+      - "--insecureSkipVerify=true"
+
+# TODO: certs
+# secrets:
+#   proxy_key:
+#     file: ./secrets/proxy/key.pem
+#   proxy_cert:
+#     file: ./secrets/proxy/chain.pem
+
+configs:
+  proxy_config:
+    file: ./config/proxy/traefik.toml
+
+networks:
+  {{proxy_network}}:
+     external: true

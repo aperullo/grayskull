@@ -1,8 +1,15 @@
 ---
-- hosts: docker
+- hosts: swarm-node
+  become: yes
   roles:
     - docker
 
-- hosts: swarm
+- hosts: swarm-node
+  become: yes
   roles:
     - swarm
+
+- hosts: swarm-setup-delegate
+  become: yes
+  roles:
+    - services

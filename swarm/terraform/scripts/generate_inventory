@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+
+import subprocess
+import json
+import pprint
+from jinja2 import FileSystemLoader, Environment
+
+templateLoader = FileSystemLoader(searchpath="./")
+templateEnv = Environment(loader=templateLoader)
+TEMPLATE_FILE = "inv_ansible.ini.tpl"
+template = templateEnv.get_template(TEMPLATE_FILE)
+
+getJsonCmd = "terraform state pull"
+jsonData,_ = subprocess.Popen([getJsonCmd], shell=True, stdout=subprocess.PIPE).communicate()
+
+data = json.loads(jsonData)['resources']
+
+# We are using an elastic IP (eip) to expose the first swarm-master to the internet. 
+# We can delete the VMs as many time as we want, but we never delete the eip. This way the public ip
+# that people use never changes. 
+
+# This function runs through all the eips and looks for the one that is linked the passed in attribute set from the instance.
+# If it matches up, then replace that instances public data with that of the EIP inside the inventory. 
+def determine_data(eips, attr, real_type, environment):
+
+    data =  {
+                "public_ip": attr['public_ip'],
+                "public_dns": attr['public_dns'],
+                "private_ip": attr['private_ip'],
+                "private_dns": attr['private_dns'],
+                "name": attr['tags']['Name'],
+                "type": real_type,
+                "env": environment
+            }
+
+    #assume one eip at most per instance
+    for eip in eips:
+        eip = eip['instances'][0]['attributes']
+        if eip['instance_id'] == attr['id']:
+            data['public_ip'] = eip['public_ip']
+            data['public_dns'] = 'ec2-52-222-98-51.us-gov-west-1.compute.amazonaws.com'
+            data['private_ip'] = eip['private_ip_address']
+            return data
+    return data
+
+environments = {}
+eips = list(filter(lambda x: x['type'] == "aws_eip_association", data))
+resources = list(filter(lambda x: x['type'] == "aws_instance", data))
+for resource in resources:
+        swarm_type = resource['name']
+        for instance in resource['instances']:
+            attr = instance['attributes']
+            environment = attr['tags']['Environment']
+            real_type = ""
+            if swarm_type == "swarm_worker":
+                real_type = "worker"
+            if swarm_type == "swarm_master":
+                real_type = "master"
+            data = determine_data(eips, attr, real_type, environment)
+
+            if not environments.get(environment):
+                environments[environment] = []
+            environments[environment].append(data)
+
+
+
+for e in environments.keys():
+    print("#Environment:", e)
+    print(template.render(instances=environments[e]))
+

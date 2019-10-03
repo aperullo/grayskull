@@ -1,0 +1,11 @@
+version: '{{compose_syntax_version}}'
+
+networks:
+  {{security_network}}:
+     external: true
+
+services:
+  resource:
+    image: {{docker_registry}}/{{resource_image}}:{{resource_version}}
+    networks:
+      - {{security_network}}

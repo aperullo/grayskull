@@ -10,7 +10,8 @@ Type=notify
 # the default is not to use systemd for cgroups because the delegate issues still
 # exists and systemd currently does not support the cgroup feature set required
 # for containers run by docker
-ExecStart=/usr/bin/dockerd -H tcp://{{ docker_daemon_host }}:{{ docker_daemon_listen_port }} -H unix:///var/run/docker.sock
+ExecStart=/usr/bin/dockerd -H tcp://{{ docker_daemon_host }}:{{ docker_daemon_listen_port }} -H unix:///var/run/docker.sock {% if tlsverify %} --tlsverify  --tlscacert={{tlscacert}} --tlscert={{tlscert}} --tlskey={{tlskey}} 
+{% endif %}
 ExecReload=/bin/kill -s HUP $MAINPID
 TimeoutSec=0
 RestartSec=2

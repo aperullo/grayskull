@@ -1,0 +1,20 @@
+{
+    "CN": "House Atreides",
+    "hosts": [
+        "52.222.98.51",
+        "ec2-52-222-98-51.us-gov-west-1.compute.amazonaws.com"
+    ],
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C":  "Atreides Empire",
+            "L":  "Arrakeen",
+            "O":  "Fremen",
+            "OU": "Arrakis",
+            "ST": "Canopus"
+        }
+    ]
+}

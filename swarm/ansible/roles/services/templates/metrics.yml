@@ -1,0 +1,168 @@
+version: '{{compose_syntax_version}}'
+
+services:
+
+  prometheus:
+    image: {{docker_registry}}/{{prometheus_image}}:{{prometheus_version}}
+    configs:
+      - source: prometheus_config
+        target: /datasource.yml
+    deploy:
+      resources:
+        limits:
+          cpus: '{{prometheus_cpu_limit}}'
+          memory: {{prometheus_memory_limit}}
+        reservations:
+          cpus: '{{prometheus_cpu_reservation}}'
+          memory: {{prometheus_memory_reservation}}
+      placement:
+        constraints: [node.role != master]
+      labels:
+        - "traefik.port=9090"
+        - "traefik.docker.network={{proxy_network}}"
+        - "traefik.frontend.rule=Host:{{hostname}};PathPrefixStrip:{{prometheus_path}}"
+        - "traefik.enable=true"
+    networks:
+      - default
+      - {{proxy_network}}
+      - {{monitoring_network}}
+    command:
+      - "--config.file=/datasource.yml"
+    volumes:
+      - type: volume
+        source: prom_data
+        target: /prometheus
+
+  grafana:
+    image: {{docker_registry}}/{{grafana_image}}:{{grafana_version}}
+    environment:
+      GF_SERVER_ROOT_URL: https://{{hostname}}{{grafana_path}}
+    deploy:
+      resources:
+        limits:
+          cpus: '{{grafana_cpu_limit}}'
+          memory: {{grafana_memory_limit}}
+        reservations:
+          cpus: '{{grafana_cpu_reservation}}'
+          memory: {{grafana_memory_reservation}}
+      placement:
+        constraints: [node.role != master]
+      labels:
+        - "traefik.port=3000"
+        - "traefik.docker.network={{proxy_network}}"
+        - "traefik.frontend.rule=Host:{{hostname}};PathPrefixStrip:{{grafana_path}}"
+        - "traefik.enable=true"
+    volumes:
+      - type: volume
+        source: grafana_data
+        target: /var/lib/grafana
+    configs:
+      - source: grafana_provisioning_datasource
+        target: /etc/grafana/provisioning/datasources/datasource.yml
+      - source: grafana_provisioning_dashboard
+        target: /etc/grafana/provisioning/dashboards/dashboard.yml
+      - source: grafana_docker_prometheus_monitoring
+        target: /var/lib/grafana/dashboards/docker-prometheus-monitoring.json
+      - source: grafana_docker_swarm_monitoring
+        target: /var/lib/grafana/dashboards/docker-swarm-container-overview.json
+      - source: grafana_main_overview
+        target: /var/lib/grafana/dashboards/main-overview.json
+    networks:
+      - default
+      - {{proxy_network}}
+      - {{monitoring_network}}
+    
+
+  cadvisor:
+    image: {{docker_registry}}/{{cadvisor_image}}:{{cadvisor_version}}
+    networks:
+      - default
+      - {{monitoring_network}}
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
+      - type: bind
+        source: /
+        target: /rootfs
+        read_only: true
+      - type: bind
+        source: /var/run
+        target: /var/run
+      - type: bind
+        source: /sys
+        target: /sys
+        read_only: true
+      - type: bind
+        source: /var/lib/docker
+        target: /var/lib/docker
+        read_only: true
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    command:
+      - "-logtostderr"
+      - "-docker_only"
+
+  node-exporter:
+    image: {{docker_registry}}/{{node_exporter_image}}:{{node_exporter_version}}
+    networks:
+      - default
+      - {{monitoring_network}}
+    volumes:
+      - type: bind
+        source: /proc
+        target: /host/proc
+        read_only: true
+      - type: bind
+        source: /sys
+        target: /host/sys
+        read_only: true
+      - type: bind
+        source: /
+        target: /rootfs
+        read_only: true
+      - type: bind
+        source: /etc/hostname
+        target: /etc/nodename
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: {{cadvisor_memory_limit}}
+        reservations:
+          memory: {{cadvisor_memory_reservation}}
+    command:
+      - '--path.sysfs=/host/sys'
+      - '--path.procfs=/host/proc'
+      - '--collector.textfile.directory=/etc/node-exporter/'
+      - '--collector.filesystem.ignored-mount-points=^(sys|proc|dev|host|etc)($$|/)'
+      - '--no-collector.ipvs'
+configs:
+  prometheus_config:
+    file: config/metrics/prometheus.yml
+  grafana_provisioning_datasource:
+    file: config/metrics/grafana-datasource.yml
+  grafana_provisioning_dashboard:
+    file: config/metrics/grafana-dashboard.yml
+  grafana_docker_prometheus_monitoring:
+    file: config/metrics/docker-prometheus-monitoring.json
+  grafana_docker_swarm_monitoring:
+    file: config/metrics/docker-swarm-container-overview.json
+  grafana_main_overview:
+    file: config/metrics/main-overview.json
+
+networks:
+  {{proxy_network}}:
+     external: true
+  {{monitoring_network}}:
+     external: true
+
+volumes:
+  prom_data:
+  grafana_data:

@@ -1,0 +1,88 @@
+---
+#--- Install dependencies
+# Docker_stack module needs these to run
+- name: Services | install dependencies
+  pip:
+    name: jsondiff
+
+- name: Services | install dependencies
+  pip:
+    name: pyyaml
+
+#--- Gather files needing transferring
+- name: Services | Templates list
+  set_fact:
+    service_role_templates:
+      - { stack_name: proxy, file: proxy.yml }
+      - { stack_name: registry, file: registry.yml }
+      - { stack_name: management, file: management.yml }
+      - { stack_name: gateway, file: gateway.yml }
+      - { stack_name: elk, file: elk.yml }
+      - { stack_name: metrics, file: metrics.yml }
+      - { stack_name: resource, file: resource.yml }
+      - { stack_name: security, file: security.yml }
+
+- name: Services | Files list
+  set_fact:
+    service_role_files:
+      - { name: traefik-config, stack_name: proxy, file: config/proxy/traefik.toml }
+      - { name: elasticsearch-values, stack_name: elk, file: config/elk/elasticsearch.yml }
+      - { name: kibana-values, stack_name: elk, file: config/elk/kibana.yml }
+      - { name: logstash-values, stack_name: elk, file: config/elk/logstash.yml }
+      - { name: logstash-config, stack_name: elk, file: config/elk/logstash.conf }
+      - { name: grafana-dashboard, stack_name: metrics, file: config/metrics/grafana-dashboard.yml }
+      - { name: grafana-datasource, stack_name: metrics, file: config/metrics/grafana-datasource.yml }
+      - { name: prometheus-config, stack_name: metrics, file: config/metrics/prometheus.yml }
+      - { name: grafana-docker-prometheus-monitoring, stack_name: metrics, file: config/metrics/docker-prometheus-monitoring.json }
+      - { name: grafana-docker-swarm-monitoring, stack_name: metrics, file: config/metrics/docker-swarm-container-overview.json }
+      - { name: grafana-main-overview, stack_name: metrics, file: config/metrics/main-overview.json }
+
+#--- Create external networks
+- name: Services | Create proxy network
+  docker_network:
+    name: "{{ proxy_network }}"
+    driver: overlay
+
+- name: Services | Create security network
+  docker_network:
+    name: "{{ security_network }}"
+    driver: overlay
+
+- name: Services | Create monitoring network
+  docker_network:
+    name: "{{ monitoring_network }}"
+    driver: overlay
+
+#--- Copy files and Apply templates 
+- name: Services | Create grayskull directory
+  file:
+    path: "{{ grayskull_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Services | Create config subfolders
+  file:
+    path: "{{ grayskull_dir }}/config/{{ item.stack_name }}"
+    state: directory
+    mode: '0755'
+  with_items: "{{ service_role_files }}"
+
+- name: Services | Copy files
+  copy:
+    src: "{{ item.file }}"
+    dest: "{{ grayskull_dir }}/{{ item.file }}"
+  with_items: "{{ service_role_files }}"
+
+- name: Services | Create manifests
+  template:
+    src: "{{ item.file }}"
+    dest: "{{ grayskull_dir }}/{{ item.file }}"
+  with_items: "{{ service_role_templates }}"
+  register: service_role_manifests
+
+- name: Services | Apply manifests
+  docker_stack:
+    name: "{{ item.item.stack_name }}"
+    compose: "{{ grayskull_dir }}/{{ item.item.file }}"
+    state: present
+  with_items: "{{ service_role_manifests.results }}"
