@@ -15,6 +15,12 @@ jsonData,_ = subprocess.Popen([getJsonCmd], shell=True, stdout=subprocess.PIPE).
 
 data = json.loads(jsonData)['resources']
 
+# We are using an elastic IP (eip) to expose the first swarm-master to the internet. 
+# We can delete the VMs as many time as we want, but we never delete the eip. This way the public ip
+# that people use never changes. 
+
+# This function runs through all the eips and looks for the one that is linked the passed in attribute set from the instance.
+# If it matches up, then replace that instances public data with that of the EIP inside the inventory. 
 def determine_data(eips, attr, real_type, environment):
 
     data =  {

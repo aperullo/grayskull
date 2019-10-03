@@ -28,24 +28,22 @@ services:
       KEYCLOAK_HOSTNAME: {{hostname}}{{keycloak_path}}
       #KEYCLOAK_HTTP_PORT: 80
       #KEYCLOAK_HTTPS_PORT: 443
-      KEYCLOAK_USER: admin
-      KEYCLOAK_PASSWORD: admin
+      KEYCLOAK_USER: {{keycloak_user}}
+      KEYCLOAK_PASSWORD: {{keycloak_pass}}
       DB_VENDOR: MYSQL
       DB_ADDR: mysql
-      # TODO: passwords really shouldn't be here
       DB_DATABASE: keycloak
-      DB_USER: keycloak
-      DB_PASSWORD: password
+      DB_USER: {{mysql_user}}
+      DB_PASSWORD: {{mysql_pass}}
 
   mysql:
     image: {{docker_registry}}/{{mysql_image}}:{{mysql_version}}
     networks:
       - db
     environment:
-      # TODO: passwords really shouldn't be here
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: keycloak
-      MYSQL_USER: keycloak
-      MYSQL_PASSWORD: password
+      MYSQL_USER: {{mysql_user}}
+      MYSQL_PASSWORD: {{mysql_pass}}
     volumes:
       - mysql_data:/var/lib/mysql

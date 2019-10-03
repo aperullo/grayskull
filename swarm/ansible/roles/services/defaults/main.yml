@@ -40,9 +40,13 @@ resource_version: latest
 #--- Security
 keycloak_image: jboss/keycloak
 keycloak_version: 4.8.3.Final
+keycloak_user: admin
+keycloak_pass: admin
 keycloak_path: /keycloak
 mysql_image: mysql
 mysql_version: 5
+mysql_user: keycloak
+mysql_pass: password
 security_network: security
 
 #--- Elk

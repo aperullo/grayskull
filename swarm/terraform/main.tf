@@ -1,9 +1,23 @@
+provider "aws" {
+  profile = "default"
+  region  = "us-gov-west-1"
+}
+
+# This is where the state of the terraform resources are kept, in an s3 bucket.
+terraform {
+  backend "s3" {
+    bucket = "tf-state.gsp"
+    region  = "us-gov-west-1"
+    key = "swarm"
+  }
+}
+
 #module "dev" {
-#  source = "environments/di2e-govcloud-dev"
+#  source = "modules/di2e-govcloud-dev"
 #}
 
 module "staging" { 
-  source = "./environments/di2e_govcloud_staging"
+  source = "modules/di2e_govcloud_staging"
 }
 
 
