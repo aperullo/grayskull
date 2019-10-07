@@ -14,12 +14,35 @@ helm_version='v2.14.3'
 {% endif -%}
 {% endfor %}
 
+[kube-worker]
+{% for host in instances -%}
+{% if host.type == "worker" -%}
+{{ host.name }}
+{% endif -%}
+{% endfor %}
+
+[kube-rancher]
+{% for host in instances -%}
+{% if host.type == "rancher" -%}
+{{ host.name }}
+{% endif -%}
+{% endfor %}
+
 [kube-setup-delegate]
+{% if instances | selectattr("type", "equalto", "master") | list | length != 0 -%}
 {{ (instances | selectattr("type", "equalto", "master") | first())["name"] }}
+{% endif %}
+
+[kube-rancher-delegate]
+{% if instances | selectattr("type", "equalto", "rancher") | list | length != 0 -%}
+{{ (instances | selectattr("type", "equalto", "rancher") | first())["name"] }}
+{% endif %}
 
 [kube-node]
 {% for host in instances -%}
+{% if host.type != "rancher" -%}
 {{ host.name }}
+{% endif -%}
 {% endfor %}
 
 [kube-node:vars]

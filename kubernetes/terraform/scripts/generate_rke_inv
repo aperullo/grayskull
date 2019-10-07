@@ -7,7 +7,7 @@ from jinja2 import FileSystemLoader, Environment
 
 templateLoader = FileSystemLoader(searchpath="./")
 templateEnv = Environment(loader=templateLoader)
-TEMPLATE_FILE = "inv_ansible.ini.tpl"
+TEMPLATE_FILE = "inv_rke.yml.tpl"
 template = templateEnv.get_template(TEMPLATE_FILE)
 
 getJsonCmd = "terraform state pull"

@@ -26,6 +26,8 @@ for resource in resources:
                 real_type = "worker"
             if k8s_type == "k8s_master":
                 real_type = "master"
+            if k8s_type == "rancher":
+                real_type = "rancher"
             data = {
                 "public_ip": attr['public_ip'],
                 "public_dns": attr['public_dns'],

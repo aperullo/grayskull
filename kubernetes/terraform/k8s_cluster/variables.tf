@@ -16,6 +16,12 @@ variable "k8s_ami" {
   description = "AMI to use for the k8s nodes"
 }
 
+variable "k8s_rancher_ami" {
+  type        = string
+  default     = "ami-06432267"
+  description = "AMI to use for the k8s nodes"
+}
+
 variable "k8s_master_count" {
   type        = number
   default     = 3
@@ -26,6 +32,12 @@ variable "k8s_worker_count" {
   type        = number
   default     = 3
   description = "Number of k8s master nodes to provision"
+}
+
+variable "k8s_rancher_count" {
+  type        = number
+  default     = 0
+  description = "Number of rancher nodes to provision"
 }
 
 variable "k8s_size" {

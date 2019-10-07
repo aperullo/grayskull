@@ -1,4 +1,6 @@
 #!/bin/bash
+
+#--- set up volumes
 # This script does some basic tasks necessary to bootstrap hosts for use by kubespray later
 # Tasks:
 #   * Expand root volume to use full disk (it initially only uses a small portion)
@@ -64,3 +66,4 @@ sudo touch /4.txt
 sudo systemctl disable firewalld
 sudo systemctl stop firewalld
 sudo service docker restart
+
