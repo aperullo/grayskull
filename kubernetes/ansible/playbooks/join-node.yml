@@ -1,0 +1,14 @@
+# This should be changed to act more like grayskull.yml
+# maybe install kubectl on the rancher nodes
+
+- hosts: kube-master
+  tasks:
+  - name: Join node to cluster
+    shell: "sudo docker run -d --privileged --restart=unless-stopped --net=host -v /etc/kubernetes:/etc/kubernetes -v /var/run:/var/run rancher/rancher-agent:v2.2.8 --server http://ip-172-31-15-54.us-gov-west-1.compute.internal --token pf98pt9k25tms246n9fxh5hppffn7fv8s769zlgcrrnjf5sc6jp2gc --etcd --controlplane"
+    #shell: "docker stop $(docker ps -q)"
+
+- hosts: kube-worker
+  tasks:
+  - name: Join node to cluster
+    shell: "sudo docker run -d --privileged --restart=unless-stopped --net=host -v /etc/kubernetes:/etc/kubernetes -v /var/run:/var/run rancher/rancher-agent:v2.2.8 --server http://ip-172-31-15-54.us-gov-west-1.compute.internal --token pf98pt9k25tms246n9fxh5hppffn7fv8s769zlgcrrnjf5sc6jp2gc --worker"
+    #shell: "docker stop $(docker ps -q)"

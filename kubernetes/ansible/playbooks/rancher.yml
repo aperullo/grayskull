@@ -1,0 +1,35 @@
+# This should be changed to act more like grayskull.yml
+# maybe install kubectl on the rancher nodes
+
+- hosts: localhost
+  tasks:
+  
+  - name: test1
+    shell: "kubectl -n kube-system create serviceaccount tiller"
+    ignore_errors: yes
+
+  - name: test2
+    shell: "kubectl create clusterrolebinding tiller --clusterrole=cluster-admin --serviceaccount=kube-system:tiller"
+    ignore_errors: yes
+
+  - name: test3
+    shell: "helm init --service-account tiller"
+
+  - name: test4
+    shell: "kubectl -n kube-system rollout status deploy/tiller-deploy"
+
+  - name: test5
+    shell: "helm repo add rancher-latest https://releases.rancher.com/server-charts/latest"
+
+  - name: test6
+    shell: "kubectl create ns cattle-system"
+    ignore_errors: yes
+
+  - name: test7
+    shell: "kubectl apply -f certs/secret.yaml"
+
+  - name: test8
+    shell: "kubectl -n cattle-system create secret generic tls-ca --from-file=certs/cacerts.pem"
+
+  - name: test9
+    shell: "helm install rancher-latest/rancher --name rancher --namespace cattle-system --set hostname=ranch.gsp.test --set ingress.tls.source=secret"

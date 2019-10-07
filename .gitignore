@@ -39,7 +39,11 @@ gradle-app.setting
 **/*.retry
 
 # Inventories to non-local clusters like staging.
-**/staging.ini
+**/inventory/staging.ini
+**/inventory/*.yml
+
+# .rkestate files
+**/*.rkestate
 
 # Secrets
 **/secrets/*
