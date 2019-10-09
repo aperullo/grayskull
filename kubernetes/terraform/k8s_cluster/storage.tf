@@ -4,10 +4,10 @@ resource "aws_ebs_volume" "ceph_storage_master" {
   size = var.ceph_storage_size
 
   tags = {
-    Name        = "k8s-${var.environment}-master-${count.index}"
+    Name        = "k8s-${terraform.workspace}-master-${count.index}"
     Role        = "grayskull"
     Type        = "ceph storage"
-    Environment = var.environment
+    Environment = terraform.workspace
   }
 
   availability_zone = aws_instance.k8s_master[count.index].availability_zone
@@ -19,10 +19,10 @@ resource "aws_ebs_volume" "ceph_storage_worker" {
   size = var.ceph_storage_size
 
   tags = {
-    Name        = "k8s-${var.environment}-worker-${count.index}"
+    Name        = "k8s-${terraform.workspace}-worker-${count.index}"
     Role        = "grayskull"
     Type        = "ceph storage"
-    Environment = var.environment
+    Environment = terraform.workspace
   }
 
   availability_zone = aws_instance.k8s_worker[count.index].availability_zone

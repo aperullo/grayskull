@@ -7,10 +7,10 @@ resource "aws_instance" "k8s_master" {
   subnet_id = "subnet-18977a41"
 
   tags = {
-    Name        = "k8s-${var.environment}-master-${count.index}"
+    Name        = "k8s-${terraform.workspace}-master-${count.index}"
     Role        = "grayskull"
     Type        = "k8s"
-    Environment = var.environment
+    Environment = terraform.workspace
   }
 
   key_name = var.key
@@ -35,10 +35,10 @@ resource "aws_instance" "k8s_worker" {
   subnet_id = "subnet-18977a41"
 
   tags = {
-    Name        = "k8s-${var.environment}-worker-${count.index}"
+    Name        = "k8s-${terraform.workspace}-worker-${count.index}"
     Role        = "grayskull"
     Type        = "k8s"
-    Environment = var.environment
+    Environment = terraform.workspace
   }
 
   key_name = var.key
