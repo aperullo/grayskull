@@ -12,12 +12,7 @@ terraform {
   }
 }
 
-#module "dev" {
-#  source = "modules/di2e-govcloud-dev"
-#}
 
-module "staging" { 
-  source = "modules/di2e_govcloud_staging"
+module "swarm_cluster" {
+  source = "./swarm_cluster"
 }
-
-

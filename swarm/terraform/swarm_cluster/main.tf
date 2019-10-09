@@ -7,10 +7,10 @@ resource "aws_instance" "swarm_master" {
   subnet_id = "subnet-18977a41"
 
   tags = {
-    Name        = "swarm-${var.environment}-master-${count.index}"
+    Name        = "swarm-${terraform.workspace}-master-${count.index}"
     Role        = "grayskull"
     Type        = "swarm"
-    Environment = var.environment
+    Environment = terraform.workspace
   }
 
   key_name = var.key
@@ -35,10 +35,10 @@ resource "aws_instance" "swarm_worker" {
   subnet_id = "subnet-18977a41"
 
   tags = {
-    Name        = "swarm-${var.environment}-worker-${count.index}"
+    Name        = "swarm-${terraform.workspace}-worker-${count.index}"
     Role        = "grayskull"
     Type        = "swarm"
-    Environment = var.environment
+    Environment = terraform.workspace
   }
 
   key_name = var.key

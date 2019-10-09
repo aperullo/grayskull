@@ -4,10 +4,10 @@ resource "aws_ebs_volume" "docker_storage_master" {
   size = var.docker_storage_size
 
   tags = {
-    Name        = "swarm-${var.environment}-master-${count.index}"
+    Name        = "swarm-${terraform.workspace}-master-${count.index}"
     Role        = "grayskull"
     Type        = "docker storage"
-    Environment = var.environment
+    Environment = terraform.workspace
   }
 
   availability_zone = aws_instance.swarm_master[count.index].availability_zone
@@ -19,10 +19,10 @@ resource "aws_ebs_volume" "docker_storage_worker" {
   size = var.docker_storage_size
 
   tags = {
-    Name        = "swarm-${var.environment}-worker-${count.index}"
+    Name        = "swarm-${terraform.workspace}-worker-${count.index}"
     Role        = "grayskull"
     Type        = "docker storage"
-    Environment = var.environment
+    Environment = terraform.workspace
   }
 
   availability_zone = aws_instance.swarm_worker[count.index].availability_zone
