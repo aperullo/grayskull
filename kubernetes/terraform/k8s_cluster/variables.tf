@@ -34,11 +34,12 @@ variable "k8s_size" {
   description = "Size of instances for k8s nodes"
 }
 
-variable "environment" {
-  type        = string
-  default     = "staging"
-  description = "Environment being deployed. Primarily used for labels"
-}
+// Removing this, use terraform.workspace instead
+//variable "environment" {
+//  type        = string
+//  default     = "staging"
+//  description = "Environment being deployed. Primarily used for labels"
+//}
 
 variable "key" {
   type        = string
