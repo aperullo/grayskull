@@ -1,4 +1,0 @@
-rootProject.name = 'sample-gateway-oauth2login'
-
-include 'gateway', 'resource-server', 'deployment', 'elk', 'vault:Vault-Consul-Stack', 'vault:Vault-File-Stack'
-
