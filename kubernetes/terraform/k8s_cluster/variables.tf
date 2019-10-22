@@ -36,7 +36,7 @@ variable "k8s_worker_count" {
 
 variable "k8s_rancher_count" {
   type        = number
-  default     = 0
+  default     = 3
   description = "Number of rancher nodes to provision"
 }
 

@@ -39,7 +39,6 @@ sudo touch /1.txt
 #sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 #sudo yum install -y docker-ce-18.06.3.ce-3.el7
 sudo yum install docker -y
-sudo touch /2.txt
 #sudo chkconfig docker on
 #sudo sed -i -e 's/slave/shared/g' /lib/systemd/system/docker.service
 #sudo systemctl daemon-reload
@@ -50,9 +49,9 @@ sudo groupadd docker
 sudo usermod -aG docker maintuser
 #sudo chgrp docker /lib/systemd/system/docker.socket
 #sudo chmod g+w /lib/systemd/system/docker.socket
+sudo touch /2.txt
 
 #--- Relocate where docker stores images for more room
-sudo touch /3.txt
 #TODO: CURRENTLY TESTING THIS
 sudo mkdir -p /storage/docker
 sudo service docker stop
@@ -60,10 +59,10 @@ sudo mv /var/lib/docker /storage/
 ln -s /storage/docker /var/lib/docker
 
 sudo service docker restart
+sudo touch /3.txt
 
 #--- disable fireall and restart docker to clear ip table rules
-sudo touch /4.txt
 sudo systemctl disable firewalld
 sudo systemctl stop firewalld
 sudo service docker restart
-
+sudo touch /4.txt

@@ -6,6 +6,7 @@
 [all:vars]
 ansible_ssh_common_args='-o StrictHostKeyChecking=no'
 helm_version='v2.14.3'
+deploy_gray_rke=True
 
 [kube-master]
 {% for host in instances -%}
@@ -52,7 +53,7 @@ helm_enabled=True
 supplementary_addresses_in_ssl_keys='["{{ instances|join('", "', attribute='public_ip') }}"]'
 grayskull_dir=/grayskull
 platform_prefix=gsp
-bin_dir=/usr/local/bin
+bin_dir=/usr/bin
 
 [etcd]
 {% for host in instances -%}

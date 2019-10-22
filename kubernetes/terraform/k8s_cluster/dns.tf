@@ -8,3 +8,11 @@ resource "aws_route53_record" "www" {
   ttl     = "300"
   records = ["${aws_instance.k8s_master[0].private_ip}"] # TODO: figure out how to turn an interpolation into a list.
 }
+
+resource "aws_route53_record" "rancher" {
+  zone_id = "Z27V36PIZSES82"
+  name    = "ranch.gsp.test"
+  type    = "A"
+  ttl     = "300"
+  records = "${aws_instance.k8s_rancher[*].private_ip}"
+}
