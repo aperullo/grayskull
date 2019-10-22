@@ -85,6 +85,25 @@
       src: "{{ server_chain_path }}.pem"
       dest: "{{ copy_chain_path }}"  
   when: task_copy == true
+  rescue:
+    - name: Certificate Tasks | Try Remote Rename Files
+      copy:
+        src: "{{ ca_path }}.pem"
+        dest: "{{ copy_ca_path }}"
+        remote_src: true
+
+    - name: Certificate Tasks | Try Remote Rename Files
+      copy:
+        src: "{{ server_path }}-key.pem"
+        dest: "{{ copy_server_key_path }}"
+        remote_src: true
+
+    - name: Certificate Tasks | Try Remote Rename Files
+      copy:
+        src: "{{ server_chain_path }}.pem"
+        dest: "{{ copy_chain_path }}"  
+        remote_src: true
+
 
 # ---- Generate RKE CSRs and sign
 
