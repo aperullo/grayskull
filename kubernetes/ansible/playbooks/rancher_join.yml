@@ -1,0 +1,20 @@
+# This playbook joins nodes to what will be a rancher-managed cluster.
+# When making a cluster from existing nodes, rancher gives you a docker command to run on each
+# node, which starts rancher-agent and communicates back to the rancher cluster.
+
+# TODO: This should be changed to act more like grayskull.yml
+# TODO: Can we get this command through rancher CLI?
+
+- hosts: kube-master
+  tasks:
+    - name: Join node to cluster
+      shell: "sudo docker run -d --privileged --restart=unless-stopped --net=host -v /etc/kubernetes:/etc/kubernetes -v /var/run:/var/run rancher/rancher-agent:v2.3.1 --server https://ranch.gsp.test --token vqlkvqvpj4g4qp4d9fjtf4pgz2n47s7rh6pmb8nf7sh52f265x5wnm --ca-checksum 600ada1a397e5ee552a4356d815055d45918e49aba80593876197e3b75954765 --etcd --controlplane"
+      #shell: "docker stop $(docker ps -q)"
+
+- hosts: kube-worker
+  tasks:
+    - name: Join node to cluster
+      shell: "sudo docker run -d --privileged --restart=unless-stopped --net=host -v /etc/kubernetes:/etc/kubernetes -v /var/run:/var/run rancher/rancher-agent:v2.3.1 --server https://ranch.gsp.test --token vqlkvqvpj4g4qp4d9fjtf4pgz2n47s7rh6pmb8nf7sh52f265x5wnm --ca-checksum 600ada1a397e5ee552a4356d815055d45918e49aba80593876197e3b75954765 --worker"
+      #shell: "docker stop $(docker ps -q)"
+
+

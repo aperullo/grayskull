@@ -2,34 +2,124 @@
 # maybe install kubectl on the rancher nodes
 
 - hosts: localhost
+  vars:
+    #TODO: dont put var here
+    path: "certs"
   tasks:
-  
-  - name: test1
-    shell: "kubectl -n kube-system create serviceaccount tiller"
-    ignore_errors: yes
+    - name: Services | Create Certs folder
+      file:
+        dest: "{{ path }}"
+        state: directory
+        mode: "0755"
 
-  - name: test2
-    shell: "kubectl create clusterrolebinding tiller --clusterrole=cluster-admin --serviceaccount=kube-system:tiller"
-    ignore_errors: yes
+    # Template json
+    - name: Services | Templates list
+      set_fact:
+        service_role_templates:
+          - { name: csr.json, file: "csr.json.tpl" }
 
-  - name: test3
-    shell: "helm init --service-account tiller"
+    - name: Services | Create manifests
+      template:
+        src: "{{ item.file }}"
+        dest: "{{ path }}/{{ item.name }}"
+      with_items: "{{ service_role_templates }}"
 
-  - name: test4
-    shell: "kubectl -n kube-system rollout status deploy/tiller-deploy"
+# ---- Use Cert role to create the certs we need for the secret
+- hosts: localhost
+  vars: 
+    path: "certs"
+  roles:
+    - role: certs_role
+      vars:
+        # create a ca to sign our certs
+        task_create_ca: true
+        ca_path: "{{ path }}/ca"
+        ca_csrjson_src: "{{ path }}/csr.json"
+        # create a server, client, and chain cert
+        task_create_server: true
+        server_path: "{{ path }}/server"
+        server_client_path: "{{ path }}/client"
+        server_chain_path: "{{ path }}/chain"
+        # copy the certs to name them as the k8s secret expects
+        task_copy: true
+        copy_ca_path: "{{ path }}/cacerts.pem"
+        copy_server_key_path: "{{ path }}/tls.key"
+        copy_chain_path: "{{ path }}/tls.crt"
 
-  - name: test5
-    shell: "helm repo add rancher-latest https://releases.rancher.com/server-charts/latest"
 
-  - name: test6
-    shell: "kubectl create ns cattle-system"
-    ignore_errors: yes
+# ---- Install a local kubectl on the rancher nodes
+- hosts: kube-rancher
+  become: yes
+  vars:
+    config_path: ".."
+  tasks:
+    - name: Download kubectl
+      get_url: 
+        url: https://storage.googleapis.com/kubernetes-release/release/v1.16.1/bin/linux/amd64/kubectl
+        dest: "/usr/bin/kubectl"
+        mode: '0755'
 
-  - name: test7
-    shell: "kubectl apply -f certs/secret.yaml"
+    - name: Copy config 
+      copy:
+        src: "{{config_path}}/inventory/kube_config_rke.yml"
+        dest: "/kube_config"
 
-  - name: test8
-    shell: "kubectl -n cattle-system create secret generic tls-ca --from-file=certs/cacerts.pem"
+    - name: Replace address
+      lineinfile:
+        path: "/kube_config"
+        regexp: "server=*"
+        line: "server=https://{{hostvars[groups['kube-rancher'][0]]['ip']}}:6443"
 
-  - name: test9
-    shell: "helm install rancher-latest/rancher --name rancher --namespace cattle-system --set hostname=ranch.gsp.test --set ingress.tls.source=secret"
+    - name: Add env var
+      lineinfile:
+        path: /etc/environment
+        regexp: 'KUBECONFIG=*'
+        line: KUBECONFIG=/kube_config
+
+
+# ---- Issue kubectl and helm commands to setup rancher itself
+- hosts: localhost
+  vars:
+    path: "certs"
+  tasks:
+    - name: Rancher | Test KUBECONFIG
+      shell: "timeout 30s kubectl auth can-i get pods -A"
+      register: result
+      ignore_errors: True
+
+    - name: Rancher | Fail KUBECONFIG
+      fail: 
+        msg: "Kubectl didn't work. Did you remember use rke's kubeconfig?"
+      when: result.rc == 124
+
+    - name: Rancher | Create tiller account
+      shell: "kubectl -n kube-system create serviceaccount tiller"
+      ignore_errors: yes
+
+    - name: Rancher | Create tiller bindings
+      shell: "kubectl create clusterrolebinding tiller --clusterrole=cluster-admin --serviceaccount=kube-system:tiller"
+      ignore_errors: yes
+
+    - name: Rancher | Initialize tiller 
+      shell: "helm init --service-account tiller"
+
+    - name: Rancher | Wait for tiller to rollout
+      shell: "kubectl -n kube-system rollout status deploy/tiller-deploy"
+
+    - name: Rancher | Add rancher repo
+      shell: "helm repo add rancher-latest https://releases.rancher.com/server-charts/latest"
+
+    - name: Rancher | Create namespace for rancher
+      shell: "kubectl create ns cattle-system"
+      ignore_errors: yes
+
+    - name: Rancher | Create ingress cert secret
+      shell: "kubectl -n cattle-system create secret tls tls-rancher-ingress --cert={{ path }}/tls.crt --key={{ path }}/tls.key"
+      ignore_errors: yes
+
+    - name: Rancher | Create CA cert secret
+      shell: "kubectl -n cattle-system create secret generic tls-ca --from-file={{ path }}/cacerts.pem"
+      ignore_errors: yes
+
+    - name: Rancher | Install rancher with helm
+      shell: "helm install rancher-latest/rancher --name rancher --namespace cattle-system --set hostname=ranch.gsp.test --set ingress.tls.source=secret --set privateCA=true"

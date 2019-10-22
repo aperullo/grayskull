@@ -1,0 +1,41 @@
+- hosts: localhost
+  tasks:
+    - name: Certificate Tasks | Templates list
+      set_fact:
+        service_role_templates:
+          - { name: csr.json, file: "csr.json.tpl" }
+
+    - name: Certificate Tasks | Create manifests
+      template:
+        src: "{{ item.file }}"
+        dest: "csr.json"
+      with_items: "{{ service_role_templates }}"
+
+- hosts: localhost
+  vars: 
+    path: "certs"
+  # Turns out vars are shared for all instances of a role. You must explicitly define each variable for each role. The default value doesn't matter if its overridden anywhere.
+  roles:
+    - role: certs_role 
+      vars:
+        task_create_ca: true
+        ca_path: "{{ path }}/ca"
+        ca_csrjson_src: "csr.json"
+        # create a server, client, and chain cert
+        task_create_server: true
+        server_path: "{{ path }}/server"
+        server_client_path: "{{ path }}/client"
+        server_chain_path: "{{ path }}/chain"
+        # copy the certs to name them as the k8s secret expects
+        task_copy: true
+        copy_ca_path: "{{ path }}/cacerts.pem"
+        copy_server_key_path: "{{ path }}/tls.key"
+        copy_chain_path: "{{ path }}/tls.crt"
+        task_rke_csrs: true
+        rke_inv_path: ../inventory/rke_gray.yml
+        rke_results_path: "{{ path }}"
+        rke_csr_path: csr
+        
+
+
+

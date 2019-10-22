@@ -1,0 +1,66 @@
+- hosts: localhost
+  vars:
+    - base_path: "/home/ant/dev/git/grayskull/kubernetes/ansible"
+    - cert_path: "playbooks/certs"
+    - inv_path: "inventory"
+  tasks:
+    - name: Services | Templates list
+      set_fact:
+        service_role_templates:
+          - { name: csr.json, file: "{{ base_path }}/{{ cert_path }}/csr.json.tpl" }
+
+    - name: Services | Create manifests
+      template:
+        src: "{{ item.file }}"
+        dest: "{{ base_path }}/{{ cert_path }}/{{ item.name }}"
+      with_items: "{{ service_role_templates }}"
+
+    - name: Certificate Tasks | Check if ca exist
+      stat: 
+        path: "{{ base_path }}/{{ cert_path }}/ca.pem"
+      register: cert_exists
+
+    - name: Certificate Tasks | Create a self-signed CA
+      shell: "cd {{ base_path }}/{{ cert_path }} && cfssl genkey -initca  {{ base_path }}/{{ cert_path }}/csr.json | cfssljson -bare ca"
+      when: cert_exists.stat.exists == false
+
+    - name: make csr-dir
+      file:
+        dest: "{{ base_path }}/{{ cert_path }}/csr"
+        state: directory
+        mode: "0755"
+
+    - name: Generate CSRs
+      shell: "rke cert generate-csr --config {{ base_path }}/{{ inv_path }}/rke_gray.yml --cert-dir {{ base_path }}/{{ cert_path }}/csr"
+
+    - name: fetch csrs and keys
+      set_fact:
+        csrs: "{{ query('fileglob', '{{ base_path }}/{{ cert_path }}/csr/*-csr.pem') | sort }}"
+        keys: "{{ query('fileglob', '{{ base_path }}/{{ cert_path }}/csr/*-key.pem') | sort }}"
+
+    - name: make certs
+      shell: "cfssl sign -ca {{ base_path }}/{{ cert_path }}/ca.pem -ca-key {{ base_path }}/{{ cert_path }}/ca-key.pem {{ item }} | cfssljson -bare {{item | replace('-csr.pem', '') }}"
+      loop: "{{ csrs }}" #zip the csrs and keys into one list
+
+    - name: copy CA to csrs folder
+      copy:
+        src: "{{ base_path }}/{{ cert_path }}/ca.pem"
+        dest: "{{ base_path }}/{{ cert_path }}/csr/kube-ca.pem"
+
+    - name: copy CA to csrs folder
+      copy:
+        src: "{{ base_path }}/{{ cert_path }}/ca.pem"
+        dest: "{{ base_path }}/{{ cert_path }}/csr/kube-apiserver-requestheader-ca.pem"
+
+    - name: copy CA to csrs folder
+      copy:
+        src: "{{ base_path }}/{{ cert_path }}/ca-key.pem"
+        dest: "{{ base_path }}/{{ cert_path }}/csr/kube-apiserver-requestheader-ca-key.pem"
+
+    - name: generate service account keys
+      shell: "cfssl genkey {{ base_path }}/{{ cert_path }}/kube-service-account-token.json | cfssljson --bare {{ base_path }}/{{ cert_path }}/csr/kube-service-account-token"
+
+    - name: make certs
+      shell: "cfssl sign -ca {{ base_path }}/{{ cert_path }}/ca.pem -ca-key {{ base_path }}/{{ cert_path }}/ca-key.pem {{ base_path }}/{{ cert_path }}/csr/kube-service-account-token.csr | cfssljson -bare {{ base_path }}/{{ cert_path }}/csr/kube-service-account-token }}"
+
+    #TODO cleanup csr's and csr.pem's and copy produced certs and keys to corresponding directory.

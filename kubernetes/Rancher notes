@@ -1,0 +1,77 @@
+# Rancher HA Notes
+
+A rancher HA cluster is a dedicated kubernetes cluster whose only tasks are to run rancher and related work loads. Actual product clusters are provisioned and administrated from the ui/api of this dedicated rancher cluster.
+
+Rancher requires specific versions of docker and is compatible with certain linux distros. See https://rancher.com/docs/rancher/v2.x/en/installation/requirements/
+
+Below are the issues encountered with each:
+
+Ubuntu:
+- Docker was hard to install and verify was working.
+- Getting user to have docker permission proved an issue
+
+RHEL:
+- The version of docker that would be installed was podman, which rke didnt like.
+- An issue revolving around mount flags (https://github.com/rancher/rke/issues/123) 
+
+Amazon linux
+- Cgroup errors (https://github.com/rancher/rancher/issues/12045, https://github.com/rancher/rke/issues/1099)
+
+CentOS:
+- Cgroup errors (https://github.com/rancher/rancher/issues/12045, https://github.com/rancher/rke/issues/1099)
+
+Centos was the one I settled on, as I was able to get it working despite the cgroup issue 
+
+## Cgroup error
+
+The cgroup error was the hardest to solve and isn't even fully fixed. The error is a problem with the mapping of cgroups in kubelet on each node. Luckily we can pass flags directly to kubelet through the rancher inventory using the `extra-args` option. The proper solution likely involves figuring out what to set for the following two flags:
+
+```
+kubelet:
+    extra_args:
+      cgroup-root: "/cgroup:/sys/fs/cgroup"
+      cgroup-driver: cgroupfs
+```
+see https://github.com/rancher/rancher/issues/10015#issuecomment-360531072
+
+A work around is disabling the whole chunk of code causing the error by passing:
+
+```
+kubelet:
+    extra_args:
+		cgroups-per-qos: false
+```
+
+I don't understand consequences of disabling this option yet, so this should be considered a temporary measure.
+
+Docker is set up by a bash script run as a AWS userdata script. This downloads and sets up docker, adds the user to the docker group, moves docker storage, and stops the firewalls on the nodes. This script can take an additional 5 minutes after the node reports ready. I have not found a good way to report this status.
+
+## Running ansible
+
+Rancher runs kubernetes inside docker containers, instead of directly on the node. So we can't move files to the node and then directly apply them, which is how our ansible playbook work. 
+TODO: figure out how to run ansible.
+
+## Rancher managed clusters
+There are two distinct ways to manage clusters with rancher. Depending which one kessel run uses/lets us use, what we have to do will be different.
+
+
+### Existing Cluster
+An existing cluster is one that came into existence seperate from Rancher, by methods such as kubespray, kops, kubeadm, or RKE.
+
+Existing clusters fall into two categories: vanilla k8s, and rancher flavored. Vanilla k8s is set up by anything other than RKE; all the yamls are local on the system. 
+
+A cluster set up by RKE will count as imported in Rancher's UI, but will still run rancher-flavored k8s; IE, k8s runs everything in docker containers instead of keeping files natively on each nodes.
+
+Vanilla k8s is the easy case, but also the more unlikely. It is unlikely because if they are already running Rancher, there's little reason to not use it to provision clusters. In this case our existing ansible playbooks should work.
+
+For Rancher-flavored k8s, see Rancher provisioned clusters (below).
+
+### 2. Rancher provisioned cluster
+
+Rancher can provision and set up new clusters from its UI or through its cli/api. These clusters will run the rancher docker images of each resource. And automatically include cattle-system (their internal cluster manager). 
+
+In this case, our playbooks will no longer work, since we may not be able to load files natively on the node.
+
+We are able to get kubectl commands issued to rancher provisioned clusters from our local machines, but the nodes will not have kubectl or even python installed. We may be able to get around not having kubectl by adding a step to the playbook to install and hook it up locally. However without python we can't run ansible, so this may be harder to deal with.
+
+
