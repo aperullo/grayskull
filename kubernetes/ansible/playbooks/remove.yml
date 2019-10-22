@@ -33,7 +33,7 @@
     - { role: ion_role, vars: { task_mode: 'remove', ms_name: "security", ms_namespace: "security", is_cluster_admin: true }, when: (ion_role_enabled | default(True)) }
 
 # This role needs to be run on all hosts
-- hosts: all
+- hosts: kube-node
   become: yes
   roles:
     - { role: rook_ceph_role, vars: { task_mode: 'remove' }, when: (rook_ceph_role_enabled | default(True)) } 
