@@ -5,6 +5,7 @@
 
 [all:vars]
 ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+helm_version='v2.14.3'
 
 [kube-master]
 {% for host in instances -%}

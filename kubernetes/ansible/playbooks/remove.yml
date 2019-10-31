@@ -16,6 +16,7 @@
     register: helm_init_result
     changed_when: "'already installed' not in helm_init_result.stdout"
 
+# Run most of the roles in remove mode
 - hosts: kube-setup-delegate
   become: yes
   roles:
@@ -31,13 +32,13 @@
     - { role: ion_role, vars: { task_mode: 'remove', ms_name: "platform", ms_namespace: "platform", is_cluster_admin: true }, when: (ion_role_enabled | default(True)) }
     - { role: ion_role, vars: { task_mode: 'remove', ms_name: "security", ms_namespace: "security", is_cluster_admin: true }, when: (ion_role_enabled | default(True)) }
 
-# This task needs to be run on all hosts
+# This role needs to be run on all hosts
 - hosts: all
   become: yes
   roles:
     - { role: rook_ceph_role, vars: { task_mode: 'remove' }, when: (rook_ceph_role_enabled | default(True)) } 
 
-# Run the remaining tasks that come after rook.
+# Run the remaining roles that come after rook.
 - hosts: kube-setup-delegate
   become: yes
   roles:

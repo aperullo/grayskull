@@ -31,12 +31,18 @@
       filename: "{{ grayskull_dir }}/tiller-rbac.yml"
       state: present
 
+  # Needed to re-install helm if the remove playbook is run. 
   - name: Setup | Retrieve helm binary archive
     unarchive:
-      src: https://storage.googleapis.com/kubernetes-helm/helm-v2.14.0-linux-amd64.tar.gz
-      dest: /tmp
-      creates: "{{ bin_dir }}/helm"
+      src: https://storage.googleapis.com/kubernetes-helm/helm-v2.14.3-linux-amd64.tar.gz
+      dest: "{{ bin_dir }}"
       remote_src: yes
+      exclude:
+        - "*/LICENSE"
+        - "*/README.md"
+        - "*/tiller"
+      extra_opts:
+        - --strip-components=1
 
   - name: Setup | Move helm binary into place
     command: >
