@@ -5,10 +5,10 @@ ceph:
     enabled: true
     path: /
     hosts:
-      - ceph.gsp.test
+      - "ceph.{{ grayskull_domain }}"
     tls:
       - hosts:
-          - ceph.gsp.test
+          - "ceph.{{ grayskull_domain }}"
         secretName: ceph-gsp-tls
   defaultStorage:
     enabled: true

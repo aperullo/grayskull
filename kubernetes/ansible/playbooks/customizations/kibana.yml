@@ -4,8 +4,8 @@ ingress:
   enabled: true
   path: /
   hosts: 
-    - kibana.gsp.test
+    - "kibana.{{ grayskull_domain }}"
   tls:
     - hosts:
-        - kibana.gsp.test
+        - "kibana.{{ grayskull_domain }}"
       secretName: elk-gsp-tls

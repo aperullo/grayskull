@@ -9,13 +9,3 @@ volumeClaimTemplate:
 
 # imageTag: "6.7.0"
 # esMajorVersion: 6
-
-# ingress:
-#   enabled: true
-#   path: /
-#   hosts: 
-#     - elasticsearch.gsp.test
-#   tls:
-#     - hosts:
-#         - elasticsearch.gsp.test
-#       secretName: elk-gsp-tls

@@ -496,7 +496,7 @@ data:
         "enabled" : true,
         "clientAuthenticatorType" : "client-secret",
         "secret" : "{{ client_UUID | default('') }}",
-        "redirectUris" : [ "https://auth.gsp.test/auth/oauth/callback", "http://localhost:18000", "http://localhost:8000", "http://admin.gsp.test/oauth/callback", "https://admin.gsp.test/oauth/callback" ],
+        "redirectUris" : [ "https://auth.{{ grayskull_domain }}/auth/oauth/callback", "http://localhost:18000", "http://localhost:8000", "http://admin.{{ grayskull_domain }}/oauth/callback", "https://admin.{{ grayskull_domain }}/oauth/callback" ],
         "webOrigins" : [ ],
         "notBefore" : 0,
         "bearerOnly" : false,

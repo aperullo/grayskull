@@ -30,6 +30,7 @@ supplementary_addresses_in_ssl_keys='["{{ instances|join('", "', attribute='publ
 grayskull_dir=/grayskull
 platform_prefix=gsp
 bin_dir=/usr/local/bin
+grayskull_domain={{ env }}.gsp.test
 
 [etcd]
 {% for host in instances -%}

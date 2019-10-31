@@ -11,9 +11,11 @@ TEMPLATE_FILE = "inventory.ini.tpl"
 template = templateEnv.get_template(TEMPLATE_FILE)
 
 getJsonCmd = "terraform state pull"
-jsonData,_ = subprocess.Popen([getJsonCmd], shell=True, stdout=subprocess.PIPE).communicate()
-
+jsonData,__ = subprocess.Popen([getJsonCmd], shell=True, stdout=subprocess.PIPE).communicate()
 data = json.loads(jsonData)['resources']
+
+environment,__ = subprocess.Popen(["terraform workspace show"], shell=True, stdout=subprocess.PIPE).communicate()
+environment = environment.decode("utf-8").strip() # decode /n then strip all whitespace
 
 hosts = []
 resources = list(filter(lambda x: x['type'] == "aws_instance", data))
@@ -33,11 +35,8 @@ for resource in resources:
                 "private_dns": attr['private_dns'],
                 "name": attr['tags']['Name'],
                 "type": real_type,
-
             }
             hosts.append(data)
 
-for host in hosts:
-    print("#Host:", host)
-    print(template.render(instances=host))
+print(template.render(instances=hosts, env=environment))
 
