@@ -8,7 +8,7 @@ task_mode: "install"
 
 helm_rook_ceph_name: "{{ platform_prefix }}-rook-ceph"
 
-ingress_url: "ceph.gsp.test"
+ingress_url: "ceph.{{grayskull_domain}}"
 ingress_secretName: "ceph-gsp-tls" #TODO: make this into admin-gsp-tls
 ingress_path: "/"
 ingress_tls_cert: "{{ grayskull_dir }}/secrets/tls.crt"

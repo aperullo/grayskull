@@ -3,7 +3,7 @@
 
 resource "aws_route53_record" "www" {
   zone_id = "Z27V36PIZSES82"	# TODO: either make or get this value. "${aws_route53_zone.primary.zone_id}"
-  name    = "auth.gsp.test"
+  name    = "auth.${terraform.workspace}.gsp.test"
   type    = "A"
   ttl     = "300"
   records = ["${aws_instance.k8s_master[0].private_ip}"] # TODO: figure out how to turn an interpolation into a list.

@@ -1,5 +1,5 @@
 resource "aws_security_group" "k8s_ports" {
-  name        = "k8s_ports"
+  name        = "k8s_ports_{{terraform.workspace}}"
   description = "Allow k8s cluster communication"
   vpc_id      = "${var.vpc_id}"
 

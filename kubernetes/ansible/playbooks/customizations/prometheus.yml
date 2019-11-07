@@ -3,10 +3,10 @@ prometheus:
     enabled: true
     paths: [/]
     hosts:
-      - prom.gsp.test
+      - "prom.{{ grayskull_domain }}"
     tls:
       - hosts:
-          - prom.gsp.test
+          - "prom.{{ grayskull_domain }}"
         secretName: prom-gsp-tls
 
 grafana:
@@ -14,10 +14,10 @@ grafana:
     enabled: true
     paths: [/]
     hosts:
-      - graph.gsp.test
+      - "graph.{{ grayskull_domain }}"
     tls:
       - hosts:
-          - graph.gsp.test
+          - "graph.{{ grayskull_domain }}"
         secretName: prom-gsp-tls
 
 alertmanager:
@@ -25,10 +25,10 @@ alertmanager:
     enabled: true
     paths: [/]
     hosts:
-      - alert.gsp.test
+      - "alert.{{ grayskull_domain }}"
     tls:
       - hosts:
-          - alert.gsp.test
+          - "alert.{{ grayskull_domain }}"
         secretName: prom-gsp-tls
 
 kubeApiServer:
