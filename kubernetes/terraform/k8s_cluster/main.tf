@@ -4,7 +4,7 @@ resource "aws_instance" "k8s_master" {
 
   count = var.k8s_master_count
 
-  subnet_id = "subnet-18977a41"
+  subnet_id = "${aws_subnet.k8s_subnet_1.id}"
 
   tags = {
     Name        = "k8s-${terraform.workspace}-master-${count.index}"
@@ -23,7 +23,7 @@ resource "aws_instance" "k8s_master" {
 
   user_data = "${file("${path.module}/user_data.sh")}"
 
-  vpc_security_group_ids = [ "sg-1234a875", "sg-663ea201", "${aws_security_group.k8s_ports.id}" ]
+  vpc_security_group_ids = [ "${aws_security_group.k8s_ports.id}", "${aws_security_group.external_ports.id}" ]
 }
 
 resource "aws_instance" "k8s_worker" {
@@ -32,7 +32,7 @@ resource "aws_instance" "k8s_worker" {
 
   count = var.k8s_worker_count
 
-  subnet_id = "subnet-18977a41"
+  subnet_id = "${aws_subnet.k8s_subnet_1.id}"
 
   tags = {
     Name        = "k8s-${terraform.workspace}-worker-${count.index}"
@@ -51,6 +51,6 @@ resource "aws_instance" "k8s_worker" {
 
   user_data = "${file("${path.module}/user_data.sh")}"
 
-  vpc_security_group_ids = [ "sg-1234a875", "sg-663ea201", "${aws_security_group.k8s_ports.id}" ]
+  vpc_security_group_ids = [ "${aws_security_group.k8s_ports.id}", "${aws_security_group.external_ports.id}" ]
 }
 

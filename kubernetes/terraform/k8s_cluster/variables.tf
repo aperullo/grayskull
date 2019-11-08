@@ -47,9 +47,7 @@ variable "key" {
   description = "Key Pair to add to instances. Needed for initial access."
 }
 
-variable "vpc_id" {
-  type        = string
-  default     = "vpc-18c83b7c"
-  description = "Vpc for deployment"
+variable "external_ip_list" {
+  type        = list
+  description = "The ip that is allowed to talk to the nodes from external."
 }
-

@@ -49,6 +49,7 @@ gradle-app.setting
 # Terraform Ignore: https://raw.githubusercontent.com/github/gitignore/master/Terraform.gitignore
 # Local .terraform directories
 **/.terraform/*
+**/*.tfvars
 
 # .tfstate files
 *.tfstate
