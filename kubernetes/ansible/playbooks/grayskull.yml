@@ -73,6 +73,7 @@
         - { file: customizations/kibana.yml }
         - { file: customizations/logstash.yml }
         - { file: customizations/fluentd.yml }
+        - { file: customizations/registry.yml }
 
   - name: Customization Files | Create customizations directory
     file:
@@ -98,6 +99,7 @@
     - { role: prometheus_role, when: (prometheus_role_enabled | default(True)) }   # must be deployed before rook-ceph
     - { role: rook_ceph_role, when: (rook_ceph_role_enabled | default(True)) }
     - { role: rook_cassandra_role, when: (rook_cassandra_role_enabled | default(True)) }
+    - { role: registry_role, when: (registry_role_enabled | default(True)) }
     - { role: auth_role, when: (auth_role_enabled | default(True)) }
     - { role: dashboard_role, when: (dashboard_role_enabled | default(True)) }
     - { role: dash_proxy_role, when: (dash_proxy_role_enabled | default(True)) }

@@ -1,0 +1,52 @@
+---
+- name: Registry | Templates list
+  set_fact:
+    registry_role_templates:
+      - { name: namespace, file: registry-namespace.yml, type: ns }
+
+- name: Registry | Create manifests
+  template:
+    src: "{{ item.file }}.j2"
+    dest: "{{ grayskull_dir }}/{{ item.file }}"
+  with_items: "{{ registry_role_templates }}"
+  register: registry_role_manifests
+  when:
+    - inventory_hostname == groups['kube-master'][0]
+
+# Namespace must be deployed before secret.
+- name: Registry | Apply manifests
+  kube:
+    name: "{{ item.item.name }}"
+    namespace: "{{ registry_namespace }}"
+    kubectl: "{{ bin_dir }}/kubectl"
+    resource: "{{ item.item.type }}"
+    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    state: "latest"
+  with_items: "{{ registry_role_manifests.results }}"
+  when:
+    - inventory_hostname == groups['kube-master'][0]
+
+
+#---- Create secret
+- name: Registry | Check for secret
+  shell: "{{ bin_dir }}/kubectl get secrets -n {{ registry_namespace }}"
+  register: registry_secret_exists
+  changed_when: false
+
+- name: Registry | Create secret
+  shell: "{{ bin_dir }}/kubectl create secret generic {{ ingress_secretName }} --from-file {{ ingress_tls_cert }} --from-file {{ ingress_tls_key }} -n {{ registry_namespace }}"
+  when: "ingress_secretName not in registry_secret_exists.stdout"
+
+
+#---- Deploy chart and templates
+- name: Registry | Add repo
+  shell: "{{ bin_dir }}/helm repo add harbor https://helm.goharbor.io"
+
+- name: Registry | Deploy harbor chart
+  helm_chart:
+    name: "{{ helm_harbor_name }}"
+    namespace: "{{ registry_namespace }}"
+    bin_dir: "{{ bin_dir }}"
+    chart_src: harbor/harbor
+    chart_version: 1.2.0-dev
+    path_to_values: "{{ grayskull_dir }}/customizations/registry.yml"

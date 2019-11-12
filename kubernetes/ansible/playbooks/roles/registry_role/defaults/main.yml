@@ -1,0 +1,10 @@
+---
+registry_namespace: grayskull-registry
+
+task_mode: "install"
+
+ingress_secretName: "elk-gsp-tls"
+ingress_tls_cert: "{{ grayskull_dir }}/secrets/tls.crt"
+ingress_tls_key: "{{ grayskull_dir }}/secrets/tls.key"
+
+helm_registry_name: "{{ platform_prefix }}-registry"
