@@ -81,7 +81,7 @@
       mode: '0755'
 
   - name: Customization Files | Move to kube-master
-    copy:
+    template:
       src: "{{ item.file }}"
       dest: "{{ grayskull_dir }}/{{ item.file }}"
     with_items: "{{ customizations_files }}"

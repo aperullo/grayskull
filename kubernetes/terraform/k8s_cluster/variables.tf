@@ -34,13 +34,6 @@ variable "k8s_size" {
   description = "Size of instances for k8s nodes"
 }
 
-// Removing this, use terraform.workspace instead
-//variable "environment" {
-//  type        = string
-//  default     = "staging"
-//  description = "Environment being deployed. Primarily used for labels"
-//}
-
 variable "key" {
   type        = string
   default     = "grayskull-admin"
@@ -50,4 +43,9 @@ variable "key" {
 variable "external_ip_list" {
   type        = list
   description = "The ip that is allowed to talk to the nodes from external."
+}
+
+variable "public_dns" {
+  type        = bool
+  description = "Whether the nodes should be given public IPs."
 }
