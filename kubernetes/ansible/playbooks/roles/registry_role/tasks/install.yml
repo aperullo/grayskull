@@ -42,11 +42,14 @@
 - name: Registry | Add repo
   shell: "{{ bin_dir }}/helm repo add harbor https://helm.goharbor.io"
 
+- name: Registry | Update Helm repos
+  shell: "{{ bin_dir }}/helm repo update"
+
 - name: Registry | Deploy harbor chart
   helm_chart:
-    name: "{{ helm_harbor_name }}"
+    name: "{{ helm_registry_name }}"
     namespace: "{{ registry_namespace }}"
     bin_dir: "{{ bin_dir }}"
     chart_src: harbor/harbor
-    chart_version: 1.2.0-dev
+    chart_version: "1.2.0"
     path_to_values: "{{ grayskull_dir }}/customizations/registry.yml"
