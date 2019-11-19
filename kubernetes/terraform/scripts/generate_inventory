@@ -3,12 +3,21 @@
 import subprocess
 import json
 import pprint
+import argparse
+import sys
 from jinja2 import FileSystemLoader, Environment
+
+
+# -t is for template file path
+parser = argparse.ArgumentParser()
+parser.add_argument("-t", "--template", dest="template_file", default="inv_ansible.ini.tpl", help="The path to the template to use")
+args = parser.parse_args()
+template_file = args.template_file
 
 templateLoader = FileSystemLoader(searchpath="./")
 templateEnv = Environment(loader=templateLoader)
-TEMPLATE_FILE = "inventory.ini.tpl"
-template = templateEnv.get_template(TEMPLATE_FILE)
+
+template = templateEnv.get_template(template_file)
 
 getJsonCmd = "terraform state pull"
 jsonData,__ = subprocess.Popen([getJsonCmd], shell=True, stdout=subprocess.PIPE).communicate()

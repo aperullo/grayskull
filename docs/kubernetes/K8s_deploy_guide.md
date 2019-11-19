@@ -36,7 +36,7 @@ If your aws command line tool is set up, you can navigate to `kubernetes/terrafo
 
 ### Deploy Kubernetes
 
-The next step is to deploy kubernetes itself, which is the orchestrator. We accomplish this via kubespray, which sets up a production-ready cluster given an inventory. 
+The next step is to deploy kubernetes itself, which is the orchestrator. We can accomplish this via kubespray or by [rke](./k8s_rke_guide.md), which sets up a production-ready cluster given an inventory. 
 
 An example inventory is available in `kubernetes/ansible/inventory/ma.ini` for use. Otherwise you will need to set up the ansible inventory with the proper node names and addresses. Or if you used terraform you can use the script mentioned above.
 
