@@ -1,4 +1,9 @@
 ---
+# This playbook sets up the platform services that make up the grayskull platform.
+# This playbook assumes that the ansible host 'kube-setup-delegate' is capable of reaching
+# an already provisioned kubernetes cluster. It will install kubectl if necessary,
+# but you must provide it a path to a valid KUBECONFIG using the variable kubeconfig_src.
+
 # - import_playbook: kubespray/cluster.yml
 
 - hosts: kube-setup-delegate
@@ -58,7 +63,38 @@
     command: "{{ bin_dir }}/helm repo update"
 
   # ---- Make Certificates
-  - include: certificate-tasks.yml
+  - name: Certificate Tasks | Create grayskull/secrets directory
+    file:
+      path: "{{ grayskull_dir }}/secrets"
+      state: directory
+      mode: '0755'
+
+  # Create a csr for our domain
+  - name: Certificate Tasks | Create csr and copy to remote.
+    template:
+      src: csr.json.tpl
+      dest: "{{ grayskull_dir }}/csr.json"
+
+# ---- Make Certs
+- hosts: kube-setup-delegate
+  become: yes
+  roles:
+    - role: certs_role
+      vars:
+        # create a ca to sign our certs
+        task_create_ca: true
+        ca_path: "{{ grayskull_dir }}/ca"
+        ca_csrjson_src: "{{ grayskull_dir }}/csr.json"
+        # create a server, client, and chain cert
+        task_create_server: true
+        server_path: "{{ grayskull_dir }}/server"
+        server_client_path: "{{ grayskull_dir }}/client"
+        server_chain_path: "{{ grayskull_dir }}/chain"
+        # copy the certs to name them as the k8s secret expects
+        task_copy: true
+        copy_ca_path: "{{ grayskull_dir }}/cacerts.pem"
+        copy_server_key_path: "{{ grayskull_dir }}/secrets/tls.key"
+        copy_chain_path: "{{ grayskull_dir }}/secrets/tls.crt"
 
   # ---- Copy Customizations to remote
   - name: Customization Files | Create list

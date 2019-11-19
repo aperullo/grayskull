@@ -1,0 +1,193 @@
+---
+# ---- Download cfssl and cfssljson
+- name: Certificates | Check for cfssl
+  stat: 
+    path: "{{ bin_dir }}/cfssl"
+  register: cfssl_exists
+
+- name: Certificates | Check for cfssl
+  stat: 
+    path: "{{ bin_dir }}/cfssljson"
+  register: cfssljson_exists
+
+- name: Install cfssl
+  block:
+  - name: Certificates | Download cfssl binary
+    get_url: 
+      url: https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+      dest: "{{ bin_dir }}/cfssl"
+      mode: '0755'
+
+  - name: Certificates | Download cfssljson binary
+    get_url: 
+      url: https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+      dest: "{{ bin_dir }}/cfssljson"
+      mode: '0755'
+  when: cfssl_exists.stat.exists == false or cfssljson_exists.stat.exists == false
+
+
+# ---- Generate a CA, if one does not exist
+
+- name: Generate CA
+  block:
+  - name: Certificates | Check if ca exist
+    stat: 
+      path: "{{ ca_path }}.pem"
+    register: ca_exists
+
+  - name: Certificate Tasks | Create a self-signed CA
+    shell: "{{ bin_dir }}/cfssl genkey -initca {{ ca_csrjson_src }} | {{ bin_dir }}/cfssljson -bare {{ ca_path }}"
+    when: ca_exists.stat.exists == false
+  when: task_create_ca == true
+
+# ---- Generate intermediate CA 
+# TODO: make this task
+
+# ---- Generate server and chain
+
+- name: Certificate | Check if chain
+  stat: 
+    path: "{{ server_chain_path }}.pem"
+  register: chain_exists
+
+- name: Certificates | Generate Server and Chain
+  block:
+  - name: Certificate Tasks | Create a server cert
+    shell: "{{ bin_dir }}/cfssl gencert -ca {{ ca_path }}.pem -ca-key {{ ca_path }}-key.pem {{ ca_csrjson_src }} | {{ bin_dir }}/cfssljson -bare {{ server_path }}"
+    when: chain_exists.stat.exists == false
+
+  - name: Certificate Tasks | Create a client cert
+    shell: "{{ bin_dir }}/cfssl gencert -ca {{ ca_path }}.pem -ca-key {{ ca_path }}-key.pem -profile=client {{ ca_csrjson_src }} | {{ bin_dir }}/cfssljson -bare {{ server_client_path }}"
+    when: chain_exists.stat.exists == false
+
+  - name: Certificate Tasks | create chain
+    shell: "cat {{ server_path }}.pem {{ ca_path }}.pem > {{ server_chain_path }}.pem"
+    when: chain_exists.stat.exists == false
+  when: task_create_server == true
+
+# ---- Copy files
+# task for optional copying or renaming of files 
+
+- name: Certificates | Copy files
+  block:
+  - name: Certificate Tasks | Rename Files
+    copy:
+      src: "{{ ca_path }}.pem"
+      dest: "{{ copy_ca_path }}"
+
+  - name: Certificate Tasks | Rename Files
+    copy:
+      src: "{{ server_path }}-key.pem"
+      dest: "{{ copy_server_key_path }}"
+
+  - name: Certificate Tasks | Rename Files
+    copy:
+      src: "{{ server_chain_path }}.pem"
+      dest: "{{ copy_chain_path }}"  
+  when: task_copy == true
+  rescue:
+    - name: Certificate Tasks | Try Remote Rename Files
+      copy:
+        src: "{{ ca_path }}.pem"
+        dest: "{{ copy_ca_path }}"
+        remote_src: true
+
+    - name: Certificate Tasks | Try Remote Rename Files
+      copy:
+        src: "{{ server_path }}-key.pem"
+        dest: "{{ copy_server_key_path }}"
+        remote_src: true
+
+    - name: Certificate Tasks | Try Remote Rename Files
+      copy:
+        src: "{{ server_chain_path }}.pem"
+        dest: "{{ copy_chain_path }}"  
+        remote_src: true
+
+
+# ---- Generate RKE CSRs and sign
+
+- name: Certificates | RKE files
+  block:
+
+  - name: Certificates | Make result dir
+    file:
+      dest: "{{ rke_results_path }}"
+      state: directory
+      mode: "0755"
+
+  - name: Certificates | Make csr dir
+    file:
+      dest: "{{ rke_results_path }}/{{ rke_csr_path }}"
+      state: directory
+      mode: "0755"
+
+  - name: Certificates | Generate CSRs
+    shell: "rke cert generate-csr --config {{ rke_inv_path }} --cert-dir {{ rke_results_path }}/{{ rke_csr_path }}"
+
+  - name: Certificates | fetch csrs and keys
+    set_fact:
+      csrs: "{{ query('fileglob', '{{ rke_results_path }}/{{ rke_csr_path }}/*-csr.pem') | sort }}"
+      keys: "{{ query('fileglob', '{{ rke_results_path }}/{{ rke_csr_path }}/*-key.pem') | sort }}"
+
+  - name: Certificates | make certs
+    shell: "{{ bin_dir }}/cfssl sign -ca {{ ca_path }}.pem -ca-key {{ ca_path }}-key.pem {{ item }} | {{ bin_dir }}/cfssljson -bare {{ item | replace('-csr.pem', '') }}"
+    loop: "{{ csrs }}" #iterate over the csrs
+
+  - name: Certificates | copy CA to csrs folder
+    copy:
+      src: "{{ ca_path }}.pem"
+      dest: "{{ rke_results_path }}/{{ rke_csr_path }}/kube-ca.pem"
+
+  - name: Certificates | copy CA to csrs folder
+    copy:
+      src: "{{ ca_path }}.pem"
+      dest: "{{ rke_results_path }}/{{ rke_csr_path }}/kube-apiserver-requestheader-ca.pem"
+
+  - name: Certificates | copy CA to csrs folder
+    copy:
+      src: "{{ ca_path }}-key.pem"
+      dest: "{{ rke_results_path }}/{{ rke_csr_path }}/kube-apiserver-requestheader-ca-key.pem"
+
+  - name: Certificates | copy CA csr.json to csrs folder
+    copy:
+      src: "{{ ca_csrjson_src }}"
+      dest: "{{ rke_results_path }}/{{ rke_csr_path }}/kube-service-account-token.json"
+
+  - name: Certificates | generate service account keys
+    shell: "{{ bin_dir }}/cfssl genkey {{ rke_results_path }}/{{ rke_csr_path }}/kube-service-account-token.json | {{ bin_dir }}/cfssljson --bare {{ rke_results_path }}/{{ rke_csr_path }}/kube-service-account-token"
+
+  - name: Certificates | make service token key
+    shell: "{{ bin_dir }}/cfssl sign -ca {{ ca_path }}.pem -ca-key {{ ca_path }}-key.pem {{ rke_results_path }}/{{ rke_csr_path }}/kube-service-account-token.csr | {{ bin_dir }}/cfssljson -bare {{ rke_results_path }}/{{ rke_csr_path }}/kube-service-account-token }}"
+  when: task_rke_csrs == true
+
+#TODO cleanup csr's and csr.pem's and copy produced certs and keys to corresponding directory.
+
+
+# - name: Ion | Templates list
+#   set_fact:
+#     ion_role_templates:
+#       - { name: namespace, file: ion-namespace.yml, type: ns }
+#       - { name: rolebinding, file: ion-rolebinding.yml, type: RoleBinding }
+
+# - name: Ion | Create manifests
+#   template:
+#     src: "{{ item.file }}.j2"
+#     dest: "{{ grayskull_dir }}/{{ item.file }}"
+#   with_items: "{{ ion_role_templates }}"
+#   register: ion_role_manifests
+#   when:
+#     - inventory_hostname == groups['kube-master'][0]
+
+# # Namespace must be deployed before secret.
+# - name: Ion | Apply manifests
+#   kube:
+#     name: "{{ item.item.name }}"
+#     namespace: "{{ ion_ms_namespace }}"
+#     kubectl: "{{ bin_dir }}/kubectl"
+#     resource: "{{ item.item.type }}"
+#     filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+#     state: latest
+#   with_items: "{{ ion_role_manifests.results }}"
+#   when:
+#     - inventory_hostname == groups['kube-master'][0]
