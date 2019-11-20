@@ -16,6 +16,12 @@ nodes:
   {% endif -%}
   {% endfor %}
 
+ingress:
+  provider: none
+
+network:
+  plugin: calico
+
 services:
   etcd:
     snapshot: true
