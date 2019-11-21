@@ -147,7 +147,7 @@
 #         - { file: customizations/dash-proxy.yml }
 #         - { file: customizations/keycloak.yml }
         - { file: customizations/nginx-ingress.yml }
-#         - { file: customizations/prometheus.yml }
+        - { file: customizations/prometheus.yml }
 #         - { file: customizations/elasticsearch.yml }
 #         - { file: customizations/kibana.yml }
 #         - { file: customizations/logstash.yml }
@@ -174,7 +174,7 @@
   # Turns out vars are shared for all instances of a role. You must explicitly define each variable for each role. The default value doesn't matter if its overridden anywhere.
   roles:
     - { role: ingress_role, when: (ingress_role_enabled | default(True)) }
-#     - { role: prometheus_role, when: (prometheus_role_enabled | default(True)) }   # must be deployed before rook-ceph
+    - { role: prometheus_role, when: (prometheus_role_enabled | default(True)) }   # must be deployed before rook-ceph
 #     - { role: rook_ceph_role, when: (rook_ceph_role_enabled | default(True)) }
 #     - { role: rook_cassandra_role, when: (rook_cassandra_role_enabled | default(True)) }
 #     - { role: auth_role, when: (auth_role_enabled | default(True)) }
