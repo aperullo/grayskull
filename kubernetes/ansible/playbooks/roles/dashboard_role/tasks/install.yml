@@ -17,6 +17,7 @@
       - { name: dashboard-ing, file: dashboard-ingress.yml, type: ing }
       - { name: dashboard-sa, file: dashboard-service-account.yml, type: sa }
       - { name: dashboard-rb, file: dashboard-rolebinding.yml, type: rolebinding }
+      - { name: dashboard-deploy, file: dashboard-deployment.yml, type: deploy }
 
 - name: Dashboard | Create manifests
   template:

@@ -6,51 +6,51 @@
 
 # - import_playbook: kubespray/cluster.yml
 
-- hosts: kube-setup-delegate
-  become: yes
-  tasks:
+# - hosts: kube-setup-delegate
+#   become: yes
+#   tasks:
 
-  # ---- Kubectl set up
+  # # ---- Kubectl set up
 
-#   # RKE does not provide kubectl or kubeconfig on host. Kubespray does. We're going to bring our own just in case
-#   - name: Setup | Check for kubectl
-#     shell: "{{ bin_dir }}/kubectl --help"
-#     register: kubectl_result
-#     ignore_errors: True
+  # # RKE does not provide kubectl or kubeconfig on host. Kubespray does. We're going to bring our own just in case
+  # - name: Setup | Check for kubectl
+  #   shell: "{{ bin_dir }}/kubectl --help"
+  #   register: kubectl_result
+  #   ignore_errors: True
 
-#   - name: Setup | Install kubectl
-#     get_url: 
-#       url: https://storage.googleapis.com/kubernetes-release/release/v1.16.1/bin/linux/amd64/kubectl
-#       dest: "{{ bin_dir }}/kubectl"
-#       mode: '0755'
-#     when: kubectl_result.rc != 0
+  # - name: Setup | Install kubectl
+  #   get_url: 
+  #     url: https://storage.googleapis.com/kubernetes-release/release/v1.16.1/bin/linux/amd64/kubectl
+  #     dest: "{{ bin_dir }}/kubectl"
+  #     mode: '0755'
+  #   when: kubectl_result.rc != 0
 
-#   - name: Setup | Check for KUBECONFIG
-#     stat:
-#       path: /etc/kubernetes/admin.conf
-#     register: kubeconfig
+  # - name: Setup | Check for KUBECONFIG
+  #   stat:
+  #     path: /etc/kubernetes/admin.conf
+  #   register: kubeconfig
 
-#   # If the file doesn't exist we need to bring it from locally
-#   - name: Setup | Copy kubeconfig 
-#     copy:
-#       src: "{{ kubeconfig_src }}"
-#       dest: "/etc/kubernetes/admin.conf"
-#     when: kubeconfig.stat is defined and not kubeconfig.stat.exists
+  # # If the file doesn't exist we need to bring it from locally
+  # - name: Setup | Copy kubeconfig 
+  #   copy:
+  #     src: "{{ kubeconfig_src }}"
+  #     dest: "/etc/kubernetes/admin.conf"
+  #   when: kubeconfig.stat is defined and not kubeconfig.stat.exists
 
-#   # Correct the kubeconfig by changing the server ip to be internal one.
-#   - name: Setup | Correct kubeconfig
-#     lineinfile:
-#       path: "/etc/kubernetes/admin.conf"
-#       regexp: "server:*"
-#       line: "    server: \"https://{{ hostvars[groups['kube-master'][0]].ip }}:6443\""
-#     when: kubeconfig.stat is defined and not kubeconfig.stat.exists
+  # # Correct the kubeconfig by changing the server ip to be internal one.
+  # - name: Setup | Correct kubeconfig
+  #   lineinfile:
+  #     path: "/etc/kubernetes/admin.conf"
+  #     regexp: "server:*"
+  #     line: "    server: \"https://{{ hostvars[groups['kube-master'][0]].ip }}:6443\""
+  #   when: kubeconfig.stat is defined and not kubeconfig.stat.exists
 
-#   - name: Setup | Add Environment variable
-#     lineinfile:
-#       path: /etc/environment
-#       regexp: "KUBECONFIG=*"
-#       line: KUBECONFIG=/etc/kubernetes/admin.conf
-#       create: yes
+  # - name: Setup | Add Environment variable
+  #   lineinfile:
+  #     path: /etc/environment
+  #     regexp: "KUBECONFIG=*"
+  #     line: KUBECONFIG=/etc/kubernetes/admin.conf
+  #     create: yes
 
 #   # ---- Helm set up
 #   - name: Setup | Create grayskull directory
@@ -178,7 +178,7 @@
 #     - { role: rook_ceph_role, when: (rook_ceph_role_enabled | default(True)) }
 #     - { role: rook_cassandra_role, when: (rook_cassandra_role_enabled | default(True)) }
 #     - { role: auth_role, when: (auth_role_enabled | default(True)) }
-#     - { role: dashboard_role, when: (dashboard_role_enabled | default(True)) }
+    - { role: dashboard_role, when: (dashboard_role_enabled | default(True)) }
 #     - { role: dash_proxy_role, when: (dash_proxy_role_enabled | default(True)) }
 #     - { role: elk_role, when: (elk_role_enabled | default(True)) }
 #     - { role: ion_role, vars: { ms_name: "cdr", ms_namespace: "cdr", is_cluster_admin: false }, when: (ion_role_enabled | default(True)) }
