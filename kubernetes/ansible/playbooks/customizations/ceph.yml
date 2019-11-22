@@ -1,14 +1,15 @@
-ceph:
-  mon:
-    count: 5
-  ingress:
-    enabled: true
-    path: /
-    hosts:
-      - "ceph.{{ grayskull_domain }}"
-    tls:
-      - hosts:
-          - "ceph.{{ grayskull_domain }}"
-        secretName: ceph-gsp-tls
-  defaultStorage:
-    enabled: true
+mon:
+  count: 3
+ingress:
+  enabled: true
+  path: /
+  hosts:
+    - "ceph.{{ grayskull_domain }}"
+  tls:
+    - hosts:
+        - "ceph.{{ grayskull_domain }}"
+      secretName: ceph-gsp-tls
+defaultStorage:
+  enabled: true
+
+hostpathRequiresPrivileged: true

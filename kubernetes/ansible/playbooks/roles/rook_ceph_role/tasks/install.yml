@@ -55,7 +55,7 @@
     namespace: "{{ ceph_namespace }}"
     bin_dir: "{{ bin_dir }}"
     chart_src: rook-release/rook-ceph
-    chart_version: v1.0.2
+    chart_version: v1.1.0
     atomic: yes   # is atomic so that manifests aren't deployed before CRDs exist
     path_to_values: "{{ grayskull_dir }}/customizations/ceph.yml"
 

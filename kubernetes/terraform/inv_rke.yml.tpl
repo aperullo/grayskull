@@ -33,3 +33,6 @@ services:
       cgroup-root: "/cgroup:/sys/fs/cgroup"
       cgroup-driver: cgroupfs
       cgroups-per-qos: false
+      volume-plugin-dir: /usr/libexec/kubernetes/kubelet-plugins/volume/exec
+    extra_binds:
+      - /usr/libexec/kubernetes/kubelet-plugins/volume/exec:/usr/libexec/kubernetes/kubelet-plugins/volume/exec

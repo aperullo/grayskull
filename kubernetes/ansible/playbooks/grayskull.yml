@@ -6,134 +6,134 @@
 
 # - import_playbook: kubespray/cluster.yml
 
-# - hosts: kube-setup-delegate
-#   become: yes
-#   tasks:
+- hosts: kube-setup-delegate
+  become: yes
+  tasks:
 
-  # # ---- Kubectl set up
+  # ---- Kubectl set up
 
-  # # RKE does not provide kubectl or kubeconfig on host. Kubespray does. We're going to bring our own just in case
-  # - name: Setup | Check for kubectl
-  #   shell: "{{ bin_dir }}/kubectl --help"
-  #   register: kubectl_result
-  #   ignore_errors: True
+  # RKE does not provide kubectl or kubeconfig on host. Kubespray does. We're going to bring our own just in case
+  - name: Setup | Check for kubectl
+    shell: "{{ bin_dir }}/kubectl --help"
+    register: kubectl_result
+    ignore_errors: True
 
-  # - name: Setup | Install kubectl
-  #   get_url: 
-  #     url: https://storage.googleapis.com/kubernetes-release/release/v1.16.1/bin/linux/amd64/kubectl
-  #     dest: "{{ bin_dir }}/kubectl"
-  #     mode: '0755'
-  #   when: kubectl_result.rc != 0
+  - name: Setup | Install kubectl
+    get_url: 
+      url: https://storage.googleapis.com/kubernetes-release/release/v1.16.1/bin/linux/amd64/kubectl
+      dest: "{{ bin_dir }}/kubectl"
+      mode: '0755'
+    when: kubectl_result.rc != 0
 
-  # - name: Setup | Check for KUBECONFIG
-  #   stat:
-  #     path: /etc/kubernetes/admin.conf
-  #   register: kubeconfig
+  - name: Setup | Check for KUBECONFIG
+    stat:
+      path: /etc/kubernetes/admin.conf
+    register: kubeconfig
 
-  # # If the file doesn't exist we need to bring it from locally
-  # - name: Setup | Copy kubeconfig 
-  #   copy:
-  #     src: "{{ kubeconfig_src }}"
-  #     dest: "/etc/kubernetes/admin.conf"
-  #   when: kubeconfig.stat is defined and not kubeconfig.stat.exists
+  # If the file doesn't exist we need to bring it from locally
+  - name: Setup | Copy kubeconfig 
+    copy:
+      src: "{{ kubeconfig_src }}"
+      dest: "/etc/kubernetes/admin.conf"
+    when: kubeconfig.stat is defined and not kubeconfig.stat.exists
 
-  # # Correct the kubeconfig by changing the server ip to be internal one.
-  # - name: Setup | Correct kubeconfig
-  #   lineinfile:
-  #     path: "/etc/kubernetes/admin.conf"
-  #     regexp: "server:*"
-  #     line: "    server: \"https://{{ hostvars[groups['kube-master'][0]].ip }}:6443\""
-  #   when: kubeconfig.stat is defined and not kubeconfig.stat.exists
+  # Correct the kubeconfig by changing the server ip to be internal one.
+  - name: Setup | Correct kubeconfig
+    lineinfile:
+      path: "/etc/kubernetes/admin.conf"
+      regexp: "server:*"
+      line: "    server: \"https://{{ hostvars[groups['kube-master'][0]].ip }}:6443\""
+    when: kubeconfig.stat is defined and not kubeconfig.stat.exists
 
-  # - name: Setup | Add Environment variable
-  #   lineinfile:
-  #     path: /etc/environment
-  #     regexp: "KUBECONFIG=*"
-  #     line: KUBECONFIG=/etc/kubernetes/admin.conf
-  #     create: yes
+  - name: Setup | Add Environment variable
+    lineinfile:
+      path: /etc/environment
+      regexp: "KUBECONFIG=*"
+      line: KUBECONFIG=/etc/kubernetes/admin.conf
+      create: yes
 
-#   # ---- Helm set up
-#   - name: Setup | Create grayskull directory
-#     file:
-#       path: "{{ grayskull_dir }}"
-#       state: directory
-#       mode: '0755'
+  # ---- Helm set up
+  - name: Setup | Create grayskull directory
+    file:
+      path: "{{ grayskull_dir }}"
+      state: directory
+      mode: '0755'
 
-#   - name: Setup | Copy over Tiller RBAC
-#     copy:
-#       src: tiller-rbac.yml
-#       dest: "{{ grayskull_dir }}/tiller-rbac.yml"
+  - name: Setup | Copy over Tiller RBAC
+    copy:
+      src: tiller-rbac.yml
+      dest: "{{ grayskull_dir }}/tiller-rbac.yml"
 
-#   - name: Setup | Apply Tiller RBAC definition
-#     kube:
-#       name: tiller-rbac
-#       namespace: kube-system
-#       kubectl: "{{ bin_dir }}/kubectl"
-#       filename: "{{ grayskull_dir }}/tiller-rbac.yml"
-#       state: present
+  - name: Setup | Apply Tiller RBAC definition
+    kube:
+      name: tiller-rbac
+      namespace: kube-system
+      kubectl: "{{ bin_dir }}/kubectl"
+      filename: "{{ grayskull_dir }}/tiller-rbac.yml"
+      state: present
 
-#   # Needed to re-install helm if the remove playbook is run. 
-#   - name: Setup | Retrieve helm binary archive
-#     unarchive:
-#       src: https://storage.googleapis.com/kubernetes-helm/helm-v2.14.3-linux-amd64.tar.gz
-#       dest: "{{ bin_dir }}"
-#       remote_src: yes
-#       exclude:
-#         - "*/LICENSE"
-#         - "*/README.md"
-#         - "*/tiller"
-#       extra_opts:
-#         - --strip-components=1
+  # Needed to re-install helm if the remove playbook is run. 
+  - name: Setup | Retrieve helm binary archive
+    unarchive:
+      src: https://storage.googleapis.com/kubernetes-helm/helm-v2.14.3-linux-amd64.tar.gz
+      dest: "{{ bin_dir }}"
+      remote_src: yes
+      exclude:
+        - "*/LICENSE"
+        - "*/README.md"
+        - "*/tiller"
+      extra_opts:
+        - --strip-components=1
 
-#   - name: Setup | Move helm binary into place
-#     command: >
-#       cp /tmp/linux-amd64/helm {{ bin_dir }}
-#       creates={{ bin_dir }}/helm
+  - name: Setup | Move helm binary into place
+    command: >
+      cp /tmp/linux-amd64/helm {{ bin_dir }}
+      creates={{ bin_dir }}/helm
 
-#   - name: Setup | Set up Helm and Tiller
-#     command: "{{ bin_dir }}/helm init --service-account tiller"
-#     register: helm_init_result
-#     changed_when: "'already installed' not in helm_init_result.stdout"
+  - name: Setup | Set up Helm and Tiller
+    command: "{{ bin_dir }}/helm init --service-account tiller"
+    register: helm_init_result
+    changed_when: "'already installed' not in helm_init_result.stdout"
 
-#   - name: Rancher | Wait for tiller to rollout
-#     shell: "{{ bin_dir }}/kubectl -n kube-system rollout status deploy/tiller-deploy"
+  - name: Rancher | Wait for tiller to rollout
+    shell: "{{ bin_dir }}/kubectl -n kube-system rollout status deploy/tiller-deploy"
 
-#   - name: Setup | Update Helm repos
-#     command: "{{ bin_dir }}/helm repo update"
+  - name: Setup | Update Helm repos
+    command: "{{ bin_dir }}/helm repo update"
 
-#   # ---- Make Certificates
-#   - name: Certificate Tasks | Create grayskull/secrets directory
-#     file:
-#       path: "{{ grayskull_dir }}/secrets"
-#       state: directory
-#       mode: '0755'
+  # ---- Make Certificates
+  - name: Certificate Tasks | Create grayskull/secrets directory
+    file:
+      path: "{{ grayskull_dir }}/secrets"
+      state: directory
+      mode: '0755'
 
-#   # Create a csr for our domain
-#   - name: Certificate Tasks | Create csr and copy to remote.
-#     template:
-#       src: csr.json.tpl
-#       dest: "{{ grayskull_dir }}/csr.json"
+  # Create a csr for our domain
+  - name: Certificate Tasks | Create csr and copy to remote.
+    template:
+      src: csr.json.tpl
+      dest: "{{ grayskull_dir }}/csr.json"
 
-# # ---- Make Certs
-# - hosts: kube-setup-delegate
-#   become: yes
-#   roles:
-#     - role: certs_role
-#       vars:
-#         # create a ca to sign our certs
-#         task_create_ca: true
-#         ca_path: "{{ grayskull_dir }}/ca"
-#         ca_csrjson_src: "{{ grayskull_dir }}/csr.json"
-#         # create a server, client, and chain cert
-#         task_create_server: true
-#         server_path: "{{ grayskull_dir }}/server"
-#         server_client_path: "{{ grayskull_dir }}/client"
-#         server_chain_path: "{{ grayskull_dir }}/chain"
-#         # copy the certs to name them as the k8s secret expects
-#         task_copy: true
-#         copy_ca_path: "{{ grayskull_dir }}/cacerts.pem"
-#         copy_server_key_path: "{{ grayskull_dir }}/secrets/tls.key"
-#         copy_chain_path: "{{ grayskull_dir }}/secrets/tls.crt"
+# ---- Make Certs
+- hosts: kube-setup-delegate
+  become: yes
+  roles:
+    - role: certs_role
+      vars:
+        # create a ca to sign our certs
+        task_create_ca: true
+        ca_path: "{{ grayskull_dir }}/ca"
+        ca_csrjson_src: "{{ grayskull_dir }}/csr.json"
+        # create a server, client, and chain cert
+        task_create_server: true
+        server_path: "{{ grayskull_dir }}/server"
+        server_client_path: "{{ grayskull_dir }}/client"
+        server_chain_path: "{{ grayskull_dir }}/chain"
+        # copy the certs to name them as the k8s secret expects
+        task_copy: true
+        copy_ca_path: "{{ grayskull_dir }}/cacerts.pem"
+        copy_server_key_path: "{{ grayskull_dir }}/secrets/tls.key"
+        copy_chain_path: "{{ grayskull_dir }}/secrets/tls.crt"
 
   # ---- Copy Customizations to remote
 - hosts: kube-setup-delegate
@@ -143,7 +143,7 @@
   - name: Customization Files | Create list
     set_fact:
       customizations_files:
-#         - { file: customizations/ceph.yml }
+        - { file: customizations/ceph.yml }
 #         - { file: customizations/dash-proxy.yml }
 #         - { file: customizations/keycloak.yml }
         - { file: customizations/nginx-ingress.yml }
@@ -175,7 +175,7 @@
   roles:
     - { role: ingress_role, when: (ingress_role_enabled | default(True)) }
     - { role: prometheus_role, when: (prometheus_role_enabled | default(True)) }   # must be deployed before rook-ceph
-#     - { role: rook_ceph_role, when: (rook_ceph_role_enabled | default(True)) }
+    - { role: rook_ceph_role, when: (rook_ceph_role_enabled | default(True)) }
 #     - { role: rook_cassandra_role, when: (rook_cassandra_role_enabled | default(True)) }
 #     - { role: auth_role, when: (auth_role_enabled | default(True)) }
     - { role: dashboard_role, when: (dashboard_role_enabled | default(True)) }
