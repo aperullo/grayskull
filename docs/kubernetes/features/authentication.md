@@ -21,7 +21,7 @@ contexts:
 ```
 
 There are two ways to configure kubelogin. 
-1. As an automatic wrapper to kubectl. This is less effort but introduces a slight delay to each command, pending an open issue.
+1. As an automatic wrapper to kubectl. This is the way you should use unless you are specifically debugging the token authentication.
 2. A manual way which requires running the kubelogin command occasionally when your refresh token expires, but doesn't introduce a delay.
 
 ### Kubelogin as client-go plugin (Automatic)

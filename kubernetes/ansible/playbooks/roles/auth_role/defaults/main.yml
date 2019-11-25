@@ -1,7 +1,6 @@
 ---
 auth_namespace: grayskull-auth
-auth_secrets_relative_path: "secrets/auth"
-auth_secrets_dir: "{{ grayskull_dir }}/{{ auth_secrets_relative_path }}"
+auth_secrets_dir: "{{ grayskull_dir }}/secrets/auth"
 
 auth_passwd_secretName: "auth-gsp-passwd"
 auth_passwd_file: "{{ auth_secrets_dir }}/password"
@@ -10,8 +9,7 @@ ingress_secretName: "auth-gsp-tls"
 ingress_tls_cert: "{{ auth_secrets_dir }}/tls.crt"
 ingress_tls_key: "{{ auth_secrets_dir }}/tls.key"
 
-ingress_ca_cert: "/etc/kubernetes/ssl/ca.crt"
-ingress_ca_key: "/etc/kubernetes/ssl/ca.key"
+kube_ca_path: "/etc/kubernetes/ssl"
 
 task_mode: "install"
 

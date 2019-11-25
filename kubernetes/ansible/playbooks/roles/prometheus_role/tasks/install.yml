@@ -3,6 +3,7 @@
   set_fact:
     prometheus_role_templates:
       - { name: namespace, file: prometheus-namespace.yml, type: ns }
+      - { name: cluster-role, file: prometheus-crd-clusterrole.yml, type: ClusterRole }
 
 - name: Prometheus | Create manifests
   template:

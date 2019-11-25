@@ -95,7 +95,7 @@
     register: helm_init_result
     changed_when: "'already installed' not in helm_init_result.stdout"
 
-  - name: Rancher | Wait for tiller to rollout
+  - name: Setup | Wait for tiller to rollout
     shell: "{{ bin_dir }}/kubectl -n kube-system rollout status deploy/tiller-deploy"
 
   - name: Setup | Update Helm repos
@@ -145,7 +145,7 @@
       customizations_files:
         - { file: customizations/ceph.yml }
 #         - { file: customizations/dash-proxy.yml }
-#         - { file: customizations/keycloak.yml }
+        - { file: customizations/keycloak.yml }
         - { file: customizations/nginx-ingress.yml }
         - { file: customizations/prometheus.yml }
         - { file: customizations/elasticsearch.yml }
@@ -166,8 +166,8 @@
     with_items: "{{ customizations_files }}"
 
 
-#   #---- Generate or reuse UUID
-#   - include: uuid-tasks.yml
+  #---- Generate or reuse UUID
+  - include: uuid-tasks.yml
 
 - hosts: kube-setup-delegate
   become: yes
@@ -177,12 +177,12 @@
     - { role: prometheus_role, when: (prometheus_role_enabled | default(True)) }   # must be deployed before rook-ceph
     - { role: rook_ceph_role, when: (rook_ceph_role_enabled | default(True)) }
 #     - { role: rook_cassandra_role, when: (rook_cassandra_role_enabled | default(True)) }
-#     - { role: auth_role, when: (auth_role_enabled | default(True)) }
+    - { role: auth_role, when: (auth_role_enabled | default(True)) }
     - { role: dashboard_role, when: (dashboard_role_enabled | default(True)) }
 #     - { role: dash_proxy_role, when: (dash_proxy_role_enabled | default(True)) }
     - { role: elk_role, when: (elk_role_enabled | default(True)) }
-#     - { role: ion_role, vars: { ms_name: "cdr", ms_namespace: "cdr", is_cluster_admin: false }, when: (ion_role_enabled | default(True)) }
-#     - { role: ion_role, vars: { ms_name: "transform", ms_namespace: "transform", is_cluster_admin: false }, when: (ion_role_enabled | default(True)) }
-#     - { role: ion_role, vars: { ms_name: "replication", ms_namespace: "replication", is_cluster_admin: false }, when: (ion_role_enabled | default(True)) }
-#     - { role: ion_role, vars: { ms_name: "platform", ms_namespace: "platform", is_cluster_admin: true }, when: (ion_role_enabled | default(True)) }
-#     - { role: ion_role, vars: { ms_name: "security", ms_namespace: "security", is_cluster_admin: true }, when: (ion_role_enabled | default(True)) }
+    - { role: ion_role, vars: { ms_name: "cdr", ms_namespace: "cdr", is_cluster_admin: false }, when: (ion_role_enabled | default(True)) }
+    - { role: ion_role, vars: { ms_name: "transform", ms_namespace: "transform", is_cluster_admin: false }, when: (ion_role_enabled | default(True)) }
+    - { role: ion_role, vars: { ms_name: "replication", ms_namespace: "replication", is_cluster_admin: false }, when: (ion_role_enabled | default(True)) }
+    - { role: ion_role, vars: { ms_name: "platform", ms_namespace: "platform", is_cluster_admin: true }, when: (ion_role_enabled | default(True)) }
+    - { role: ion_role, vars: { ms_name: "security", ms_namespace: "security", is_cluster_admin: true }, when: (ion_role_enabled | default(True)) }

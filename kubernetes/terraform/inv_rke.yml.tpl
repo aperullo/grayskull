@@ -36,3 +36,10 @@ services:
       volume-plugin-dir: /usr/libexec/kubernetes/kubelet-plugins/volume/exec
     extra_binds:
       - /usr/libexec/kubernetes/kubelet-plugins/volume/exec:/usr/libexec/kubernetes/kubelet-plugins/volume/exec
+  kube-api:
+    extra_args:
+      oidc-client-id: "kubernetes"
+      oidc-issuer-url: "https://auth.{{ env }}.gsp.test/auth/realms/master"
+      oidc-username-claim: "preferred_username"
+      oidc-groups-claim: "groups"
+      oidc-ca-file: "/etc/kubernetes/ssl/kube-ca.pem"
