@@ -15,6 +15,7 @@
         - { name: object-user, file: rook-ceph-object-user.yml, type: CephObjectStoreUser }
         - { name: prometheus-servicemonitor, file: rook-ceph-prometheus-servicemonitor.yml, type: ServiceMonitor }
         - { name: prometheusrule, file: rook-ceph-prometheusrule.yml, type: PrometheusRule }
+        - { name: cluster-role, file: rook-crd-clusterrole.yml, type: ClusterRole }
 
   - name: Rook Ceph | Create manifests
     template:

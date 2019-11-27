@@ -21,7 +21,7 @@
   become: yes
   roles:
     - { role: ingress_role, vars: { task_mode: 'remove' }, when: (ingress_role_enabled | default(True)) }
-    # Auth and elk rely on rook for storage so they must be deleted first or the pods will enter limbo.
+#     # Auth and elk rely on rook for storage so they must be deleted first or the pods will enter limbo.
     - { role: auth_role, vars: { task_mode: 'remove' }, when: (auth_role_enabled | default(True)) }
     - { role: elk_role, vars: { task_mode: 'remove' }, when: (elk_role_enabled | default(True)) }
     - { role: dashboard_role, vars: { task_mode: 'remove' }, when: (dashboard_role_enabled | default(True)) }
@@ -43,7 +43,7 @@
   become: yes
   roles:
     # Rook relies on prometheus when the integration is enabled, so it must be deleted first.
-    - { role: rook_cassandra_role, vars: { task_mode: 'remove' }, when: (rook_cassandra_role_enabled | default(True)) }
+    # - { role: rook_cassandra_role, vars: { task_mode: 'remove' }, when: (rook_cassandra_role_enabled | default(True)) }
     - { role: prometheus_role, vars: { task_mode: 'remove' }, when: (prometheus_role_enabled | default(True)) }   # must be deleted after rook-ceph
 
 # Remove helm and delete the directory.    

@@ -1,10 +1,10 @@
----
-# This playbook sets up the platform services that make up the grayskull platform.
-# This playbook assumes that the ansible host 'kube-setup-delegate' is capable of reaching
-# an already provisioned kubernetes cluster. It will install kubectl if necessary,
-# but you must provide it a path to a valid KUBECONFIG using the variable kubeconfig_src.
+# ---
+# # This playbook sets up the platform services that make up the grayskull platform.
+# # This playbook assumes that the ansible host 'kube-setup-delegate' is capable of reaching
+# # an already provisioned kubernetes cluster. It will install kubectl if necessary,
+# # but you must provide it a path to a valid KUBECONFIG using the variable kubeconfig_src.
 
-# - import_playbook: kubespray/cluster.yml
+# # - import_playbook: kubespray/cluster.yml
 
 - hosts: kube-setup-delegate
   become: yes
