@@ -1,0 +1,5 @@
+task_mode: install
+
+longhorn_namespace: longhorn-system
+longhorn_chart_version: 0.7.0
+helm_longhorn_name: "{{ platform_prefix }}-longhorn"

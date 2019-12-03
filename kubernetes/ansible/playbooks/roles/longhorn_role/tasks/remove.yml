@@ -1,0 +1,10 @@
+---
+- name: Longhorn | Remove chart
+  helm_chart:
+    name: "{{ helm_longhorn_name }}"
+    namespace: "{{ longhorn_namespace }}"
+    bin_dir: "{{ bin_dir }}"
+    chart_src: "{{ grayskull_dir }}/longhorn/chart"
+    chart_version: "{{ longhorn_chart_version }}"
+    state: absent
+    path_to_values: "{{ grayskull_dir }}/customizations/longhorn.yml"

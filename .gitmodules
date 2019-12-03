@@ -2,3 +2,6 @@
 	path = kubernetes/ansible/playbooks/kubespray
 	url = https://github.com/kubernetes-sigs/kubespray.git
 	branch = master
+[submodule "kubernetes/ansible/playbooks/longhorn"]
+	path = kubernetes/ansible/playbooks/longhorn
+	url = https://github.com/longhorn/longhorn.git

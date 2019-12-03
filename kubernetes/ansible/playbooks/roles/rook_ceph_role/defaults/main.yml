@@ -1,7 +1,7 @@
 ---
 ceph_namespace: "grayskull-storage"
-ceph_defaultStorage_enabled: true
-ceph_mon_count: 3
+ceph_defaultStorage_enabled: false
+ceph_mon_count: 4
 ceph_objectstore_name: gsp-store
 
 task_mode: "install"

@@ -31,6 +31,9 @@ sudo lvextend -l +100%FREE /dev/mapper/VolGroup00-rootVol
 sudo resize2fs /dev/mapper/VolGroup00-rootVol
 sudo yum install -y python2
 
+# Necessary driver for Longhorn
+sudo yum install -y iscsi-initiator-utils
+
 # TODO Replace this with an ami that comes with docker installed
 sudo touch /1.txt
 
@@ -57,8 +60,6 @@ sudo mkdir -p /storage/docker
 sudo service docker stop
 sudo mv /var/lib/docker /storage/
 ln -s /storage/docker /var/lib/docker
-
-# END TODO
 
 # Disable the firewall initially. This should be enabled and configured later by ansible
 sudo systemctl disable firewalld

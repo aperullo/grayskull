@@ -10,6 +10,6 @@ ingress:
         - "ceph.{{ grayskull_domain }}"
       secretName: ceph-gsp-tls
 defaultStorage:
-  enabled: true
+  enabled: false
 
 hostpathRequiresPrivileged: true
