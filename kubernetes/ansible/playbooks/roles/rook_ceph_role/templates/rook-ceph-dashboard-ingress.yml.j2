@@ -1,3 +1,35 @@
+{% if routing is defined and routing == "path" -%}
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: rook-ceph-mgr-dashboard
+  namespace: {{ ceph_namespace }}
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      rewrite ^(/ceph)$ $1/ redirect;
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/server-snippet: |
+      proxy_ssl_verify off;
+spec:
+  tls:
+  - hosts:
+    - {{ grayskull_domain }}
+    secretName: {{ ingress_secretName }}
+  rules:
+  - host: {{ grayskull_domain }}
+    http:
+      paths:
+        - path: /ceph(/|$)(.*)
+          backend:
+            serviceName: rook-ceph-mgr-dashboard
+            servicePort: https-dashboard
+
+{% else %}
+
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -23,6 +55,7 @@ spec:
             serviceName: rook-ceph-mgr-dashboard
             servicePort: https-dashboard
 
+{% endif -%}
 
 # {% raw %}
 # {{- if $ingress.enabled -}}
