@@ -1,13 +1,23 @@
-prometheus:
+{% if routing is defined and routing == "path" -%}
+
+grafana:
+  grafana.ini:
+    server:
+      root_url: "https://{{ grayskull_domain }}/graph"
+      serve_from_sub_path: true
   ingress:
     enabled: true
-    paths: [/]
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: "/$1"
+    path: /graph/?(.*)
     hosts:
-      - "prom.{{ grayskull_domain }}"
+      - "{{ grayskull_domain }}"
     tls:
       - hosts:
-          - "prom.{{ grayskull_domain }}"
+          - "{{ grayskull_domain }}"
         secretName: prom-gsp-tls
+
+{% else %}
 
 grafana:
   ingress:
@@ -20,16 +30,7 @@ grafana:
           - "graph.{{ grayskull_domain }}"
         secretName: prom-gsp-tls
 
-alertmanager:
-  ingress:
-    enabled: true
-    paths: [/]
-    hosts:
-      - "alert.{{ grayskull_domain }}"
-    tls:
-      - hosts:
-          - "alert.{{ grayskull_domain }}"
-        secretName: prom-gsp-tls
+{% endif -%}
 
 kubeApiServer:
   enabled: true
