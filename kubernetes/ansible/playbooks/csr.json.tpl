@@ -1,7 +1,8 @@
 {
     "CN": "House Atreides",
     "hosts": [
-        "*.{{ grayskull_domain }}"
+        "*.{{ grayskull_domain }}",
+        "{{ grayskull_domain }}"
     ],
     "key": {
         "algo": "rsa",

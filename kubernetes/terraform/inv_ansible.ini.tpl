@@ -32,6 +32,7 @@ platform_prefix=gsp
 bin_dir=/usr/local/bin
 grayskull_domain={{ env }}.gsp.test
 kubeconfig_src=../inventory/kube_config_{{ env }}.yml
+routing=dns
 
 [etcd]
 {% for host in instances -%}

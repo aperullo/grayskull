@@ -81,7 +81,7 @@
     server_chain_path: "{{ grayskull_dir }}/auth-chain"
     # copy the certs to name them as the k8s secret expects
     task_copy: true
-    copy_ca_path: "{{ grayskull_dir }}/cacerts.pem"
+    copy_ca_path: "{{ auth_secrets_dir }}/cacerts.pem"
     copy_server_key_path: "{{ auth_secrets_dir }}/tls.key"
     copy_chain_path: "{{ auth_secrets_dir }}/tls.crt"
 
