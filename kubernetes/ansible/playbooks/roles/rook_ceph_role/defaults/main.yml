@@ -7,6 +7,7 @@ ceph_objectstore_name: gsp-store
 task_mode: "install"
 
 helm_rook_ceph_name: "{{ platform_prefix }}-rook-ceph"
+
 ceph_image: ceph/ceph
 ceph_image_version: v14.2.4-20191112
 
