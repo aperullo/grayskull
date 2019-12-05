@@ -1,4 +1,4 @@
-# ---
+---
 # This playbook sets up the platform services that make up the grayskull platform.
 # This playbook assumes that the ansible host 'kube-setup-delegate' is capable of reaching
 # an already provisioned kubernetes cluster. It will install kubectl if necessary,
@@ -108,6 +108,7 @@
       state: directory
       mode: '0755'
 
+
   # Create a csr for our domain
   - name: Certificate Tasks | Create csr and copy to remote.
     template:
@@ -135,6 +136,10 @@
         copy_server_key_path: "{{ grayskull_dir }}/secrets/tls.key"
         copy_chain_path: "{{ grayskull_dir }}/secrets/tls.crt"
 
+- hosts: kube-setup-delegate
+  become: yes
+  tasks:
+    
   # ---- Copy Customizations to remote
 - hosts: kube-setup-delegate
   become: yes

@@ -70,40 +70,37 @@
 
 - name: Certificates | Copy files
   block:
-  - name: Certificate Tasks | Rename Files
-    copy:
-      src: "{{ ca_path }}.pem"
-      dest: "{{ copy_ca_path }}"
+  - name: Certificates | Set Certs
+    set_fact:
+      certs_to_copy:
+        - { src: "{{ ca_path }}", dest: "{{ copy_ca_path }}" }
+        - { src: "{{ server_path }}-key", dest: "{{ copy_server_key_path }}" }
+        - { src: "{{ server_chain_path }}", dest: "{{ copy_chain_path }}" }
 
-  - name: Certificate Tasks | Rename Files
-    copy:
-      src: "{{ server_path }}-key.pem"
-      dest: "{{ copy_server_key_path }}"
+  - name: Certificates | Check if local vs remote copy
+    local_action: stat path="{{ ca_path }}.pem"
+    register: localca
+    become: no
 
-  - name: Certificate Tasks | Rename Files
-    copy:
-      src: "{{ server_chain_path }}.pem"
-      dest: "{{ copy_chain_path }}"  
+  - name: Certificates | Copy from local
+    block:
+    - name: Certificate Tasks | Rename Files
+      copy:
+        src: "{{ item.src }}.pem"
+        dest: "{{ item.dest }}"
+      with_items: "{{ certs_to_copy }}"
+    when: localca.stat is defined and localca.stat.exists
+  
+  - name: Certificates | Copy from remote
+    block:
+    - name: Certificate Tasks | Remote Rename Files
+      copy:
+        src: "{{ item.src }}.pem"
+        dest: "{{ item.dest }}"
+        remote_src: true
+      with_items: "{{ certs_to_copy }}"
+    when: localca.stat is defined and not localca.stat.exists
   when: task_copy == true
-  rescue:
-    - name: Certificate Tasks | Try Remote Rename Files
-      copy:
-        src: "{{ ca_path }}.pem"
-        dest: "{{ copy_ca_path }}"
-        remote_src: true
-
-    - name: Certificate Tasks | Try Remote Rename Files
-      copy:
-        src: "{{ server_path }}-key.pem"
-        dest: "{{ copy_server_key_path }}"
-        remote_src: true
-
-    - name: Certificate Tasks | Try Remote Rename Files
-      copy:
-        src: "{{ server_chain_path }}.pem"
-        dest: "{{ copy_chain_path }}"  
-        remote_src: true
-
 
 # ---- Generate RKE CSRs and sign
 
@@ -162,32 +159,3 @@
   when: task_rke_csrs == true
 
 #TODO cleanup csr's and csr.pem's and copy produced certs and keys to corresponding directory.
-
-
-# - name: Ion | Templates list
-#   set_fact:
-#     ion_role_templates:
-#       - { name: namespace, file: ion-namespace.yml, type: ns }
-#       - { name: rolebinding, file: ion-rolebinding.yml, type: RoleBinding }
-
-# - name: Ion | Create manifests
-#   template:
-#     src: "{{ item.file }}.j2"
-#     dest: "{{ grayskull_dir }}/{{ item.file }}"
-#   with_items: "{{ ion_role_templates }}"
-#   register: ion_role_manifests
-#   when:
-#     - inventory_hostname == groups['kube-master'][0]
-
-# # Namespace must be deployed before secret.
-# - name: Ion | Apply manifests
-#   kube:
-#     name: "{{ item.item.name }}"
-#     namespace: "{{ ion_ms_namespace }}"
-#     kubectl: "{{ bin_dir }}/kubectl"
-#     resource: "{{ item.item.type }}"
-#     filename: "{{ grayskull_dir }}/{{ item.item.file }}"
-#     state: latest
-#   with_items: "{{ ion_role_manifests.results }}"
-#   when:
-#     - inventory_hostname == groups['kube-master'][0]
