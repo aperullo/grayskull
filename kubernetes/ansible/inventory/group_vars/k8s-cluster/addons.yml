@@ -1,0 +1,2 @@
+# we bring our own dashhboard to be kubernetes bootstrapper agnostic.
+dashboard_enabled: false

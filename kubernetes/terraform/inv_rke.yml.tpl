@@ -15,7 +15,13 @@ nodes:
     ssh_key_path: ~/.ssh/grayskull-admin
   {% endif -%}
   {% endfor %}
+  
+ingress:
+  provider: none
 
+network:
+  plugin: calico
+  
 services:
   etcd:
     snapshot: true
@@ -27,3 +33,13 @@ services:
       cgroup-root: "/cgroup:/sys/fs/cgroup"
       cgroup-driver: cgroupfs
       cgroups-per-qos: false
+      volume-plugin-dir: /usr/libexec/kubernetes/kubelet-plugins/volume/exec
+    extra_binds:
+      - /usr/libexec/kubernetes/kubelet-plugins/volume/exec:/usr/libexec/kubernetes/kubelet-plugins/volume/exec
+  kube-api:
+    extra_args:
+      oidc-client-id: "kubernetes"
+      oidc-issuer-url: "https://auth.{{ env }}.gsp.test/auth/realms/master"
+      oidc-username-claim: "preferred_username"
+      oidc-groups-claim: "groups"
+      oidc-ca-file: "/etc/kubernetes/ssl/kube-ca.pem"

@@ -1,7 +1,7 @@
 {
     "CN": "House Atreides",
     "hosts": [
-        "*.gsp.test"
+        "*.{{ grayskull_domain }}"
     ],
     "key": {
         "algo": "rsa",

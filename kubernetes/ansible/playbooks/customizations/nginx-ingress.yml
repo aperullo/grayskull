@@ -10,6 +10,15 @@ controller:
 
   kind: DaemonSet
 
+  # We want the ingress running on all nodes
+  tolerations:
+    - key: "node-role.kubernetes.io/controlplane"
+      operator: "Exists"
+      effect: NoSchedule
+    - key: "node-role.kubernetes.io/etcd"
+      operator: "Exists"
+      effect: NoExecute
+      
   stats:
     enabled: true
     service:

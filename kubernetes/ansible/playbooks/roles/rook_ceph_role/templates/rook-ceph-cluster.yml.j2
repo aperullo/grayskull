@@ -5,7 +5,7 @@ metadata:
   namespace: {{ ceph_namespace }}
 spec:
   cephVersion:
-    image: ceph/ceph:v14.2.1-20190430
+    image: {{ ceph_image }}:{{ ceph_image_version }}
     allowUnsupported: false
   dataDirHostPath: /var/lib/rook
   mon:

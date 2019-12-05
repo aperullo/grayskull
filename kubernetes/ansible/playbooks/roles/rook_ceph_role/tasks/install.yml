@@ -11,6 +11,7 @@
       - { name: object-user, file: rook-ceph-object-user.yml, type: CephObjectStoreUser }
       - { name: prometheus-servicemonitor, file: rook-ceph-prometheus-servicemonitor.yml, type: ServiceMonitor }
       - { name: prometheusrule, file: rook-ceph-prometheusrule.yml, type: PrometheusRule }
+      - { name: cluster-role, file: rook-crd-clusterrole.yml, type: ClusterRole }
 
 - name: Rook Ceph | Create manifests
   template:
@@ -55,7 +56,7 @@
     namespace: "{{ ceph_namespace }}"
     bin_dir: "{{ bin_dir }}"
     chart_src: rook-release/rook-ceph
-    chart_version: v1.0.2
+    chart_version: v1.1.0
     atomic: yes   # is atomic so that manifests aren't deployed before CRDs exist
     path_to_values: "{{ grayskull_dir }}/customizations/ceph.yml"
 

@@ -29,4 +29,4 @@
     chart_version: 1.6.0
     path_to_values: "{{ grayskull_dir }}/customizations/dash-proxy.yml"
 
-#TODO: see about making the adding the cert so keycloak proxy can use it, and removing insecure params from customization file.
+#TODO: see about adding the cert so keycloak proxy can use it, and removing insecure params from customization file.

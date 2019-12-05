@@ -1,4 +1,5 @@
 
+#TODO: This can all probably be done in the auth role
 ---
 - name: Setup | Stat for UUID file
   stat:

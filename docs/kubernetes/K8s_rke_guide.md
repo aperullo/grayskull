@@ -8,7 +8,6 @@ The next step is to deploy kubernetes itself, which is the orchestrator. We acco
 2. `scripts/generate_inventory -t inv_ansible.yml > ../ansible/inventory/rke.ini`. This is a python script that will template out the IP addresses of the nodes in an ansible style inventory.
 3. **(Optional)** `ansible-playbook -i inventory/rancher.ini playbooks/ranch_prepare_gray.yml`. This will create the certs necessary if we later want to join to a rancher server. It overrides the default kubernetes certs.
 4. `rke up --config inventory/rke.yml --cert-dir playbooks/certs/csr --custom-certs`. This will start the deploy process.
-
 ```
 ...
 INFO[0245] [addons] Setting up user addons              

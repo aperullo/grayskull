@@ -1,17 +1,58 @@
----
+# ---
+# This playbook sets up the platform services that make up the grayskull platform.
+# This playbook assumes that the ansible host 'kube-setup-delegate' is capable of reaching
+# an already provisioned kubernetes cluster. It will install kubectl if necessary,
+# but you must provide it a path to a valid KUBECONFIG using the variable kubeconfig_src.
+
 # - import_playbook: kubespray/cluster.yml
 
 - hosts: kube-setup-delegate
   become: yes
   tasks:
 
-  #---- Helm and Kubectl set up
-  - name: Setup | Export KUBECONFIG env var
+  # ---- Kubectl set up
+
+  # RKE does not provide kubectl or kubeconfig on host. Kubespray does. We're going to bring our own just in case
+  - name: Setup | Check for kubectl
+    shell: "{{ bin_dir }}/kubectl --help"
+    register: kubectl_result
+    ignore_errors: True
+
+  - name: Setup | Install kubectl
+    get_url: 
+      url: https://storage.googleapis.com/kubernetes-release/release/v1.16.1/bin/linux/amd64/kubectl
+      dest: "{{ bin_dir }}/kubectl"
+      mode: '0755'
+    when: kubectl_result.rc != 0
+
+  - name: Setup | Check for KUBECONFIG
+    stat:
+      path: /etc/kubernetes/admin.conf
+    register: kubeconfig
+
+  # If the file doesn't exist we need to bring it from locally
+  - name: Setup | Copy kubeconfig 
+    copy:
+      src: "{{ kubeconfig_src }}"
+      dest: "/etc/kubernetes/admin.conf"
+    when: kubeconfig.stat is defined and not kubeconfig.stat.exists
+
+  # Correct the kubeconfig by changing the server ip to be internal one.
+  - name: Setup | Correct kubeconfig
     lineinfile:
-      path: /etc/profile
-      line: export KUBECONFIG=/etc/kubernetes/admin.conf
+      path: "/etc/kubernetes/admin.conf"
+      regexp: "server:*"
+      line: "    server: \"https://{{ hostvars[groups['kube-master'][0]].ip }}:6443\""
+    when: kubeconfig.stat is defined and not kubeconfig.stat.exists
+
+  - name: Setup | Add Environment variable
+    lineinfile:
+      path: /etc/environment
+      regexp: "KUBECONFIG=*"
+      line: KUBECONFIG=/etc/kubernetes/admin.conf
       create: yes
 
+  # ---- Helm set up
   - name: Setup | Create grayskull directory
     file:
       path: "{{ grayskull_dir }}"
@@ -54,13 +95,51 @@
     register: helm_init_result
     changed_when: "'already installed' not in helm_init_result.stdout"
 
+  - name: Setup | Wait for tiller to rollout
+    shell: "{{ bin_dir }}/kubectl -n kube-system rollout status deploy/tiller-deploy"
+
   - name: Setup | Update Helm repos
     command: "{{ bin_dir }}/helm repo update"
 
   # ---- Make Certificates
-  - include: certificate-tasks.yml
+  - name: Certificate Tasks | Create grayskull/secrets directory
+    file:
+      path: "{{ grayskull_dir }}/secrets"
+      state: directory
+      mode: '0755'
+
+  # Create a csr for our domain
+  - name: Certificate Tasks | Create csr and copy to remote.
+    template:
+      src: csr.json.tpl
+      dest: "{{ grayskull_dir }}/csr.json"
+
+# ---- Make Certs
+- hosts: kube-setup-delegate
+  become: yes
+  roles:
+    - role: certs_role
+      vars:
+        # create a ca to sign our certs
+        task_create_ca: true
+        ca_path: "{{ grayskull_dir }}/ca"
+        ca_csrjson_src: "{{ grayskull_dir }}/csr.json"
+        # create a server, client, and chain cert
+        task_create_server: true
+        server_path: "{{ grayskull_dir }}/server"
+        server_client_path: "{{ grayskull_dir }}/client"
+        server_chain_path: "{{ grayskull_dir }}/chain"
+        # copy the certs to name them as the k8s secret expects
+        task_copy: true
+        copy_ca_path: "{{ grayskull_dir }}/cacerts.pem"
+        copy_server_key_path: "{{ grayskull_dir }}/secrets/tls.key"
+        copy_chain_path: "{{ grayskull_dir }}/secrets/tls.crt"
 
   # ---- Copy Customizations to remote
+- hosts: kube-setup-delegate
+  become: yes
+  tasks:
+  
   - name: Customization Files | Create list
     set_fact:
       customizations_files:
@@ -97,7 +176,7 @@
     - { role: ingress_role, when: (ingress_role_enabled | default(True)) }
     - { role: prometheus_role, when: (prometheus_role_enabled | default(True)) }   # must be deployed before rook-ceph
     - { role: rook_ceph_role, when: (rook_ceph_role_enabled | default(True)) }
-    - { role: rook_cassandra_role, when: (rook_cassandra_role_enabled | default(True)) }
+    # - { role: rook_cassandra_role, when: (rook_cassandra_role_enabled | default(True)) }
     - { role: auth_role, when: (auth_role_enabled | default(True)) }
     - { role: dashboard_role, when: (dashboard_role_enabled | default(True)) }
     - { role: dash_proxy_role, when: (dash_proxy_role_enabled | default(True)) }

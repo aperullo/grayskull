@@ -32,26 +32,62 @@
     state: directory
     mode: 0755
 
+
+# TODO: Instead of password file, can use password ansible module
 - name: Authorization | Move passwd file
   copy: 
     src: "files/secrets/password"
     dest: "{{ auth_passwd_file }}"
     mode: 0755
 
+# ---- Make Certs
 
-#---- Create certificate from kubernetes CA. Allows oidc to trust kubernetes ca
-- name: Certificate Tasks | Create a cert
-  shell: "cd {{ grayskull_dir }} && {{ bin_dir }}/cfssl gencert -ca {{ ingress_ca_cert }} -ca-key {{ ingress_ca_key }} csr.json | {{ bin_dir }}/cfssljson -bare {{ grayskull_dir }}/kube-cert"
+# One of the differences between kubespray and RKE is what they call their certs.
+# The next 3 tasks copy the kubespray one to the corresponding name that RKE would use.
+# This is especially prudent becasue the certs_role copies files using a naming scheme that is 
+# closer to that of RKE. 
+- name: Authorization | Check for kube-ca
+  stat:
+    path: /etc/kubernetes/ssl/kube-ca.pem
+  register: kubeca
 
-- name: Certificate Tasks | Create a certificate chain
-  shell: "cat {{ grayskull_dir }}/kube-cert.pem {{ ingress_ca_cert }} > {{ grayskull_dir }}/kube-chain.crt"
+- name: Authorization | Check for other kube-ca
+  stat:
+    path: /etc/kubernetes/ssl/ca.crt
+  register: cacrt
+  when: kubeca.stat is defined and not kubeca.stat.exists
 
-- name: Certificate Tasks | Copy kube-chain to secrets dir
-  shell: "cp {{ grayskull_dir }}/kube-cert.pem {{ auth_secrets_dir }}/tls.crt"
+- name: Authorization | Copy kube-ca
+  copy:
+    src: "/etc/kubernetes/ssl/ca.crt"
+    dest: "/etc/kubernetes/ssl/kube-ca.pem"
+    remote_src: true
+  when: cacrt.stat is defined and cacrt.stat.exists
 
-- name: Certificate Tasks | Copy kube-cert-key to secrets dir
-  shell: "cp {{ grayskull_dir }}/kube-cert-key.pem {{ auth_secrets_dir }}/tls.key"
+- name: Authorization | Copy kube-ca-key
+  copy:
+    src: "/etc/kubernetes/ssl/ca.key"
+    dest: "/etc/kubernetes/ssl/kube-ca-key.pem"
+    remote_src: true
+  when: cacrt.stat is defined and cacrt.stat.exists
 
+- name: Authorization | Make certs
+  import_role:
+    name: certs_role
+  vars:
+    # create a ca to sign our certs
+    ca_path: "{{ kube_ca_path }}/kube-ca"
+    ca_csrjson_src: "{{ grayskull_dir }}/csr.json"
+    # create a server, client, and chain cert
+    task_create_server: true
+    server_path: "{{ grayskull_dir }}/auth-server"
+    server_client_path: "{{ grayskull_dir }}/auth-client"
+    server_chain_path: "{{ grayskull_dir }}/auth-chain"
+    # copy the certs to name them as the k8s secret expects
+    task_copy: true
+    copy_ca_path: "{{ grayskull_dir }}/cacerts.pem"
+    copy_server_key_path: "{{ auth_secrets_dir }}/tls.key"
+    copy_chain_path: "{{ auth_secrets_dir }}/tls.crt"
 
 #---- Create secret
 
@@ -61,7 +97,7 @@
   changed_when: false
 
 - name: Authorization | Create secret
-  shell: "{{ bin_dir }}/kubectl create secret generic {{ ingress_secretName }} --from-file {{ ingress_tls_cert }} --from-file {{ ingress_tls_key }} --from-file ca.crt=/etc/kubernetes/ssl/ca.crt -n {{ auth_namespace }}"
+  shell: "{{ bin_dir }}/kubectl create secret generic {{ ingress_secretName }} --from-file {{ auth_secrets_dir }}/tls.crt --from-file {{ auth_secrets_dir }}/tls.key --from-file ca.crt={{ kube_ca_path }}/kube-ca.pem -n {{ auth_namespace }}"
   when: "ingress_secretName not in auth_secret_exists.stdout"
 
 - name: Authorization | Create pass secret

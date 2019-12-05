@@ -1,7 +1,8 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: tillers
+  # was tillers for some reason. TODO: check that it works with kubespray after changing to tiller
+  name: tiller
   namespace: kube-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1

@@ -43,7 +43,7 @@
   become: yes
   roles:
     # Rook relies on prometheus when the integration is enabled, so it must be deleted first.
-    - { role: rook_cassandra_role, vars: { task_mode: 'remove' }, when: (rook_cassandra_role_enabled | default(True)) }
+    # - { role: rook_cassandra_role, vars: { task_mode: 'remove' }, when: (rook_cassandra_role_enabled | default(True)) }
     - { role: prometheus_role, vars: { task_mode: 'remove' }, when: (prometheus_role_enabled | default(True)) }   # must be deleted after rook-ceph
 
 # Remove helm and delete the directory.    

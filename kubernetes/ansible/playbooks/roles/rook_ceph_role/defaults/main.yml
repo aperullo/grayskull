@@ -1,12 +1,14 @@
 ---
 ceph_namespace: "grayskull-storage"
 ceph_defaultStorage_enabled: true
-ceph_mon_count: 4
+ceph_mon_count: 3
 ceph_objectstore_name: gsp-store
 
 task_mode: "install"
 
 helm_rook_ceph_name: "{{ platform_prefix }}-rook-ceph"
+ceph_image: ceph/ceph
+ceph_image_version: v14.2.4-20191112
 
 ingress_url: "ceph.{{grayskull_domain}}"
 ingress_secretName: "ceph-gsp-tls" #TODO: make this into admin-gsp-tls
