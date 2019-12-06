@@ -5,5 +5,5 @@
     namespace: "{{ longhorn_namespace }}"
     bin_dir: "{{ bin_dir }}"
     chart_src: "{{ grayskull_dir}}/longhorn/chart"
-    chart_version: "{{ longhorn_chart_version }}"
+    chart_version: "{{ helm_longhorn_chart_version }}"
     path_to_values: "{{ grayskull_dir }}/customizations/longhorn.yml"
