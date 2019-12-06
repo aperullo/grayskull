@@ -61,6 +61,8 @@ sudo service docker stop
 sudo mv /var/lib/docker /storage/
 ln -s /storage/docker /var/lib/docker
 
+# END TODO
+
 # Disable the firewall initially. This should be enabled and configured later by ansible
 sudo systemctl disable firewalld
 sudo systemctl stop firewalld

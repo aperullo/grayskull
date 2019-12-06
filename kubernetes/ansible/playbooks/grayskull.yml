@@ -181,7 +181,7 @@
   - name: Setup | Unarchive Longhorn
     unarchive:
       src: "longhorn.tgz"
-      dest: "{{ grayskull_dir }}"  
+      dest: "{{ grayskull_dir }}"
 
   #---- Generate or reuse UUID
   - include: uuid-tasks.yml
