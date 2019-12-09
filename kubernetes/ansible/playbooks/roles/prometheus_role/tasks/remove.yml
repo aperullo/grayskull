@@ -16,7 +16,7 @@
     chart_src: stable/prometheus-operator
     chart_version: 5.12.3
     state: absent
-    path_to_values: "{{ grayskull_dir }}/customizations/prometheus.yml"
+    path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/prometheus-values.yml"
 
 
 #---- Remove CRDs
@@ -55,8 +55,8 @@
 
 - name: Prometheus | Create manifests
   template:
-    src: "{{ item.file }}.j2"
-    dest: "{{ grayskull_dir }}/{{ item.file }}"
+    src: "{{ item.file }}"
+    dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
   with_items: "{{ prometheus_role_templates }}"
   register: prometheus_role_manifests
   when:
@@ -69,8 +69,13 @@
     namespace: "{{ prometheus_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
     resource: "{{ item.item.type }}"
-    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    filename: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.item.file }}"
     state: "absent"
   with_items: "{{ prometheus_role_manifests.results }}"
   when:
     - inventory_hostname == groups['kube-master'][0]
+
+- name: Prometheus | Remove subfolder
+  file:
+    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    state: absent

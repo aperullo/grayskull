@@ -1,5 +1,6 @@
 ---
 prometheus_namespace: kube-system
+subfolder: prometheus-role
 
 task_mode: "install"
 
