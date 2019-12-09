@@ -4,6 +4,8 @@ ceph_defaultStorage_enabled: true
 ceph_mon_count: 3
 ceph_objectstore_name: gsp-store
 
+subfolder: "rook-ceph-role"
+
 task_mode: "install"
 
 helm_rook_ceph_name: "{{ platform_prefix }}-rook-ceph"

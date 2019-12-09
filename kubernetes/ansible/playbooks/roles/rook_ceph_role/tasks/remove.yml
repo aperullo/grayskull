@@ -19,8 +19,8 @@
 
   - name: Rook Ceph | Create manifests
     template:
-      src: "{{ item.file }}.j2"
-      dest: "{{ grayskull_dir }}/{{ item.file }}"
+      src: "{{ item.file }}"
+      dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
     with_items: "{{ rook_ceph_role_templates }}"
     register: rook_ceph_role_manifests
 
@@ -50,7 +50,7 @@
       chart_src: rook-release/rook-ceph
       chart_version: v1.0.2
       state: absent
-      path_to_values: "{{ grayskull_dir }}/customizations/ceph.yml"
+      path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/ceph.yml"
 
   - name: Rook Ceph | Remove manifest products
     kube:
@@ -58,7 +58,7 @@
       namespace: "{{ ceph_namespace }}"
       kubectl: "{{ bin_dir }}/kubectl"
       resource: "{{ item.item.type }}"
-      filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+      filename: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.item.file }}"
       state: absent
     with_items: "{{ rook_ceph_role_manifests.results }}"
 
@@ -82,7 +82,7 @@
       namespace: "{{ ceph_namespace }}"
       kubectl: "{{ bin_dir }}/kubectl"
       resource: ns
-      filename: "{{ grayskull_dir }}/rook-ceph-namespace.yml"
+      filename: "{{ grayskull_dir }}/{{ subfolder }}/rook-ceph-namespace.yml"
       state: absent
 
 
