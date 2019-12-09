@@ -1,0 +1,41 @@
+expose:
+  type: ingress
+  tls:
+    enabled: true
+    secretName: "reg-gsp-tls"
+  ingress:
+    hosts:
+      core: "registry.{{ grayskull_domain }}"
+
+    controller: default
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "false" # true
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+core:
+  secretName: "reg-gsp-tls"
+
+# Format: protocol://domain[:port]. Usually:
+# 1) if "expose.type" is "ingress", the "domain" should be
+# the value of "expose.ingress.hosts.core"
+# If Harbor is deployed behind the proxy, set it as the URL of proxy
+externalURL: "https://registry.{{ grayskull_domain }}"
+
+# TODO: High priority pr to make better way of doing this.
+# The initial password of Harbor admin. Change it from portal after launching Harbor
+harborAdminPassword: "admin"
+# The secret key used for encryption. Must be a string of 16 chars.
+secretKey: "{{ hostvars[groups['kube-setup-delegate'][0]]['harbor_key'] }}"
+
+persistence:
+  enabled: true
+  resourcePolicy: ""
+
+imagePullPolicy: IfNotPresent
+imagePullSecrets:
+#  - name: docker-registry-secret
+#  - name: internal-registry-secret
+
+logLevel: info
+
+notary:
+  enabled: false

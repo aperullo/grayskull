@@ -1,0 +1,55 @@
+#---- Remove the charts
+
+- name: Registry | remove dockerlogin
+  file:
+    dest: "~/.docker/config.json"
+    state: absent
+
+- name: Certificates | Make dest dir
+  file:
+    dest: "{{ ca_path_dest }}"
+    state: absent
+
+- name: Registry | Delegate tasks
+  when:
+    - inventory_hostname == groups['kube-setup-delegate'][0]
+  block:
+  - name: Registry | Remove chart
+    helm_chart:
+      name: "{{ helm_registry_name }}"
+      namespace: "{{ registry_namespace }}"
+      bin_dir: "{{ bin_dir }}"
+      chart_src: harbor/harbor
+      chart_version: 1.2.0
+      state: absent
+      path_to_values: "{{ grayskull_dir }}/customizations/registry.yml"
+
+  # Removing the chart doesn't remove the PVCs. Hopefully finalizers don't get stuck
+  - name: Registry | Remove leftover PVCs
+    shell: "{{ bin_dir }}/kubectl -n {{ registry_namespace }} delete --all pvc"
+
+  - name: Registry | Templates list
+    set_fact:
+      registry_role_templates:
+        - { name: namespace, file: registry-namespace.yml, type: ns }
+
+  - name: Registry | Create manifests
+    template:
+      src: "{{ item.file }}.j2"
+      dest: "{{ grayskull_dir }}/{{ item.file }}"
+    with_items: "{{ registry_role_templates }}"
+    register: registry_role_manifests
+    when:
+      - inventory_hostname == groups['kube-master'][0]
+
+  # Namespace must be deployed before secret.
+  - name: Registry | Apply manifests
+    kube:
+      name: "{{ item.item.name }}"
+      namespace: "{{ registry_namespace }}"
+      kubectl: "{{ bin_dir }}/kubectl"
+      resource: "{{ item.item.type }}"
+      filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+      state: "absent"
+    with_items: "{{ registry_role_manifests.results }}"
+

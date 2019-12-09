@@ -24,7 +24,7 @@ variable "k8s_master_count" {
 
 variable "k8s_worker_count" {
   type        = number
-  default     = 3
+  default     = 1
   description = "Number of k8s master nodes to provision"
 }
 

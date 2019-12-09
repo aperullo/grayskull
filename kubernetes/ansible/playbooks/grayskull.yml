@@ -108,7 +108,6 @@
       state: directory
       mode: '0755'
 
-
   # Create a csr for our domain
   - name: Certificate Tasks | Create csr and copy to remote.
     template:
@@ -136,15 +135,16 @@
         copy_server_key_path: "{{ grayskull_dir }}/secrets/tls.key"
         copy_chain_path: "{{ grayskull_dir }}/secrets/tls.crt"
 
-- hosts: kube-setup-delegate
-  become: yes
-  tasks:
-    
   # ---- Copy Customizations to remote
 - hosts: kube-setup-delegate
   become: yes
   tasks:
   
+#---- Generate or reuse UUID and key
+
+  - include: harbor-key-tasks.yml
+  - include: uuid-tasks.yml
+
   - name: Customization Files | Create list
     set_fact:
       customizations_files:
@@ -157,6 +157,7 @@
         - { file: customizations/kibana.yml }
         - { file: customizations/logstash.yml }
         - { file: customizations/fluentd.yml }
+        - { file: customizations/registry.yml }
 
   - name: Customization Files | Create customizations directory
     file:
@@ -171,9 +172,6 @@
     with_items: "{{ customizations_files }}"
 
 
-  #---- Generate or reuse UUID
-  - include: uuid-tasks.yml
-
 - hosts: kube-setup-delegate
   become: yes
   # Turns out vars are shared for all instances of a role. You must explicitly define each variable for each role. The default value doesn't matter if its overridden anywhere.
@@ -182,6 +180,17 @@
     - { role: prometheus_role, when: (prometheus_role_enabled | default(True)) }   # must be deployed before rook-ceph
     - { role: rook_ceph_role, when: (rook_ceph_role_enabled | default(True)) }
     # - { role: rook_cassandra_role, when: (rook_cassandra_role_enabled | default(True)) }
+
+# This role needs to be run on all hosts
+- hosts: all
+  become: yes
+  roles:
+    - { role: registry_role, when: (registry_role_enabled | default(True)) }
+
+- hosts: kube-setup-delegate
+  become: yes
+  # Turns out vars are shared for all instances of a role. You must explicitly define each variable for each role. The default value doesn't matter if its overridden anywhere.
+  roles:
     - { role: auth_role, when: (auth_role_enabled | default(True)) }
     - { role: dashboard_role, when: (dashboard_role_enabled | default(True)) }
     - { role: dash_proxy_role, when: (dash_proxy_role_enabled | default(True)) }
