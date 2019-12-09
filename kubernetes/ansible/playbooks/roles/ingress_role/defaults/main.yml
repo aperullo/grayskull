@@ -1,5 +1,6 @@
 ---
 ingress_namespace: grayskull-ingress
+subfolder: ingress-role
 
 task_mode: "install"
 
