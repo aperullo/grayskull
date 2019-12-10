@@ -1,5 +1,6 @@
 ---
 registry_namespace: grayskull-registry
+subfolder: registry-role
 
 task_mode: "install"
 
@@ -13,6 +14,5 @@ ca_path_dest: "/etc/docker/certs.d/{{ ingress_host }}"
 
 # TODO: submit PR against harbor to allow specifying this value from an existing secret. Or Fork harbor to add it
 harbor_user: "admin"
-harbor_pass: "admin"
 
 helm_registry_name: "{{ platform_prefix }}-registry"
