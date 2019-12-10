@@ -5,7 +5,7 @@
     dest: "~/.docker/config.json"
     state: absent
 
-- name: Certificates | Make dest dir
+- name: Certificates | Remove dest dir
   file:
     dest: "{{ ca_path_dest }}"
     state: absent
@@ -22,7 +22,7 @@
       chart_src: "{{ grayskull_dir }}/{{ helm_registry_image_name }}"
       chart_version: "{{ helm_registry_chart_version }}"
       state: absent
-      path_to_values: "{{ grayskull_dir }}/customizations/registry.yml"
+      path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/registry.yml"
 
   # Removing the chart doesn't remove the PVCs. Hopefully finalizers don't get stuck
   - name: Registry | Remove leftover PVCs
@@ -33,14 +33,29 @@
       registry_role_templates:
         - { name: namespace, file: registry-namespace.yml, type: ns }
 
+  - name: Registry | Create subfolder
+    file:
+      path: "{{ grayskull_dir }}/{{ subfolder }}"
+      state: directory
+      mode: '0755'
+
   - name: Registry | Create manifests
     template:
-      src: "{{ item.file }}.j2"
-      dest: "{{ grayskull_dir }}/{{ item.file }}"
+      src: "{{ item.file }}"
+      dest: "{{ grayskull_dir }}//{{ subfolder }}/{{ item.file }}"
     with_items: "{{ registry_role_templates }}"
     register: registry_role_manifests
     when:
       - inventory_hostname == groups['kube-master'][0]
+
+  - name: Registry | Check for secret
+    shell: "{{ bin_dir }}/kubectl get secrets -n {{ registry_namespace }}"
+    register: registry_secret_exists
+    changed_when: false
+
+  - name: Registry | Remove secret
+    shell: "{{ bin_dir }}/kubectl delete secret {{ ingress_secretName }} -n {{ registry_namespace }}"
+    when: "ingress_secretName in registry_secret_exists.stdout"
 
   # Namespace must be deployed before secret.
   - name: Registry | Apply manifests
@@ -49,7 +64,12 @@
       namespace: "{{ registry_namespace }}"
       kubectl: "{{ bin_dir }}/kubectl"
       resource: "{{ item.item.type }}"
-      filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+      filename: "{{ grayskull_dir }}//{{ subfolder }}/{{ item.item.file }}"
       state: "absent"
     with_items: "{{ registry_role_manifests.results }}"
+
+  - name: Registry | Delete subfolder
+    file:
+      path: "{{ grayskull_dir }}/{{ subfolder }}"
+      state: absent
 

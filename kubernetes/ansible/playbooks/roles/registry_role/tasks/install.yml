@@ -4,15 +4,89 @@
   when:
     - inventory_hostname == groups['kube-setup-delegate'][0]
   block:
+  - name: Registry | Create subfolder
+    file:
+      path: "{{ grayskull_dir }}/{{ subfolder }}"
+      state: directory
+      mode: '0755'
+
+#---- Generate harbor key
+  - name: Setup | Stat for key file
+    stat:
+      path: "{{ grayskull_dir }}/{{ subfolder }}/harbor_key"
+    register: stat_result
+
+  - name: Setup | Check for key file or create
+    when: stat_result is defined and not stat_result.stat.exists
+    block: 
+    - name: Setup | Generate key
+      set_fact: 
+        harbor_key: "{{ (99999999 | random | to_uuid)[0:16] }}"
+        cacheable: no
+
+    - name: Setup | Write key to file
+      copy: 
+        content: "{{ harbor_key }}"
+        dest: "{{ grayskull_dir }}/{{ subfolder }}/harbor_key"
+
+  - name: Setup | Get key file contents 
+    when: stat_result is defined and stat_result.stat.exists
+    block:
+    - name: Setup | Slurp file
+      slurp: 
+        src: "{{ grayskull_dir }}/{{ subfolder }}/harbor_key"
+      register: slurp_contents
+
+    - name: Setup | Reuse key
+      set_fact:
+        harbor_key: "{{ slurp_contents.content | b64decode }}"
+
+#---- Generate harbor pass
+  - name: Setup | Stat for pass file
+    stat:
+      path: "{{ grayskull_dir }}/{{ subfolder }}/harbor_pass"
+    register: stat_result
+
+  - name: Setup | Check for pass file or create
+    when: stat_result is defined and not stat_result.stat.exists
+    block: 
+    - name: Setup | Generate pass
+      set_fact: 
+        harbor_pass: "{{ (99999999 | random | to_uuid)[0:5] }}"
+        cacheable: no
+
+    - name: Setup | Write pass to file
+      copy: 
+        content: "{{ harbor_pass }}"
+        dest: "{{ grayskull_dir }}/{{ subfolder }}/harbor_pass"
+
+  - name: Setup | Get pass file contents 
+    when: stat_result is defined and stat_result.stat.exists
+    block:
+    - name: Setup | Slurp file
+      slurp: 
+        src: "{{ grayskull_dir }}/{{ subfolder }}/harbor_pass"
+      register: slurp_contents
+
+    - name: Setup | Reuse pass
+      set_fact:
+        harbor_pass: "{{ slurp_contents['content'] | b64decode }}"
+
+#---- Template out the manifests
   - name: Registry | Templates list
     set_fact:
       registry_role_templates:
         - { name: namespace, file: registry-namespace.yml, type: ns }
 
+  - name: Registry | Template values file
+    template:
+      src: "registry-values.yml"
+      dest: "{{ grayskull_dir }}/{{ subfolder }}/registry-values.yml"
+
   - name: Registry | Create manifests
     template:
-      src: "{{ item.file }}.j2"
-      dest: "{{ grayskull_dir }}/{{ item.file }}"
+      src: "{{ item.file }}"
+      dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
     with_items: "{{ registry_role_templates }}"
     register: registry_role_manifests
     when:
@@ -25,7 +99,7 @@
       namespace: "{{ registry_namespace }}"
       kubectl: "{{ bin_dir }}/kubectl"
       resource: "{{ item.item.type }}"
-      filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+      filename: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.item.file }}"
       state: "latest"
     with_items: "{{ registry_role_manifests.results }}"
 
@@ -70,12 +144,15 @@
       bin_dir: "{{ bin_dir }}"
       chart_src: "{{ grayskull_dir }}/{{ helm_registry_image_name }}"
       chart_version: "{{ helm_registry_chart_version }}"
-      path_to_values: "{{ grayskull_dir }}/customizations/registry.yml"
+      path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/registry-values.yml"
 
   - name: Registry | Wait for registry to rollout
     shell: "{{ bin_dir }}/kubectl -n {{ registry_namespace }} rollout status deploy/{{ platform_prefix }}-registry-harbor-registry"
 
 # This way nodes can pull from the the private-registry without needing an image pull secret.
 - name: Registry | Docker login on each nodes
-  shell: "docker login --username={{ harbor_user }} --password={{ harbor_pass }} 'https://{{ ingress_host }}'"
+  shell: "docker login \
+  --username={{ harbor_user }} \
+  --password={{ hostvars[groups['kube-setup-delegate'][0]]['harbor_pass'] }} \
+  'https://{{ ingress_host }}'"
   #no_log: true    # Prevent the credentials from showing in the logs
