@@ -1,5 +1,6 @@
 ---
 elk_namespace: grayskull-logs
+subfolder: elk-role
 
 task_mode: "install"
 
