@@ -1,5 +1,6 @@
 ---
 task_mode: "install"
+subfolder: dashboard-role
 
 ingress_url: "dash.{{ grayskull_domain }}"
 ingress_secretName: "dashboard-gsp-tls"
