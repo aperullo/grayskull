@@ -21,7 +21,7 @@
     chart_src: "{{ grayskull_dir }}/{{ helm_ingress_image_name }}"
     chart_version: "{{ helm_ingress_chart_version }}"
     state: absent
-    path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/nginx-ingress.yml"
+    path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/ingress-values.yml"
 
 - name: Ingress | Remove manifest products
   kube:

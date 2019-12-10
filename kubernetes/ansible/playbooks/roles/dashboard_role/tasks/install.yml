@@ -19,10 +19,16 @@
       - { name: dashboard-rb, file: dashboard-rolebinding.yml, type: rolebinding }
       - { name: dashboard-deploy, file: dashboard-deployment.yml, type: deploy }
 
+- name: Dashboard | Create subfolder
+  file:
+    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    state: directory
+    mode: '0755'
+
 - name: Dashboard | Create manifests
   template:
-    src: "{{ item.file }}.j2"
-    dest: "{{ grayskull_dir }}/{{ item.file }}"
+    src: "{{ item.file }}"
+    dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
   with_items: "{{ dashboard_role_templates }}"
   register: dashboard_role_manifests
   when:
@@ -34,7 +40,7 @@
     namespace: "kube-system"
     kubectl: "{{ bin_dir }}/kubectl"
     resource: "{{ item.item.type }}"
-    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    filename: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.item.file }}"
     state: "latest"
   with_items: "{{ dashboard_role_manifests.results }}"
   when:

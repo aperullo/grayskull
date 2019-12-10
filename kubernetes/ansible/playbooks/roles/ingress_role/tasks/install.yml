@@ -4,7 +4,7 @@
     ingress_role_templates:
       - { name: namespace, file: ingress-namespace.yml, type: ns }
 
-- name: Setup | Create subfolder directory
+- name: Setup | Create subfolder
   file:
     path: "{{ grayskull_dir }}/{{ subfolder }}"
     state: directory
