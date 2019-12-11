@@ -3,11 +3,16 @@ task_modes:
   - install
 
 dash_proxy_namespace: kube-system
-dash_proxy_file_location: "{{ grayskull_dir }}/{{ subfolder }}/dash-proxy-values.yml"
 
+<<<<<<< HEAD
+=======
+task_mode: "install"
 subfolder: "dash-proxy-role"
 
-helm_dash_proxy_chart_name: "{{ platform_prefix }}-dash-proxy"
+dash_proxy_file_location: "{{ grayskull_dir }}/{{ subfolder }}/dash-proxy-values.yml"
+
+>>>>>>> 6809f15... dash proxy role values
+helm_dash_proxy_name: "{{ platform_prefix }}-dash-proxy"
 helm_dash_proxy_repo_url: https://int128.github.io/helm-charts
 helm_dash_proxy_image_name: kubernetes-dashboard-proxy
 helm_dash_proxy_chart_version: 1.6.0
