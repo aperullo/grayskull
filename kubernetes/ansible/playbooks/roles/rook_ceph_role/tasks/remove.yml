@@ -17,6 +17,12 @@
         - { name: prometheusrule, file: rook-ceph-prometheusrule.yml, type: PrometheusRule }
         - { name: cluster-role, file: rook-crd-clusterrole.yml, type: ClusterRole }
 
+  - name: Rook Ceph | Create subfolder
+    file:
+      path: "{{ grayskull_dir }}/{{ subfolder }}"
+      state: directory
+      mode: '0755'
+
   - name: Rook Ceph | Create manifests
     template:
       src: "{{ item.file }}"
@@ -50,7 +56,6 @@
       chart_src: rook-release/rook-ceph
       chart_version: v1.0.2
       state: absent
-      path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/ceph.yml"
 
   - name: Rook Ceph | Remove manifest products
     kube:
@@ -74,7 +79,7 @@
       - "ingress_secretName in rook_ceph_secret_exists.stdout"
 
 
-  #---- Delete namespace
+  #---- Delete namespace and role folder
 
   - name: Rook Ceph | Delete namespace
     kube:
@@ -83,6 +88,11 @@
       kubectl: "{{ bin_dir }}/kubectl"
       resource: ns
       filename: "{{ grayskull_dir }}/{{ subfolder }}/rook-ceph-namespace.yml"
+      state: absent
+
+  - name: Rook Ceph | Delete subfolder
+    file:
+      path: "{{ grayskull_dir }}/{{ subfolder }}"
       state: absent
 
 
@@ -104,6 +114,5 @@
 
   - name: Rook Ceph | Remove Ceph device from mapper
     shell: "rm -rf /dev/mapper/ceph-*"
-
 
   

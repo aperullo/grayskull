@@ -1,4 +1,18 @@
----
+- name: Ingress | Create subfolder
+  file:
+    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    state: directory
+    mode: '0755'
+
+- name: Ingress | Remove chart
+  helm_chart:
+    name: "{{ helm_ingress_name }}"
+    namespace: "{{ ingress_namespace }}"
+    bin_dir: "{{ bin_dir }}"
+    chart_src: stable/nginx-ingress
+    chart_version: 1.6.16
+    state: absent
+
 - name: Ingress | Templates list
   set_fact:
     ingress_role_templates:
@@ -12,16 +26,6 @@
   register: ingress_role_manifests
   when:
     - inventory_hostname == groups['kube-master'][0]
-
-- name: Ingress | Remove chart
-  helm_chart:
-    name: "{{ helm_ingress_name }}"
-    namespace: "{{ ingress_namespace }}"
-    bin_dir: "{{ bin_dir }}"
-    chart_src: stable/nginx-ingress
-    chart_version: 1.6.16
-    state: absent
-    path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/ingress-values.yml"
 
 - name: Ingress | Remove manifest products
   kube:

@@ -22,7 +22,6 @@
       chart_src: harbor/harbor
       chart_version: 1.2.0
       state: absent
-      path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/registry.yml"
 
   # Removing the chart doesn't remove the PVCs. Hopefully finalizers don't get stuck
   - name: Registry | Remove leftover PVCs
@@ -45,8 +44,6 @@
       dest: "{{ grayskull_dir }}//{{ subfolder }}/{{ item.file }}"
     with_items: "{{ registry_role_templates }}"
     register: registry_role_manifests
-    when:
-      - inventory_hostname == groups['kube-master'][0]
 
   - name: Registry | Check for secret
     shell: "{{ bin_dir }}/kubectl get secrets -n {{ registry_namespace }}"
@@ -58,7 +55,7 @@
     when: "ingress_secretName in registry_secret_exists.stdout"
 
   # Namespace must be deployed before secret.
-  - name: Registry | Apply manifests
+  - name: Registry | Remove manifests
     kube:
       name: "{{ item.item.name }}"
       namespace: "{{ registry_namespace }}"

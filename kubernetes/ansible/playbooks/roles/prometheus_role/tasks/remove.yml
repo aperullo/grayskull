@@ -16,7 +16,6 @@
     chart_src: stable/prometheus-operator
     chart_version: 5.12.3
     state: absent
-    path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/prometheus-values.yml"
 
 
 #---- Remove CRDs
@@ -47,6 +46,12 @@
 # At the moment we put prometheus into kube-system. Therefore until we put it in another namespace
 # it should stay commented out. We DO NOT want to delete kube-system.
 
+- name: Prometheus | Delete subfolder
+  file:
+    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    state: directory
+    mode: '0755'
+
 - name: Prometheus | Templates list
   set_fact:
     prometheus_role_templates:
@@ -59,8 +64,6 @@
     dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
   with_items: "{{ prometheus_role_templates }}"
   register: prometheus_role_manifests
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
 # Namespace must be deployed before secret.
 - name: Prometheus | Remove manifest products
@@ -72,10 +75,8 @@
     filename: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.item.file }}"
     state: "absent"
   with_items: "{{ prometheus_role_manifests.results }}"
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
-- name: Prometheus | Remove subfolder
+- name: Prometheus | Delete subfolder
   file:
     path: "{{ grayskull_dir }}/{{ subfolder }}"
     state: absent
