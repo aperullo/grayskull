@@ -2,10 +2,10 @@ task_modes:
   - download
   - install
 
+dash_proxy_namespace: kube-system
 subfolder: "dash-proxy-role"
 role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
 
-dash_proxy_namespace: kube-system
 dash_proxy_file_location: "{{ role_dir }}/dash-proxy-values.yml"
 
 helm_dash_proxy_chart_name: "{{ platform_prefix }}-dash-proxy"

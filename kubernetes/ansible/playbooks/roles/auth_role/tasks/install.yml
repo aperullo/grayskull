@@ -1,6 +1,3 @@
-
-#TODO: make subfolder into /grayskull/auth-role to clean up files
-
 - name: Authorization | Create subfolder
   file:
     path: "{{ role_dir }}"
@@ -75,7 +72,7 @@
     state: directory
     mode: 0755
 
-# TODO: Instead of password file, can use password ansible module
+# TODO: Instead of password file, should use ansible vault
 - name: Authorization | Move passwd file
   copy: 
     src: "files/secrets/password"

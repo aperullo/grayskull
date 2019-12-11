@@ -1,5 +1,4 @@
 #  You must explicitly define each variable for each role. The default value doesn't matter if its overridden anywhere.
-
 task_modes:
   - install
 
