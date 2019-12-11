@@ -1,4 +1,10 @@
 ---
+- name: Authorization | Create subfolder
+  file:
+    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    state: directory
+    mode: '0755'
+
 #---- Remove chart
 - name: Authorization | Remove chart
   helm_chart:
@@ -8,7 +14,6 @@
     chart_src: "{{ grayskull_dir }}/{{ helm_auth_image_name }}"
     chart_version: "{{ helm_auth_chart_version }}"
     state: absent
-    path_to_values: "{{ grayskull_dir }}/customizations/keycloak.yml"
 
 
 #---- Remove secret

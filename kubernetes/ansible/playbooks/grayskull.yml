@@ -135,42 +135,7 @@
         copy_server_key_path: "{{ grayskull_dir }}/secrets/tls.key"
         copy_chain_path: "{{ grayskull_dir }}/secrets/tls.crt"
 
-  # ---- Copy Customizations to remote
-- hosts: kube-setup-delegate
-  become: yes
-  tasks:
-  
-  - name: Customization Files | Create customizations directory
-    file:
-      path: "{{ grayskull_dir }}/customizations"
-      state: directory
-      mode: '0755'
-#---- Generate or reuse UUID and key
-
-  - include: harbor-key-tasks.yml
-  - include: uuid-tasks.yml
-
-  - name: Customization Files | Create list
-    set_fact:
-      customizations_files:
-        - { file: customizations/ceph.yml }
-        - { file: customizations/dash-proxy.yml }
-        - { file: customizations/keycloak.yml }
-        - { file: customizations/nginx-ingress.yml }
-        - { file: customizations/prometheus.yml }
-        - { file: customizations/elasticsearch.yml }
-        - { file: customizations/kibana.yml }
-        - { file: customizations/logstash.yml }
-        - { file: customizations/fluentd.yml }
-        - { file: customizations/registry.yml }
-
-  - name: Customization Files | Move to kube-master
-    template:
-      src: "{{ item.file }}"
-      dest: "{{ grayskull_dir }}/{{ item.file }}"
-    with_items: "{{ customizations_files }}"
-
-
+#---- Run the service roles
 - hosts: kube-setup-delegate
   become: yes
   # Turns out vars are shared for all instances of a role. You must explicitly define each variable for each role. The default value doesn't matter if its overridden anywhere.

@@ -1,10 +1,47 @@
-- name: Setup | Create subfolder
+
+#TODO: make subfolder into /grayskull/auth-role to clean up files
+
+- name: Authorization | Create subfolder
   file:
     path: "{{ grayskull_dir }}/{{ subfolder }}"
     state: directory
     mode: '0755'
 
-- name: Ingress | Template values file
+
+#---- Create OIDC secret
+- name: Setup | Stat for UUID file
+  stat:
+    path: "{{ grayskull_dir }}/{{ subfolder }}/uuid"
+  register: stat_result
+
+- name: Setup | Check for UUID file or create
+  when: stat_result is defined and not stat_result.stat.exists
+  block: 
+  - name: Setup | Generate UUID
+    set_fact: 
+      client_UUID: "{{ 99999999 | random | to_uuid }}"
+      cacheable: no
+
+  - name: Setup | Write UUID to file
+    copy: 
+      content: "{{ client_UUID }}"
+      dest: "{{ grayskull_dir }}/{{ subfolder }}/uuid"
+
+- name: Setup | Get UUID file contents 
+  when: stat_result is defined and stat_result.stat.exists
+  block:
+  - name: Setup | Slurp file
+    slurp: 
+      src: "{{ grayskull_dir }}/{{ subfolder }}/uuid"
+    register: slurp_contents
+
+  - name: Setup | Reuse UUID
+    set_fact:
+      client_UUID: "{{ slurp_contents.content | b64decode }}"
+
+
+#---- Template Manifests
+- name: Authorization | Template values file
   template:
     src: "auth-values.yml"
     dest: "{{ grayskull_dir }}/{{ subfolder }}/auth-values.yml"
@@ -38,7 +75,6 @@
     state: directory
     mode: 0755
 
-
 # TODO: Instead of password file, can use password ansible module
 - name: Authorization | Move passwd file
   copy: 
@@ -46,8 +82,7 @@
     dest: "{{ auth_passwd_file }}"
     mode: 0755
 
-# ---- Make Certs
-
+#---- Make Certs
 # One of the differences between kubespray and RKE is what they call their certs.
 # The next 3 tasks copy the kubespray one to the corresponding name that RKE would use.
 # This is especially prudent becasue the certs_role copies files using a naming scheme that is 
@@ -96,7 +131,6 @@
     copy_chain_path: "{{ auth_secrets_dir }}/tls.crt"
 
 #---- Create secret
-
 - name: Authorization | Check for secret
   shell: "{{ bin_dir }}/kubectl get secrets -n {{ auth_namespace }}"
   register: auth_secret_exists
