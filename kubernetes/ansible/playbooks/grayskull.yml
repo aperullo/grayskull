@@ -10,8 +10,7 @@
   become: yes
   tasks:
 
-  # ---- Kubectl set up
-
+#---- Kubectl set up
   # RKE does not provide kubectl or kubeconfig on host. Kubespray does. We're going to bring our own just in case
   - name: Setup | Check for kubectl
     shell: "{{ bin_dir }}/kubectl --help"
@@ -52,7 +51,8 @@
       line: KUBECONFIG=/etc/kubernetes/admin.conf
       create: yes
 
-  # ---- Helm set up
+
+#---- Helm set up
   - name: Setup | Create grayskull directory
     file:
       path: "{{ grayskull_dir }}"
@@ -72,7 +72,6 @@
       filename: "{{ grayskull_dir }}/tiller-rbac.yml"
       state: present
 
-  # Needed to re-install helm if the remove playbook is run. 
   - name: Setup | Retrieve helm binary archive
     unarchive:
       src: https://storage.googleapis.com/kubernetes-helm/helm-v2.14.3-linux-amd64.tar.gz
@@ -101,7 +100,8 @@
   - name: Setup | Update Helm repos
     command: "{{ bin_dir }}/helm repo update"
 
-  # ---- Make Certificates
+
+# ---- Make Certificates
   - name: Certificate Tasks | Create grayskull/secrets directory
     file:
       path: "{{ grayskull_dir }}/secrets"
@@ -114,7 +114,6 @@
       src: csr.json.tpl
       dest: "{{ grayskull_dir }}/csr.json"
 
-# ---- Make Certs
 - hosts: kube-setup-delegate
   become: yes
   roles:
@@ -135,51 +134,17 @@
         copy_server_key_path: "{{ grayskull_dir }}/secrets/tls.key"
         copy_chain_path: "{{ grayskull_dir }}/secrets/tls.crt"
 
-  # ---- Copy Customizations to remote
-- hosts: kube-setup-delegate
-  become: yes
-  tasks:
-  
-#---- Generate or reuse UUID and key
 
-  - include: harbor-key-tasks.yml
-  - include: uuid-tasks.yml
-
-  - name: Customization Files | Create list
-    set_fact:
-      customizations_files:
-        - { file: customizations/ceph.yml }
-        - { file: customizations/dash-proxy.yml }
-        - { file: customizations/keycloak.yml }
-        - { file: customizations/nginx-ingress.yml }
-        - { file: customizations/prometheus.yml }
-        - { file: customizations/elasticsearch.yml }
-        - { file: customizations/kibana.yml }
-        - { file: customizations/logstash.yml }
-        - { file: customizations/fluentd.yml }
-        - { file: customizations/registry.yml }
-
-  - name: Customization Files | Create customizations directory
-    file:
-      path: "{{ grayskull_dir }}/customizations"
-      state: directory
-      mode: '0755'
-
-  - name: Customization Files | Move to kube-master
-    template:
-      src: "{{ item.file }}"
-      dest: "{{ grayskull_dir }}/{{ item.file }}"
-    with_items: "{{ customizations_files }}"
-
-
+#---- Run the service roles
 - hosts: kube-setup-delegate
   become: yes
   # Turns out vars are shared for all instances of a role. You must explicitly define each variable for each role. The default value doesn't matter if its overridden anywhere.
   roles:
     - { role: ingress_role, when: (ingress_role_enabled | default(True)) }
+    - { role: dashboard_role, when: (dashboard_role_enabled | default(True)) }
     - { role: prometheus_role, when: (prometheus_role_enabled | default(True)) }   # must be deployed before rook-ceph
     - { role: rook_ceph_role, when: (rook_ceph_role_enabled | default(True)) }
-    # - { role: rook_cassandra_role, when: (rook_cassandra_role_enabled | default(True)) }
+    - { role: rook_cassandra_role, when: (rook_cassandra_role_enabled | default(True)) }
 
 # This role needs to be run on all hosts
 - hosts: all
@@ -192,7 +157,6 @@
   # Turns out vars are shared for all instances of a role. You must explicitly define each variable for each role. The default value doesn't matter if its overridden anywhere.
   roles:
     - { role: auth_role, when: (auth_role_enabled | default(True)) }
-    - { role: dashboard_role, when: (dashboard_role_enabled | default(True)) }
     - { role: dash_proxy_role, when: (dash_proxy_role_enabled | default(True)) }
     - { role: elk_role, when: (elk_role_enabled | default(True)) }
     - { role: ion_role, vars: { ms_name: "cdr", ms_namespace: "cdr", is_cluster_admin: false }, when: (ion_role_enabled | default(True)) }
