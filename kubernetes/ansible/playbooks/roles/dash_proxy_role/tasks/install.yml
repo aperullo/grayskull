@@ -1,3 +1,15 @@
+#---- Templates values
+- name: Setup | Create subfolder
+  file:
+    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    state: directory
+    mode: '0755'
+
+- name: Ingress | Template values file
+  template:
+    src: "dash-proxy-values.yml"
+    dest: "{{ dash_proxy_file_location }}"
+
 #---- Amend customizations with UUID secret
 - name: Dash-proxy | Stat secrets directory
   stat:
@@ -27,6 +39,6 @@
     bin_dir: "{{ bin_dir }}"
     chart_src: int128.github.io/kubernetes-dashboard-proxy
     chart_version: 1.6.0
-    path_to_values: "{{ grayskull_dir }}/customizations/dash-proxy.yml"
+    path_to_values: "{{ dash_proxy_file_location }}"
 
 #TODO: see about adding the cert so keycloak proxy can use it, and removing insecure params from customization file.
