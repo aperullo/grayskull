@@ -1,7 +1,5 @@
 #  You must explicitly define each variable for each role. The default value doesn't matter if its overridden anywhere.
-
 task_mode: "install"
-bin_dir: "/usr/local/bin"
 
 task_create_ca: false
 ca_path: ca   # for dest dont include the file extension
@@ -21,3 +19,5 @@ task_rke_csrs: false
 rke_inv_path: ../inventory/rke_gray.yml
 rke_results_path: certs
 rke_csr_path: csr
+
+bin_dir: "/usr/local/bin"

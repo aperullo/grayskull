@@ -1,12 +1,11 @@
----
+task_mode: "install"
+
 prometheus_namespace: kube-system
 subfolder: prometheus-role
 role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
 
-task_mode: "install"
-
-helm_prometheus_name: "{{ platform_prefix }}-prometheus"
-
 ingress_secretName: "prom-gsp-tls"
 ingress_tls_cert: "{{ grayskull_dir }}/secrets/tls.crt"
 ingress_tls_key: "{{ grayskull_dir }}/secrets/tls.key"
+
+helm_prometheus_name: "{{ platform_prefix }}-prometheus"

@@ -1,12 +1,12 @@
----
 # Turns out these defaults don't do anything. You must explicitly define each variable for each role. The default value doesn't matter if its overridden anywhere.
 #ms_namespace: example-ns
 #ms_name: team-name
 #is_cluster_admin: False
+
+task_mode: "install"
 
 # Don't set this, unless changing the ion prefix.
 ion_ms_namespace: "ion-{{ ms_namespace }}"
 subfolder: "{{ ion_ms_namespace }}-role"
 role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
 
-task_mode: "install"

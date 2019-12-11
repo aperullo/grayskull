@@ -1,8 +1,7 @@
----
+task_mode: "install"
+
 ingress_namespace: grayskull-ingress
 subfolder: ingress-role
 role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
-
-task_mode: "install"
 
 helm_ingress_name: "{{ platform_prefix }}-ingress"

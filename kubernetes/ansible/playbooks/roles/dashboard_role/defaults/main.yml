@@ -1,5 +1,6 @@
 ---
 task_mode: "install"
+
 subfolder: dashboard-role
 role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
 

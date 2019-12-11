@@ -1,9 +1,8 @@
----
+task_mode: "install"
+
 elk_namespace: grayskull-logs
 subfolder: elk-role
 role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
-
-task_mode: "install"
 
 ingress_secretName: "elk-gsp-tls"
 ingress_tls_cert: "{{ grayskull_dir }}/secrets/tls.crt"

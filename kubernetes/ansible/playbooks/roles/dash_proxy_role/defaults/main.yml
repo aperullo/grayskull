@@ -1,8 +1,8 @@
+task_mode: "install"
+
 dash_proxy_namespace: kube-system
 subfolder: "dash-proxy-role"
 role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
-
-task_mode: "install"
 
 dash_proxy_file_location: "{{ role_dir }}/dash-proxy-values.yml"
 
