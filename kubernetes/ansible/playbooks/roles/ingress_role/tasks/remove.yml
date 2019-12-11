@@ -1,4 +1,9 @@
----
+- name: Ingress | Create subfolder
+  file:
+    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    state: directory
+    mode: '0755'
+
 - name: Ingress | Templates list
   set_fact:
     ingress_role_templates:

@@ -30,11 +30,6 @@ persistence:
   enabled: true
   resourcePolicy: ""
 
-imagePullPolicy: IfNotPresent
-imagePullSecrets:
-#  - name: docker-registry-secret
-#  - name: internal-registry-secret
-
 logLevel: info
 
 notary:

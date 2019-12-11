@@ -12,7 +12,7 @@
       - { file: kibana-values.yml }
       - { file: logstash-values.yml }
 
-- name: ELK | Create manifests
+- name: ELK | Template Values
   template:
     src: "{{ item.file }}"
     dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
