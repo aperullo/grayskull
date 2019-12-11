@@ -1,4 +1,17 @@
----
+
+#TODO: make subfolder into /grayskull/auth-role to clean up files
+
+- name: Setup | Create subfolder
+  file:
+    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    state: directory
+    mode: '0755'
+
+- name: Ingress | Template values file
+  template:
+    src: "auth-values.yml"
+    dest: "{{ grayskull_dir }}/{{ subfolder }}/auth-values.yml"
+
 - name: Authorization | Templates list
   set_fact:
     auth_role_templates:
@@ -7,12 +20,10 @@
 
 - name: Authorization | Create manifests
   template:
-    src: "{{ item.file }}.j2"
-    dest: "{{ grayskull_dir }}/{{ item.file }}"
+    src: "{{ item.file }}"
+    dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
   with_items: "{{ auth_role_templates }}"
   register: auth_role_manifests
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
 - name: Authorization | Apply manifests
   kube:
@@ -20,13 +31,11 @@
     namespace: "{{ auth_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
     resource: "{{ item.item.type }}"
-    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    filename: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.item.file }}"
     state: latest
   with_items: "{{ auth_role_manifests.results }}"
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
-- name: Authorization | Create secret/auth directory
+- name: Authorization | Create secrets directory
   file:
     path: "{{ auth_secrets_dir }}"
     state: directory
@@ -116,4 +125,4 @@
     bin_dir: "{{ bin_dir }}"
     chart_src: codecentric/keycloak
     chart_version: 4.14.2
-    path_to_values: "{{ grayskull_dir }}/customizations/keycloak.yml"
+    path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/auth-values.yml"

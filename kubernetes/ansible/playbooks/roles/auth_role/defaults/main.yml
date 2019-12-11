@@ -1,6 +1,7 @@
 ---
 auth_namespace: grayskull-auth
-auth_secrets_dir: "{{ grayskull_dir }}/secrets/auth"
+subfolder: auth-role
+auth_secrets_dir: "{{ grayskull_dir }}/{{ subfolder }}/secrets"
 
 auth_passwd_secretName: "auth-gsp-passwd"
 auth_passwd_file: "{{ auth_secrets_dir }}/password"
