@@ -1,6 +1,6 @@
 - name: Ingress | Create subfolder
   file:
-    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    path: "{{ role_dir }}"
     state: directory
     mode: '0755'
 
@@ -21,7 +21,7 @@
 - name: Ingress | Create manifests
   template:
     src: "{{ item.file }}"
-    dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
+    dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ ingress_role_templates }}"
   register: ingress_role_manifests
   when:
@@ -33,7 +33,7 @@
     namespace: "{{ ingress_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
     resource: "{{ item.item.type }}"
-    filename: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.item.file }}"
+    filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "absent"
   with_items: "{{ ingress_role_manifests.results }}"
   when:
@@ -41,5 +41,5 @@
 
 - name: Ingress | Remove subfolder
   file:
-    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    path: "{{ role_dir }}"
     state: absent

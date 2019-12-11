@@ -34,7 +34,7 @@
 
   - name: Registry | Create subfolder
     file:
-      path: "{{ grayskull_dir }}/{{ subfolder }}"
+      path: "{{ role_dir }}"
       state: directory
       mode: '0755'
 
@@ -61,12 +61,12 @@
       namespace: "{{ registry_namespace }}"
       kubectl: "{{ bin_dir }}/kubectl"
       resource: "{{ item.item.type }}"
-      filename: "{{ grayskull_dir }}//{{ subfolder }}/{{ item.item.file }}"
+      filename: "{{ role_dir }}/{{ item.item.file }}"
       state: "absent"
     with_items: "{{ registry_role_manifests.results }}"
 
   - name: Registry | Delete subfolder
     file:
-      path: "{{ grayskull_dir }}/{{ subfolder }}"
+      path: "{{ role_dir }}"
       state: absent
 

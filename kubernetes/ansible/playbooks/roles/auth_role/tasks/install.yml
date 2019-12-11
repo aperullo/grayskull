@@ -3,7 +3,7 @@
 
 - name: Authorization | Create subfolder
   file:
-    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    path: "{{ role_dir }}"
     state: directory
     mode: '0755'
 
@@ -11,7 +11,7 @@
 #---- Create OIDC secret
 - name: Setup | Stat for UUID file
   stat:
-    path: "{{ grayskull_dir }}/{{ subfolder }}/uuid"
+    path: "{{ role_dir }}/uuid"
   register: stat_result
 
 - name: Setup | Check for UUID file or create
@@ -25,14 +25,14 @@
   - name: Setup | Write UUID to file
     copy: 
       content: "{{ client_UUID }}"
-      dest: "{{ grayskull_dir }}/{{ subfolder }}/uuid"
+      dest: "{{ role_dir }}/uuid"
 
 - name: Setup | Get UUID file contents 
   when: stat_result is defined and stat_result.stat.exists
   block:
   - name: Setup | Slurp file
     slurp: 
-      src: "{{ grayskull_dir }}/{{ subfolder }}/uuid"
+      src: "{{ role_dir }}/uuid"
     register: slurp_contents
 
   - name: Setup | Reuse UUID
@@ -44,7 +44,7 @@
 - name: Authorization | Template values file
   template:
     src: "auth-values.yml"
-    dest: "{{ grayskull_dir }}/{{ subfolder }}/auth-values.yml"
+    dest: "{{ role_dir }}/auth-values.yml"
 
 - name: Authorization | Templates list
   set_fact:
@@ -55,7 +55,7 @@
 - name: Authorization | Create manifests
   template:
     src: "{{ item.file }}"
-    dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
+    dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ auth_role_templates }}"
   register: auth_role_manifests
 
@@ -65,7 +65,7 @@
     namespace: "{{ auth_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
     resource: "{{ item.item.type }}"
-    filename: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.item.file }}"
+    filename: "{{ role_dir }}/{{ item.item.file }}"
     state: latest
   with_items: "{{ auth_role_manifests.results }}"
 
@@ -159,4 +159,4 @@
     bin_dir: "{{ bin_dir }}"
     chart_src: codecentric/keycloak
     chart_version: 4.14.2
-    path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/auth-values.yml"
+    path_to_values: "{{ role_dir }}/auth-values.yml"

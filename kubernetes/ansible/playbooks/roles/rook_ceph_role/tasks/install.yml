@@ -15,25 +15,21 @@
 
 - name: Rook Ceph | Create subfolder
   file:
-    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    path: "{{ role_dir }}"
     state: directory
     mode: '0755'
 
 - name: Rook Ceph | Template values
   template:
     src: "rook-ceph-values.yml"
-    dest: "{{ grayskull_dir }}/{{ subfolder }}/rook-ceph-values.yml"
-  when:
-    - inventory_hostname == groups['kube-master'][0]
+    dest: "{{ role_dir }}/rook-ceph-values.yml"
 
 - name: Rook Ceph | Create manifests
   template:
     src: "{{ item.file }}"
-    dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
+    dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ rook_ceph_role_templates }}"
   register: rook_ceph_role_manifests
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
 # Namespace must be deployed before secret.
 - name: Rook Ceph | Apply namespace
@@ -42,10 +38,8 @@
     namespace: "{{ ceph_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
     resource: ns
-    filename: "{{ grayskull_dir }}/{{ subfolder }}/rook-ceph-namespace.yml"
+    filename: "{{ role_dir }}/rook-ceph-namespace.yml"
     state: latest
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
 
 #---- Create secret
@@ -71,7 +65,7 @@
     chart_src: rook-release/rook-ceph
     chart_version: v1.1.0
     atomic: yes   # is atomic so that manifests aren't deployed before CRDs exist
-    path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/rook-ceph-values.yml"
+    path_to_values: "{{ role_dir }}/rook-ceph-values.yml"
 
 
 - name: Rook Ceph | Apply manifests
@@ -80,8 +74,6 @@
     namespace: "{{ ceph_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
     resource: "{{ item.item.type }}"
-    filename: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.item.file }}"
+    filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "latest"
   with_items: "{{ rook_ceph_role_manifests.results }}"
-  when:
-    - inventory_hostname == groups['kube-master'][0]

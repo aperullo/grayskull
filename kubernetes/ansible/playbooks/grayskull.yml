@@ -138,7 +138,6 @@
 #---- Run the service roles
 - hosts: kube-setup-delegate
   become: yes
-  # Turns out vars are shared for all instances of a role. You must explicitly define each variable for each role. The default value doesn't matter if its overridden anywhere.
   roles:
     - { role: ingress_role, when: (ingress_role_enabled | default(True)) }
     - { role: dashboard_role, when: (dashboard_role_enabled | default(True)) }

@@ -1,6 +1,7 @@
 ---
 elk_namespace: grayskull-logs
 subfolder: elk-role
+role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
 
 task_mode: "install"
 

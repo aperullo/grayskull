@@ -1,6 +1,7 @@
 ---
 prometheus_namespace: kube-system
 subfolder: prometheus-role
+role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
 
 task_mode: "install"
 
