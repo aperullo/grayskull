@@ -7,21 +7,21 @@
 
 - name: Setup | Create grayskull directory
   file:
-    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    path: "{{ role_dir }}"
     state: directory
     mode: '0755'
 
 - name: Prometheus | Template values
   template:
     src: "prometheus-values.yml"
-    dest: "{{ grayskull_dir }}/{{ subfolder }}/prometheus-values.yml"
+    dest: "{{ role_dir }}/prometheus-values.yml"
   when:
     - inventory_hostname == groups['kube-master'][0]
 
 - name: Prometheus | Create manifests
   template:
     src: "{{ item.file }}"
-    dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
+    dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ prometheus_role_templates }}"
   register: prometheus_role_manifests
   when:
@@ -34,7 +34,7 @@
     namespace: "{{ prometheus_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
     resource: "{{ item.item.type }}"
-    filename: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.item.file }}"
+    filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "latest"
   with_items: "{{ prometheus_role_manifests.results }}"
   when:
@@ -58,4 +58,4 @@
     bin_dir: "{{ bin_dir }}"
     chart_src: "{{ grayskull_dir }}/{{ helm_prometheus_image_name }}"
     chart_version: "{{ helm_prometheus_chart_version }}"
-    path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/prometheus-values.yml"
+    path_to_values: "{{ role_dir }}/prometheus-values.yml"

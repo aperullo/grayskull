@@ -1,6 +1,6 @@
 - name: ELK | Create subfolder
   file:
-    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    path: "{{ role_dir }}"
     state: directory
     mode: '0755'
 
@@ -15,7 +15,7 @@
 - name: ELK | Template Values
   template:
     src: "{{ item.file }}"
-    dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
+    dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ elk_values_templates }}"
   register: elk_role_manifests
 
@@ -27,7 +27,7 @@
 - name: ELK | Create manifests
   template:
     src: "{{ item.file }}"
-    dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
+    dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ elk_role_templates }}"
   register: elk_role_manifests
 
@@ -38,7 +38,7 @@
     namespace: "{{ elk_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
     resource: "{{ item.item.type }}"
-    filename: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.item.file }}"
+    filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "latest"
   with_items: "{{ elk_role_manifests.results }}"
   when:
@@ -62,7 +62,7 @@
     bin_dir: "{{ bin_dir }}"
     chart_src: "{{ grayskull_dir }}/{{ helm_elasticsearch_image_name }}"
     chart_version: "{{ helm_elasticsearch_chart_version }}"
-    path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/elasticsearch-values.yml"
+    path_to_values: "{{ role_dir }}/elasticsearch-values.yml"
 
 - name: ELK | Deploy Kibana chart
   helm_chart:
@@ -71,7 +71,7 @@
     bin_dir: "{{ bin_dir }}"
     chart_src: "{{ grayskull_dir }}/{{ helm_kibana_image_name }}"
     chart_version: "{{ helm_kibana_chart_version }}"
-    path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/kibana-values.yml"
+    path_to_values: "{{ role_dir }}/kibana-values.yml"
 
 - name: ELK | Deploy Logstash chart
   helm_chart:
@@ -80,7 +80,7 @@
     bin_dir: "{{ bin_dir }}"
     chart_src: "{{ grayskull_dir }}/{{ helm_logstash_image_name }}"
     chart_version: "{{ helm_logstash_chart_version }}"
-    path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/logstash-values.yml"
+    path_to_values: "{{ role_dir }}/logstash-values.yml"
 
 - name: ELK | Deploy Fluentd chart
   helm_chart:
@@ -89,4 +89,4 @@
     bin_dir: "{{ bin_dir }}"
     chart_src: "{{ grayskull_dir }}/{{ helm_fluentd_image_name }}"
     chart_version: "{{ helm_fluentd_chart_version }}"
-    path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/fluentd-values.yml"
+    path_to_values: "{{ role_dir }}/fluentd-values.yml"

@@ -4,7 +4,8 @@ task_modes:
 
 auth_namespace: grayskull-auth
 subfolder: auth-role
-auth_secrets_dir: "{{ grayskull_dir }}/{{ subfolder }}/secrets"
+role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
+auth_secrets_dir: "{{ role_dir }}/secrets"
 
 auth_passwd_secretName: "auth-gsp-passwd"
 auth_passwd_file: "{{ auth_secrets_dir }}/password"

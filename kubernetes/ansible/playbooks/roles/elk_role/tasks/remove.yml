@@ -1,7 +1,7 @@
 #---- Remove the charts
 - name: ELK | Create subfolder
   file:
-    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    path: "{{ role_dir }}"
     state: directory
     mode: '0755'
 
@@ -50,7 +50,7 @@
 - name: ELK | Create manifests
   template:
     src: "{{ item.file }}"
-    dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
+    dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ elk_role_templates }}"
   register: elk_role_manifests
 
@@ -60,11 +60,11 @@
     namespace: "{{ elk_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
     resource: "{{ item.item.type }}"
-    filename: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.item.file }}"
+    filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "absent"
   with_items: "{{ elk_role_manifests.results }}"
 
 - name: ELK | Delete subfolder
   file:
-    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    path: "{{ role_dir }}"
     state: absent

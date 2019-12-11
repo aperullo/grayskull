@@ -10,3 +10,4 @@ task_modes:
 ion_ms_namespace: "ion-{{ ms_namespace }}"
 
 subfolder: "{{ ion_ms_namespace }}-role"
+role_dir: "{{ grayskull_dir }}/{{ subfolder }}"

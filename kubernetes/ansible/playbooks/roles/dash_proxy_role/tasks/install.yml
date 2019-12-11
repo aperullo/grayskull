@@ -1,7 +1,7 @@
 #---- Templates values
 - name: Setup | Create subfolder
   file:
-    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    path: "{{ role_dir }}"
     state: directory
     mode: '0755'
 

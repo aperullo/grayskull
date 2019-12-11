@@ -21,14 +21,14 @@
 
 - name: Dashboard | Create subfolder
   file:
-    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    path: "{{ role_dir }}"
     state: directory
     mode: '0755'
 
 - name: Dashboard | Create manifests
   template:
     src: "{{ item.file }}"
-    dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
+    dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ dashboard_role_templates }}"
   register: dashboard_role_manifests
   when:
@@ -40,7 +40,7 @@
     namespace: "kube-system"
     kubectl: "{{ bin_dir }}/kubectl"
     resource: "{{ item.item.type }}"
-    filename: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.item.file }}"
+    filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "latest"
   with_items: "{{ dashboard_role_manifests.results }}"
   when:

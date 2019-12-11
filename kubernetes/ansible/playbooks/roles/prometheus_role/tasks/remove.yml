@@ -48,7 +48,7 @@
 
 - name: Prometheus | Delete subfolder
   file:
-    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    path: "{{ role_dir }}"
     state: directory
     mode: '0755'
 
@@ -61,7 +61,7 @@
 - name: Prometheus | Create manifests
   template:
     src: "{{ item.file }}"
-    dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
+    dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ prometheus_role_templates }}"
   register: prometheus_role_manifests
 
@@ -72,11 +72,11 @@
     namespace: "{{ prometheus_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
     resource: "{{ item.item.type }}"
-    filename: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.item.file }}"
+    filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "absent"
   with_items: "{{ prometheus_role_manifests.results }}"
 
 - name: Prometheus | Delete subfolder
   file:
-    path: "{{ grayskull_dir }}/{{ subfolder }}"
+    path: "{{ role_dir }}"
     state: absent
