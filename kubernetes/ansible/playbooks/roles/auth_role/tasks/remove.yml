@@ -40,21 +40,6 @@
       path: "{{ auth_secrets_dir }}"
       state: absent
 
-  - name: Authorization | Delete kube-cert.pem
-    file: 
-      path: "{{ grayskull_dir }}/kube-cert.pem"
-      state: absent
-
-  - name: Authorization | Delete kube-cert-key.pem
-    file: 
-      path: "{{ grayskull_dir }}/kube-cert-key.pem"
-      state: absent
-
-  - name: Authorization | Delete kube-chain.pem
-    file: 
-      path: "{{ grayskull_dir }}/kube-chain.pem"
-      state: absent
-
 #---- Remove manifests
 - name: Authorization | Templates list
   set_fact:
@@ -64,12 +49,10 @@
       
 - name: Authorization | Create manifests
   template:
-    src: "{{ item.file }}.j2"
-    dest: "{{ grayskull_dir }}/{{ item.file }}"
+    src: "{{ item.file }}"
+    dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
   with_items: "{{ auth_role_templates }}"
   register: auth_role_manifests
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
 - name: Authorization | Remove manifest products
   kube:
@@ -77,8 +60,6 @@
     namespace: "{{ auth_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
     resource: "{{ item.item.type }}"
-    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    filename: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.item.file }}"
     state: absent
   with_items: "{{ auth_role_manifests.results }}"
-  when:
-    - inventory_hostname == groups['kube-master'][0]
