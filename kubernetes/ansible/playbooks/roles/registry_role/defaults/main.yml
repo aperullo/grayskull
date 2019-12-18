@@ -1,0 +1,18 @@
+---
+registry_namespace: grayskull-registry
+
+task_mode: "install"
+
+ingress_secretName: "reg-gsp-tls"
+ingress_tls_cert: "{{ grayskull_dir }}/secrets/tls.crt"
+ingress_tls_key: "{{ grayskull_dir }}/secrets/tls.key"
+ingress_host: "registry.{{ grayskull_domain }}"
+
+ca_path_remote_src: "{{ grayskull_dir }}/ca.pem"
+ca_path_dest: "/etc/docker/certs.d/{{ ingress_host }}"
+
+# TODO: submit PR against harbor to allow specifying this value from an existing secret. Or Fork harbor to add it
+harbor_user: "admin"
+harbor_pass: "admin"
+
+helm_registry_name: "{{ platform_prefix }}-registry"

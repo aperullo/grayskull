@@ -36,6 +36,7 @@
 - hosts: all
   become: yes
   roles:
+    - { role: registry_role, vars: { task_mode: 'remove' }, when: (registry_role_enabled | default(True)) }
     - { role: rook_ceph_role, vars: { task_mode: 'remove' }, when: (rook_ceph_role_enabled | default(True)) } 
 
 # Run the remaining roles that come after rook.
