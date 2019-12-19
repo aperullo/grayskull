@@ -124,8 +124,8 @@
     # copy the certs to name them as the k8s secret expects
     task_copy: true
     copy_ca_path: "{{ grayskull_dir }}/cacerts.pem"
-    copy_server_key_path: "{{ auth_secrets_dir }}/tls.key"
-    copy_chain_path: "{{ auth_secrets_dir }}/tls.crt"
+    copy_server_key_path: "{{ ingress_tls_key }}"
+    copy_chain_path: "{{ ingress_tls_cert }}"
 
 
 #---- Create secret
@@ -135,7 +135,7 @@
   changed_when: false
 
 - name: Authorization | Create secret
-  shell: "{{ bin_dir }}/kubectl create secret generic {{ ingress_secretName }} --from-file {{ auth_secrets_dir }}/tls.crt --from-file {{ auth_secrets_dir }}/tls.key --from-file ca.crt={{ kube_ca_path }}/kube-ca.pem -n {{ auth_namespace }}"
+  shell: "{{ bin_dir }}/kubectl create secret generic {{ ingress_secretName }} --from-file {{ ingress_tls_cert }} --from-file {{ ingress_tls_key }} --from-file ca.crt={{ kube_ca_path }}/kube-ca.pem -n {{ auth_namespace }}"
   when: "ingress_secretName not in auth_secret_exists.stdout"
 
 - name: Authorization | Create pass secret
