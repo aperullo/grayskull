@@ -104,16 +104,11 @@
   shell: "{{ bin_dir }}/kubectl create secret generic {{ auth_passwd_secretName }} --from-file {{ auth_passwd_file }} -n {{ auth_namespace }}"
   when: "auth_passwd_secretName not in auth_secret_exists.stdout"
 
-
-#---- Deploy chart
-- name: Authorization | Add repo
-  shell: "{{ bin_dir }}/helm repo add codecentric https://codecentric.github.io/helm-charts"
-
 - name: Authorization | Deploy chart
   helm_chart:
-    name: "{{ helm_keycloak_name }}"
+    name: "{{ helm_auth_chart_name }}"
     namespace: "{{ auth_namespace }}"
     bin_dir: "{{ bin_dir }}"
-    chart_src: codecentric/keycloak
-    chart_version: 4.14.2
+    chart_src: "{{ grayskull_dir }}/{{ helm_auth_image_name }}"
+    chart_version: "{{ helm_auth_chart_version }}"
     path_to_values: "{{ grayskull_dir }}/customizations/keycloak.yml"

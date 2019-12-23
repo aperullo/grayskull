@@ -37,43 +37,38 @@
   shell: "{{ bin_dir }}/kubectl create secret generic {{ ingress_secretName }} --from-file {{ ingress_tls_cert }} --from-file {{ ingress_tls_key }} -n {{ elk_namespace }}"
   when: "ingress_secretName not in elk_secret_exists.stdout"
 
-
-#---- Deploy chart and templates
-- name: ELK | Add repo
-  shell: "{{ bin_dir }}/helm repo add elastic https://helm.elastic.co"
-
 - name: ELK | Deploy Elasticsearch chart
   helm_chart:
-    name: "{{ helm_elasticsearch_name }}"
+    name: "{{ helm_elasticsearch_chart_name }}"
     namespace: "{{ elk_namespace }}"
     bin_dir: "{{ bin_dir }}"
-    chart_src: elastic/elasticsearch
-    chart_version: 7.1.1
+    chart_src: "{{ grayskull_dir }}/{{ helm_elasticsearch_image_name }}"
+    chart_version: "{{ helm_elasticsearch_chart_version }}"
     path_to_values: "{{ grayskull_dir }}/customizations/elasticsearch.yml"
 
 - name: ELK | Deploy Kibana chart
   helm_chart:
-    name: "{{ helm_kibana_name }}"
+    name: "{{ helm_kibana_chart_name }}"
     namespace: "{{ elk_namespace }}"
     bin_dir: "{{ bin_dir }}"
-    chart_src: elastic/kibana
-    chart_version: 7.1.1
+    chart_src: "{{ grayskull_dir }}/{{ helm_kibana_image_name }}"
+    chart_version: "{{ helm_kibana_chart_version }}"
     path_to_values: "{{ grayskull_dir }}/customizations/kibana.yml"
 
 - name: ELK | Deploy Logstash chart
   helm_chart:
-    name: "{{ helm_logstash_name }}"
+    name: "{{ helm_logstash_chart_name }}"
     namespace: "{{ elk_namespace }}"
     bin_dir: "{{ bin_dir }}"
-    chart_src: stable/logstash
-    chart_version: 1.13.0
+    chart_src: "{{ grayskull_dir }}/{{ helm_logstash_image_name }}"
+    chart_version: "{{ helm_logstash_chart_version }}"
     path_to_values: "{{ grayskull_dir }}/customizations/logstash.yml"
 
-- name: ELK | Deploy fluentd chart
+- name: ELK | Deploy Fluentd chart
   helm_chart:
-    name: "{{ helm_fluentd_name }}"
+    name: "{{ helm_fluentd_chart_name }}"
     namespace: "{{ elk_namespace }}"
     bin_dir: "{{ bin_dir }}"
-    chart_src: stable/fluentd
-    chart_version: 1.10.0
+    chart_src: "{{ grayskull_dir }}/{{ helm_fluentd_image_name }}"
+    chart_version: "{{ helm_fluentd_chart_version }}"
     path_to_values: "{{ grayskull_dir }}/customizations/fluentd.yml"

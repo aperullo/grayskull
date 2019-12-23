@@ -15,11 +15,11 @@
 
 - name: Ingress | Remove chart
   helm_chart:
-    name: "{{ helm_ingress_name }}"
+    name: "{{ helm_ingress_chart_name }}"
     namespace: "{{ ingress_namespace }}"
     bin_dir: "{{ bin_dir }}"
-    chart_src: stable/nginx-ingress
-    chart_version: 1.6.16
+    chart_src: "{{ grayskull_dir }}/{{ helm_ingress_image_name }}"
+    chart_version: "{{ helm_ingress_chart_version }}"
     state: absent
     path_to_values: "{{ grayskull_dir }}/customizations/nginx-ingress.yml"
 

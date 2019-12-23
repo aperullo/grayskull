@@ -1,7 +1,9 @@
 #  You must explicitly define each variable for each role. The default value doesn't matter if its overridden anywhere.
 
-task_mode: "install"
-bin_dir: "/usr/local/bin"
+task_modes:
+  - install
+
+bin_dir: /usr/local/bin
 
 task_create_ca: false
 ca_path: ca   # for dest dont include the file extension

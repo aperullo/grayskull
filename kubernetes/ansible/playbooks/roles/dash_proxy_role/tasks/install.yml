@@ -15,18 +15,13 @@
     regexp: '.*clientSecret: '
     line: "    clientSecret: {{ client_UUID }}"
 
-
-#---- Deploy chart
-- name: Dash-proxy | Add repo
-  shell: "{{ bin_dir }}/helm repo add int128.github.io https://int128.github.io/helm-charts"
-
 - name: Dash-proxy | Deploy chart
   helm_chart:
     name: "{{ helm_dash_proxy_name }}"
     namespace: "{{ dash_proxy_namespace }}"
     bin_dir: "{{ bin_dir }}"
-    chart_src: int128.github.io/kubernetes-dashboard-proxy
-    chart_version: 1.6.0
+    chart_src: "{{ grayskull_dir }}/{{ helm_dash_proxy_image_name }}"
+    chart_version: "{{ helm_dash_proxy_chart_version }}"
     path_to_values: "{{ grayskull_dir }}/customizations/dash-proxy.yml"
 
 #TODO: see about adding the cert so keycloak proxy can use it, and removing insecure params from customization file.

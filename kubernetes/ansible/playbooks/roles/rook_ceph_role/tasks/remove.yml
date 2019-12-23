@@ -44,11 +44,11 @@
   #---- Deploy chart and templates
   - name: Rook Ceph | Remove chart
     helm_chart:
-      name: "{{ helm_rook_ceph_name }}"
+      name: "{{ helm_rook_ceph_chart_name }}"
       namespace: "{{ ceph_namespace }}"
       bin_dir: "{{ bin_dir }}"
-      chart_src: rook-release/rook-ceph
-      chart_version: v1.0.2
+      chart_src: "{{ grayskull_dir }}/{{ helm_rook_ceph_image_name }}"
+      chart_version: "{{ helm_rook_ceph_chart_version }}"
       state: absent
       path_to_values: "{{ grayskull_dir }}/customizations/ceph.yml"
 
@@ -104,6 +104,3 @@
 
   - name: Rook Ceph | Remove Ceph device from mapper
     shell: "rm -rf /dev/mapper/ceph-*"
-
-
-  

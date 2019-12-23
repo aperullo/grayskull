@@ -16,11 +16,11 @@
   block:
   - name: Registry | Remove chart
     helm_chart:
-      name: "{{ helm_registry_name }}"
+      name: "{{ helm_registry_chart_name }}"
       namespace: "{{ registry_namespace }}"
       bin_dir: "{{ bin_dir }}"
-      chart_src: harbor/harbor
-      chart_version: 1.2.0
+      chart_src: "{{ grayskull_dir }}/{{ helm_registry_image_name }}"
+      chart_version: "{{ helm_registry_chart_version }}"
       state: absent
       path_to_values: "{{ grayskull_dir }}/customizations/registry.yml"
 

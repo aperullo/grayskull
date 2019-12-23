@@ -63,18 +63,17 @@
     shell: "{{ bin_dir }}/kubectl create secret generic {{ ingress_secretName }} --from-file {{ ingress_tls_cert }} --from-file {{ ingress_tls_key }} -n {{ registry_namespace }}"
     when: "ingress_secretName not in registry_secret_exists.stdout"
 
-  #---- Deploy chart and templates
-  - name: Registry | Add repo
-    shell: "{{ bin_dir }}/helm repo add harbor https://helm.goharbor.io"
-
   - name: Registry | Deploy harbor chart
     helm_chart:
-      name: "{{ helm_registry_name }}"
+      name: "{{ helm_registry_chart_name }}"
       namespace: "{{ registry_namespace }}"
       bin_dir: "{{ bin_dir }}"
-      chart_src: harbor/harbor
-      chart_version: 1.2.0
+      chart_src: "{{ grayskull_dir }}/{{ helm_registry_image_name }}"
+      chart_version: "{{ helm_registry_chart_version }}"
       path_to_values: "{{ grayskull_dir }}/customizations/registry.yml"
+
+  - name: Registry | Wait for registry to rollout
+    shell: "{{ bin_dir }}/kubectl -n {{ registry_namespace }} rollout status deploy/{{ platform_prefix }}-registry-harbor-registry"
 
 # This way nodes can pull from the the private-registry without needing an image pull secret.
 - name: Registry | Docker login on each nodes

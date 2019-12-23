@@ -1,4 +1,6 @@
----
+task_modes:
+  - install
+
 # Turns out these defaults don't do anything. You must explicitly define each variable for each role. The default value doesn't matter if its overridden anywhere.
 #ms_namespace: example-ns
 #ms_name: team-name
@@ -6,5 +8,3 @@
 
 # Don't set this, unless changing the ion prefix.
 ion_ms_namespace: "ion-{{ ms_namespace }}"
-
-task_mode: "install"

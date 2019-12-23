@@ -1,2 +1,5 @@
-- name: Rook Cassandra | Import tasks for install or remove
-  import_tasks: "{{ task_mode }}.yml"
+- name: Rook Cassandra | Run tasks
+  include_tasks: "{{ line_item }}.yml"
+  with_items: "{{ task_modes }}"
+  loop_control:
+    loop_var: line_item

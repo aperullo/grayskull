@@ -1,13 +1,26 @@
----
-elk_namespace: grayskull-logs
+task_modes:
+  - download
+  - install
 
-task_mode: "install"
+elk_namespace: grayskull-logs
 
 ingress_secretName: "elk-gsp-tls"
 ingress_tls_cert: "{{ grayskull_dir }}/secrets/tls.crt"
 ingress_tls_key: "{{ grayskull_dir }}/secrets/tls.key"
 
-helm_elasticsearch_name: "{{ platform_prefix }}-elasticsearch"
-helm_kibana_name: "{{ platform_prefix }}-kibana"
-helm_logstash_name: "{{ platform_prefix }}-logstash"
-helm_fluentd_name: "{{ platform_prefix }}-fluentd"
+helm_elasticsearch_chart_name: "{{ platform_prefix }}-elasticsearch"
+helm_elasticsearch_repo_url: https://helm.elastic.co
+helm_elasticsearch_image_name: elasticsearch
+helm_elasticsearch_chart_version: 7.1.1
+helm_kibana_chart_name: "{{ platform_prefix }}-kibana"
+helm_kibana_repo_url: https://helm.elastic.co
+helm_kibana_image_name: kibana
+helm_kibana_chart_version: 7.1.1
+helm_logstash_chart_name: "{{ platform_prefix }}-logstash"
+helm_logstash_chart_type: stable
+helm_logstash_image_name: logstash
+helm_logstash_chart_version: 1.13.0
+helm_fluentd_chart_name: "{{ platform_prefix }}-fluentd"
+helm_fluentd_chart_type: stable
+helm_fluentd_image_name: fluentd
+helm_fluentd_chart_version: 1.10.0

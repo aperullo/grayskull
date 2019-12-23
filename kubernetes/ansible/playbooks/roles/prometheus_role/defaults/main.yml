@@ -1,9 +1,13 @@
----
+task_modes:
+  - download
+  - install
+
 prometheus_namespace: kube-system
 
-task_mode: "install"
-
-helm_prometheus_name: "{{ platform_prefix }}-prometheus"
+helm_prometheus_chart_name: "{{ platform_prefix }}-prometheus"
+helm_prometheus_chart_type: stable
+helm_prometheus_image_name: prometheus-operator
+helm_prometheus_chart_version: 5.12.3
 
 ingress_secretName: "prom-gsp-tls"
 ingress_tls_cert: "{{ grayskull_dir }}/secrets/tls.crt"

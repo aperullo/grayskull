@@ -1,6 +1,10 @@
----
+task_modes:
+  - download
+  - install
+
 ingress_namespace: grayskull-ingress
 
-task_mode: "install"
-
-helm_ingress_name: "{{ platform_prefix }}-ingress"
+helm_ingress_chart_name: "{{ platform_prefix }}-ingress"
+helm_ingress_chart_type: stable
+helm_ingress_image_name: nginx-ingress
+helm_ingress_chart_version: 1.6.16

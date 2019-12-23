@@ -1,10 +1,8 @@
----
-task_mode: "install"
+task_modes:
+  - install
 
 ingress_url: "dash.{{ grayskull_domain }}"
 ingress_secretName: "dashboard-gsp-tls"
 ingress_path: "/"
 ingress_tls_cert: "{{ grayskull_dir }}/secrets/tls.crt"
 ingress_tls_key: "{{ grayskull_dir }}/secrets/tls.key"
-
-

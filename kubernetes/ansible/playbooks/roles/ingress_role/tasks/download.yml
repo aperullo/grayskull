@@ -1,0 +1,7 @@
+---
+- name: Ingress | Download chart
+  shell: "{{ bin_dir }}/helm fetch \
+    --version {{ helm_ingress_chart_version }} \
+    --destination {{ grayskull_dir }} \
+    --untar \
+    {{ helm_ingress_chart_type}}/{{ helm_ingress_image_name }}"  

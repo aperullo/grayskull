@@ -1,19 +1,24 @@
----
+task_modes:
+  - download
+  - install
+
 ceph_namespace: "grayskull-storage"
 ceph_defaultStorage_enabled: true
 ceph_mon_count: 3
 ceph_objectstore_name: gsp-store
 
-task_mode: "install"
+prometheusOperator_enabled: true
 
-helm_rook_ceph_name: "{{ platform_prefix }}-rook-ceph"
-ceph_image: ceph/ceph
-ceph_image_version: v14.2.4-20191112
+helm_rook_ceph_chart_name: "{{ platform_prefix }}-rook-ceph"
+helm_rook_ceph_repo_url: https://charts.rook.io/release
+helm_rook_ceph_image_name: rook-ceph
+helm_rook_ceph_chart_version: v1.1.0
+
+template_ceph_image: ceph/ceph
+template_ceph_image_version: v14.2.4-20191112
 
 ingress_url: "ceph.{{grayskull_domain}}"
 ingress_secretName: "ceph-gsp-tls" #TODO: make this into admin-gsp-tls
 ingress_path: "/"
 ingress_tls_cert: "{{ grayskull_dir }}/secrets/tls.crt"
 ingress_tls_key: "{{ grayskull_dir }}/secrets/tls.key"
-
-prometheusOperator_enabled: true

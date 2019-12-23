@@ -1,0 +1,8 @@
+---
+- name: Authorization | Download chart
+  shell: "{{ bin_dir }}/helm fetch \
+    --repo {{ helm_auth_repo_url }} \
+    --version {{ helm_auth_chart_version }} \
+    --destination {{ grayskull_dir }} \
+    --untar \
+    {{ helm_auth_image_name }}"

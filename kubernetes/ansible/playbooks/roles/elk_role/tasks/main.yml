@@ -1,2 +1,5 @@
-- name: ELK | Import tasks for install or remove
-  import_tasks: "{{ task_mode }}.yml"
+- name: ELK | Run tasks
+  include_tasks: "{{ line_item }}.yml"
+  with_items: "{{ task_modes }}"
+  loop_control:
+    loop_var: line_item

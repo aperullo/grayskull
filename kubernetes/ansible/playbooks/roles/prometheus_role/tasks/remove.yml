@@ -10,11 +10,11 @@
 
 - name: Prometheus | Remove chart
   helm_chart:
-    name: "{{ helm_prometheus_name }}"
+    name: "{{ helm_prometheus_chart_name }}"
     namespace: "{{ prometheus_namespace }}"
     bin_dir: "{{ bin_dir }}"
-    chart_src: stable/prometheus-operator
-    chart_version: 5.12.3
+    chart_src: "{{ grayskull_dir }}/{{ helm_prometheus_image_name }}"
+    chart_version: "{{ helm_prometheus_chart_version }}"
     state: absent
     path_to_values: "{{ grayskull_dir }}/customizations/prometheus.yml"
 

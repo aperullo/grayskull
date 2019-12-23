@@ -2,11 +2,11 @@
 #---- Remove chart
 - name: Authorization | Remove chart
   helm_chart:
-    name: "{{ helm_keycloak_name }}"
+    name: "{{ helm_auth_chart_name }}"
     namespace: "{{ auth_namespace }}"
     bin_dir: "{{ bin_dir }}"
-    chart_src: codecentric/keycloak
-    chart_version: 4.14.2
+    chart_src: "{{ grayskull_dir }}/{{ helm_auth_image_name }}"
+    chart_version: "{{ helm_auth_chart_version }}"
     state: absent
     path_to_values: "{{ grayskull_dir }}/customizations/keycloak.yml"
 
