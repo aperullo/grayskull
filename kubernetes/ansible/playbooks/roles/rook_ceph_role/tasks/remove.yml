@@ -56,7 +56,6 @@
       chart_src: "{{ grayskull_dir }}/{{ helm_rook_ceph_image_name }}"
       chart_version: "{{ helm_rook_ceph_chart_version }}"
       state: absent
-      path_to_values: "{{ grayskull_dir }}/{{ subfolder }}/ceph.yml"
 
   - name: Rook Ceph | Remove manifest products
     kube:

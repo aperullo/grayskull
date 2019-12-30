@@ -10,8 +10,6 @@ auth_secrets_dir: "{{ role_dir }}/secrets"
 auth_passwd_secretName: "auth-gsp-passwd"
 auth_passwd_file: "{{ auth_secrets_dir }}/password"
 
-kube_ca_path: "/etc/kubernetes/ssl"
-
 helm_auth_chart_name: "{{ platform_prefix }}-keycloak"
 helm_auth_repo_url: https://codecentric.github.io/helm-charts
 helm_auth_image_name: keycloak
@@ -22,7 +20,3 @@ ingress_tls_cert: "{{ auth_secrets_dir }}/tls.crt"
 ingress_tls_key: "{{ auth_secrets_dir }}/tls.key"
 
 kube_ca_path: "/etc/kubernetes/ssl"
-
-task_mode: "install"
-
-helm_keycloak_name: "{{ platform_prefix }}-keycloak"
