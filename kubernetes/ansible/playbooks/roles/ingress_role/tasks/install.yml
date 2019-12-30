@@ -21,8 +21,6 @@
     dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ ingress_role_templates }}"
   register: ingress_role_manifests
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
 - name: Ingress | Apply manifests
   kube:
@@ -33,8 +31,6 @@
     filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "latest"
   with_items: "{{ ingress_role_manifests.results }}"
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
 - name: Ingress | Deploy chart
   helm_chart:

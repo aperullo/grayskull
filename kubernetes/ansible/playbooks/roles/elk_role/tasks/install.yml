@@ -41,8 +41,6 @@
     filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "latest"
   with_items: "{{ elk_role_manifests.results }}"
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
 
 #---- Create secret

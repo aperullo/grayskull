@@ -24,8 +24,6 @@
     dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ prometheus_role_templates }}"
   register: prometheus_role_manifests
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
 # Namespace must be deployed before secret.
 - name: Prometheus | Apply manifests
@@ -37,8 +35,6 @@
     filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "latest"
   with_items: "{{ prometheus_role_manifests.results }}"
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
 
 #---- Create secret

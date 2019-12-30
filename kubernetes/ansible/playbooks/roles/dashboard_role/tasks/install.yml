@@ -31,8 +31,6 @@
     dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ dashboard_role_templates }}"
   register: dashboard_role_manifests
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
 - name: Dashboard | Apply manifests
   kube:
@@ -43,9 +41,6 @@
     filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "latest"
   with_items: "{{ dashboard_role_manifests.results }}"
-  when:
-    - inventory_hostname == groups['kube-master'][0]
-
 
 #---- Get login token
 - name: Dashboard | Get login token
