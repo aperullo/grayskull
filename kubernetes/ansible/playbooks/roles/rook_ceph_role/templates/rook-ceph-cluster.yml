@@ -7,7 +7,7 @@ spec:
   cephVersion:
     image: {{ template_ceph_image }}:{{ template_ceph_image_version }}
     allowUnsupported: false
-  dataDirHostPath: /var/lib/rook
+  dataDirHostPath: {{ ceph_data_dir }}
   mon:
     count: {{ ceph_mon_count }}
     allowMultiplePerNode: false
@@ -37,4 +37,4 @@ spec:
     #deviceFilter:
     #location:
     config:
-    #- path: /var/lib/rook
+    #- path: {{ ceph_data_dir }}

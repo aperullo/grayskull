@@ -97,7 +97,7 @@
   ignore_errors: true
   block:
   - name: Rook Ceph | Remove rook directory
-    shell: "rm -rf /var/lib/rook"
+    shell: "rm -rf {{ ceph_data_dir }}"
 
   - name: Rook Ceph | Zap disk
     shell: "sgdisk --zap-all /dev/nvme1n1"
