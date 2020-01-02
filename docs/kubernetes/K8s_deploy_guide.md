@@ -39,8 +39,8 @@ The next step is to deploy kubernetes itself, which is the orchestrator. We can 
 
 RKE sets up a production-ready cluster given a specially formatted inventory file.
 
-1. `scripts/generate_inventory -t inv_rke.yml > ../ansible/inventory/rke.yml`. This is a python script that will template out the IP addresses of the nodes in an RKE style inventory.
-2. `scripts/generate_inventory -t inv_ansible.yml > ../ansible/inventory/rke.ini`. This is a python script that will template out the IP addresses of the nodes in an ansible style inventory.
+1. `scripts/generate_inventory -t inv_rke.yml.tpl > ../ansible/inventory/rke.yml`. This is a python script that will template out the IP addresses of the nodes in an RKE style inventory.
+2. `scripts/generate_inventory -t inv_ansible.yml.tpl > ../ansible/inventory/rke.ini`. This is a python script that will template out the IP addresses of the nodes in an ansible style inventory.
 3. **(Optional)** If you want to provide custom certs to the kubernetes cluster follow [these steps](./rke_custom_certs.md) instead. Otherwise continue to the next step.
 4. `rke up --config inventory/rke.yml `. This will start the deploy process.
 
