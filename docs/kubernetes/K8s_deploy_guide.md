@@ -18,7 +18,7 @@ Run the git command to load the submodule:
 ### Local machine prerequisites
 
 - Ansible version `2.7.10`
-- Hashicorp terraform
+- Hashicorp terraform `0.12.18`
 - (Optional) AWS command line tool through an account for provisioning nodes.
 
 ## Process
