@@ -1,0 +1,12 @@
+- name: Cert-manager | Download CRDs
+  get_url:
+    url: https://raw.githubusercontent.com/jetstack/cert-manager/release-0.12/deploy/manifests/00-crds.yaml
+    dest: "{{ grayskull_dir }}/crds.yml"
+
+- name: Cert-manager | Download chart
+  shell: "{{ bin_dir }}/helm fetch \
+    --repo {{ helm_cert_manager_repo_url }} \
+    --version {{ helm_cert_manager_chart_version }} \
+    --destination {{ grayskull_dir }} \
+    --untar \
+    {{ helm_cert_manager_image_name }}"

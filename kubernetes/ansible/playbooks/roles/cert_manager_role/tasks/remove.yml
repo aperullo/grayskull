@@ -1,0 +1,33 @@
+- name: Cert-manager | Remove chart
+  helm_chart:
+    name: "{{ helm_cert_manager_chart_name }}"
+    namespace: "{{ cert_manager_namespace }}"
+    bin_dir: "{{ bin_dir }}"
+    chart_src: "{{ grayskull_dir }}/{{ helm_cert_manager_image_name }}"
+    chart_version: "{{ helm_cert_manager_chart_version }}"
+    state: absent
+
+- name: Cert-manager | Remove CRDs
+  kube:
+    kubectl: "{{ bin_dir }}/kubectl"
+    filename: "{{ grayskull_dir }}/crds.yml"
+    state: absent
+
+- name: Cert-manager | Templates list
+  set_fact:
+    cert_manager_templates:
+      - { name: namespace, file: cert-manager-namespace.yml, type: ns }
+
+- name: Cert-manager | Create manifests
+  template:
+    src: "{{ item.file }}"
+    dest: "{{ grayskull_dir }}/{{ item.file }}"
+  with_items: "{{ cert_manager_templates }}"
+  register: cert_manager_manifests
+
+- name: Cert-manager | Remove manifest products
+  kube:
+    kubectl: "{{ bin_dir }}/kubectl"
+    filename: "{{ grayskull_dir}}/{{ item.item.file }}"
+    state: absent
+  with_items: "{{ cert_manager_manifests.results }}"
