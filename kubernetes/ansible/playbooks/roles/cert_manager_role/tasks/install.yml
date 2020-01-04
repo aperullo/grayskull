@@ -12,14 +12,12 @@
 
 - name: Cert-manager | Apply manifests
   kube:
-    name: "{{ item.item.name }}"
     kubectl: "{{ bin_dir }}/kubectl"
-    resource: "{{ item.item.type }}"
     filename: "{{ grayskull_dir }}/{{ item.item.file }}"
     state: latest
   with_items: "{{ cert_manager_manifests.results }}"
 
-- name: Cert-manager | Apply CRDs
+- name: Cert-manager | Apply custom resource definitions
   shell: "{{ bin_dir }}/kubectl apply \
     --validate=false \
     -f {{ grayskull_dir }}/crds.yml"
@@ -32,3 +30,13 @@
     chart_src: "{{ grayskull_dir }}/{{ helm_cert_manager_image_name }}"
     chart_version: "{{ helm_cert_manager_chart_version }}"
 
+- name: Cert-manager | Template cluster issuer
+  template:
+    src: cert-manager-cluster-issuer.yml
+    dest: "{{ grayskull_dir }}/cert-manager-cluster-issuer.yml"
+
+- name: Cert-manager | Apply cluster issuer
+  kube:
+    kubectl: "{{ bin_dir }}/kubectl"
+    filename: "{{ grayskull_dir }}/cert-manager-cluster-issuer.yml"
+    state: latest

@@ -1,3 +1,9 @@
+- name: Cert-manager | Remove cluster issuer
+  kube:
+    kubectl: "{{ bin_dir }}/kubectl"
+    filename: "{{ grayskull_dir }}/cert-manager-cluster-issuer"
+    state: absent
+
 - name: Cert-manager | Remove chart
   helm_chart:
     name: "{{ helm_cert_manager_chart_name }}"
@@ -7,7 +13,7 @@
     chart_version: "{{ helm_cert_manager_chart_version }}"
     state: absent
 
-- name: Cert-manager | Remove CRDs
+- name: Cert-manager | Remove custom resource definitions
   kube:
     kubectl: "{{ bin_dir }}/kubectl"
     filename: "{{ grayskull_dir }}/crds.yml"

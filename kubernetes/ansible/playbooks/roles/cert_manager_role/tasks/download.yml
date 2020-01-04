@@ -1,4 +1,4 @@
-- name: Cert-manager | Download CRDs
+- name: Cert-manager | Download custom resource definitions
   get_url:
     url: https://raw.githubusercontent.com/jetstack/cert-manager/release-0.12/deploy/manifests/00-crds.yaml
     dest: "{{ grayskull_dir }}/crds.yml"
