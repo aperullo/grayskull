@@ -15,21 +15,15 @@
     chart_version: "{{ helm_auth_chart_version }}"
     state: absent
 
-
 #---- Remove secret
 - name: Authorization | Check for secret
   shell: "{{ bin_dir }}/kubectl get secrets -n {{ auth_namespace }}"
   register: auth_secret_exists
   changed_when: false
 
-- name: Authorization | Remove secret
-  shell: "{{ bin_dir }}/kubectl delete secret {{ ingress_secretName }} -n {{ auth_namespace }}"
-  when: "ingress_secretName in auth_secret_exists.stdout"
-
 - name: Authorization | Remove pass secret
   shell: "{{ bin_dir }}/kubectl delete secret {{ auth_passwd_secretName }} -n {{ auth_namespace }}"
   when: "auth_passwd_secretName in auth_secret_exists.stdout"
-
 
 #---- Remove certificate made from kubernetes CA.
 - name: Authorization | Stat secrets directory
@@ -51,6 +45,7 @@
     auth_role_templates:
       - { file: auth-configmap.yml }
       - { file: auth-namespace.yml }
+      - { file: auth-certificate.yml }
       
 - name: Authorization | Create manifests
   template:

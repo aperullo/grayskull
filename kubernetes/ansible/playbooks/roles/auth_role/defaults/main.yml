@@ -3,6 +3,7 @@ task_modes:
   - install
 
 auth_namespace: grayskull-auth
+
 subfolder: auth-role
 role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
 auth_secrets_dir: "{{ role_dir }}/secrets"
@@ -10,13 +11,12 @@ auth_secrets_dir: "{{ role_dir }}/secrets"
 auth_passwd_secretName: "auth-gsp-passwd"
 auth_passwd_file: "{{ auth_secrets_dir }}/password"
 
+kube_ca_path: "/etc/kubernetes/ssl"
+kube_ca_issuer_name: kube-ca-issuer
+
 helm_auth_chart_name: "{{ platform_prefix }}-keycloak"
 helm_auth_repo_url: https://codecentric.github.io/helm-charts
 helm_auth_image_name: keycloak
 helm_auth_chart_version: 4.14.2
 
-ingress_secretName: "auth-gsp-tls"
-ingress_tls_cert: "{{ auth_secrets_dir }}/tls.crt"
-ingress_tls_key: "{{ auth_secrets_dir }}/tls.key"
-
-kube_ca_path: "/etc/kubernetes/ssl"
+ingress_secretName: auth-gsp-tls
