@@ -1,8 +1,22 @@
-- name: Cert-manager | Remove cluster issuer
+- name: Cert-manager | List cluster issuer manifests
+  set_fact:
+    cluster_issuer_templates:
+      - { file: cert-manager-grayskull-issuer.yml }
+      - { file: cert-manager-kube-issuer.yml }
+
+- name: Cert-manager | Template cluster issuer manifests
+  template:
+    src: "{{ item.file }}"
+    dest: "{{ grayskull_dir }}/{{ item.file }}"
+  with_items: "{{ cluster_issuer_templates }}"
+  register: cluster_issuer_manifests
+
+- name: Cert-manager | Remove cluster issuer manifests
   kube:
     kubectl: "{{ bin_dir }}/kubectl"
-    filename: "{{ grayskull_dir }}/cert-manager-cluster-issuer"
+    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
     state: absent
+  with_items: "{{ cluster_issuer_manifests.results }}"
 
 - name: Cert-manager | Remove chart
   helm_chart:
@@ -19,21 +33,13 @@
     filename: "{{ grayskull_dir }}/crds.yml"
     state: absent
 
-- name: Cert-manager | Templates list
-  set_fact:
-    cert_manager_templates:
-      - { name: namespace, file: cert-manager-namespace.yml, type: ns }
-
-- name: Cert-manager | Create manifests
+- name: Cert-manager | Template namespace manifest
   template:
-    src: "{{ item.file }}"
-    dest: "{{ grayskull_dir }}/{{ item.file }}"
-  with_items: "{{ cert_manager_templates }}"
-  register: cert_manager_manifests
+    src: cert-manager-namespace.yml
+    dest: "{{ grayskull_dir }}/cert-manager-namespace.yml"
 
-- name: Cert-manager | Remove manifest products
+- name: Cert-manager | Delete namespace manifest
   kube:
     kubectl: "{{ bin_dir }}/kubectl"
-    filename: "{{ grayskull_dir}}/{{ item.item.file }}"
+    filename: "{{ grayskull_dir }}/cert-manager-namespace.yml"
     state: absent
-  with_items: "{{ cert_manager_manifests.results }}"
