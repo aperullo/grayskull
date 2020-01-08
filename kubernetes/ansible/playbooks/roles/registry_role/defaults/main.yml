@@ -6,6 +6,8 @@ registry_namespace: grayskull-registry
 subfolder: registry-role
 role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
 
+grayskull_ca_issuer_name: grayskull-ca-issuer
+
 ca_path_remote_src: "{{ grayskull_dir }}/ca.pem"
 ca_path_dest: "/etc/docker/certs.d/{{ ingress_host }}"
 
@@ -18,7 +20,4 @@ helm_registry_image_name: harbor
 helm_registry_chart_version: 1.2.0
 
 ingress_secretName: "reg-gsp-tls"
-ingress_tls_cert: "{{ grayskull_dir }}/secrets/tls.crt"
-ingress_tls_key: "{{ grayskull_dir }}/secrets/tls.key"
 ingress_host: "registry.{{ grayskull_domain }}"
-

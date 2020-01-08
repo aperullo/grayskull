@@ -31,6 +31,7 @@
     set_fact:
       registry_role_templates:
         - { file: registry-namespace.yml }
+        - { file: registry-certificate.yml }
 
   - name: Registry | Create subfolder
     file:
@@ -45,15 +46,6 @@
     with_items: "{{ registry_role_templates }}"
     register: registry_role_manifests
 
-  - name: Registry | Check for secret
-    shell: "{{ bin_dir }}/kubectl get secrets -n {{ registry_namespace }}"
-    register: registry_secret_exists
-    changed_when: false
-
-  - name: Registry | Remove secret
-    shell: "{{ bin_dir }}/kubectl delete secret {{ ingress_secretName }} -n {{ registry_namespace }}"
-    when: "ingress_secretName in registry_secret_exists.stdout"
-
   # Namespace must be deployed before secret.
   - name: Registry | Remove manifests
     kube:
@@ -67,4 +59,3 @@
     file:
       path: "{{ role_dir }}"
       state: absent
-
