@@ -139,6 +139,7 @@
 - hosts: kube-setup-delegate
   become: yes
   roles:
+    - { role: cert_manager_role, when: (cert_manager_role_enabled | default(True)) }
     - { role: ingress_role, when: (ingress_role_enabled | default(True)) }
     - { role: dashboard_role, when: (dashboard_role_enabled | default(True)) }
     - { role: prometheus_role, when: (prometheus_role_enabled | default(True)) }   # must be deployed before rook-ceph
