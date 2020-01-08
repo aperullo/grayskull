@@ -23,6 +23,7 @@
   set_fact:
     elk_role_templates:
       - { name: namespace, file: elk-namespace.yml, type: ns }
+      - { name: certificate, file: elk-certificate.yml, type: certificate }
 
 - name: ELK | Create manifests
   template:
@@ -39,17 +40,6 @@
     filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "latest"
   with_items: "{{ elk_role_manifests.results }}"
-
-
-#---- Create secret
-- name: ELK | Check for secret
-  shell: "{{ bin_dir }}/kubectl get secrets -n {{ elk_namespace }}"
-  register: elk_secret_exists
-  changed_when: false
-
-- name: ELK | Create secret
-  shell: "{{ bin_dir }}/kubectl create secret generic {{ ingress_secretName }} --from-file {{ ingress_tls_cert }} --from-file {{ ingress_tls_key }} -n {{ elk_namespace }}"
-  when: "ingress_secretName not in elk_secret_exists.stdout"
 
 - name: ELK | Deploy Elasticsearch chart
   helm_chart:

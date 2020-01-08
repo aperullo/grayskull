@@ -3,12 +3,11 @@ task_modes:
   - install
 
 elk_namespace: grayskull-logs
+
 subfolder: elk-role
 role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
 
-ingress_secretName: "elk-gsp-tls"
-ingress_tls_cert: "{{ grayskull_dir }}/secrets/tls.crt"
-ingress_tls_key: "{{ grayskull_dir }}/secrets/tls.key"
+grayskull_ca_issuer_name: grayskull-ca-issuer
 
 helm_elasticsearch_chart_name: "{{ platform_prefix }}-elasticsearch"
 helm_elasticsearch_repo_url: https://helm.elastic.co
@@ -26,3 +25,5 @@ helm_fluentd_chart_name: "{{ platform_prefix }}-fluentd"
 helm_fluentd_chart_type: stable
 helm_fluentd_image_name: fluentd
 helm_fluentd_chart_version: 1.10.0
+
+ingress_secretName: "elk-gsp-tls"
