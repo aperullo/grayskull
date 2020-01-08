@@ -6,12 +6,14 @@
       - { file: dashboard-service-account.yml }
       - { file: dashboard-rolebinding.yml }
       - { file: dashboard-deployment.yml }
+      - { file: dashboard-certificate.yml }
 
 - name: Dashboard | Create subfolder
   file:
     path: "{{ role_dir }}"
     state: directory
     mode: '0755'
+
 
 - name: Dashboard | Create manifests
   template:
@@ -33,12 +35,3 @@
     path: "{{ role_dir }}"
     state: absent
 
-#---- Delete secret
-- name: Dashboard | Check for secret
-  shell: "{{ bin_dir }}/kubectl get secrets -n kube-system"
-  register: dashboard_secret_exists
-  changed_when: false
-
-- name: Dashboard | Remove secret
-  shell: "{{ bin_dir }}/kubectl delete secret {{ ingress_secretName }} -n kube-system"
-  when: "ingress_secretName in dashboard_secret_exists.stdout"
