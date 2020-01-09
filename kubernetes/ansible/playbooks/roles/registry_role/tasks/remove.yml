@@ -30,7 +30,7 @@
   - name: Registry | Templates list
     set_fact:
       registry_role_templates:
-        - { name: namespace, file: registry-namespace.yml, type: ns }
+        - { file: registry-namespace.yml }
 
   - name: Registry | Create subfolder
     file:
@@ -41,7 +41,7 @@
   - name: Registry | Create manifests
     template:
       src: "{{ item.file }}"
-      dest: "{{ grayskull_dir }}//{{ subfolder }}/{{ item.file }}"
+      dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
     with_items: "{{ registry_role_templates }}"
     register: registry_role_manifests
 
@@ -57,10 +57,8 @@
   # Namespace must be deployed before secret.
   - name: Registry | Remove manifests
     kube:
-      name: "{{ item.item.name }}"
       namespace: "{{ registry_namespace }}"
       kubectl: "{{ bin_dir }}/kubectl"
-      resource: "{{ item.item.type }}"
       filename: "{{ role_dir }}/{{ item.item.file }}"
       state: "absent"
     with_items: "{{ registry_role_manifests.results }}"

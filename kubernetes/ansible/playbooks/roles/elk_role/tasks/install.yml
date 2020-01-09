@@ -17,7 +17,7 @@
     src: "{{ item.file }}"
     dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ elk_values_templates }}"
-  register: elk_role_manifests
+  register: elk_values_manifests
 
 - name: ELK | Templates list
   set_fact:

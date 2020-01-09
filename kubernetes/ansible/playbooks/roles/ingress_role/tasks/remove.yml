@@ -16,7 +16,7 @@
 - name: Ingress | Templates list
   set_fact:
     ingress_role_templates:
-      - { name: namespace, file: ingress-namespace.yml, type: ns }
+      - { file: ingress-namespace.yml }
 
 - name: Ingress | Create manifests
   template:
@@ -38,10 +38,8 @@
 
 - name: Ingress | Remove manifest products
   kube:
-    name: "{{ item.item.name }}"
     namespace: "{{ ingress_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
-    resource: "{{ item.item.type }}"
     filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "absent"
   with_items: "{{ ingress_role_manifests.results }}"

@@ -5,7 +5,7 @@
       - { name: namespace, file: prometheus-namespace.yml, type: ns }
       - { name: cluster-role, file: prometheus-crd-clusterrole.yml, type: ClusterRole }
 
-- name: Setup | Create grayskull directory
+- name: Prometheus | Create subfolder
   file:
     path: "{{ role_dir }}"
     state: directory
@@ -15,9 +15,7 @@
   template:
     src: "prometheus-values.yml"
     dest: "{{ role_dir }}/prometheus-values.yml"
-  when:
-    - inventory_hostname == groups['kube-master'][0]
-
+    
 - name: Prometheus | Create manifests
   template:
     src: "{{ item.file }}"

@@ -7,8 +7,8 @@
 - name: Ion | Templates list
   set_fact:
     ion_role_templates:
-      - { name: namespace, file: ion-namespace.yml, type: ns }
-      - { name: rolebinding, file: ion-rolebinding.yml, type: RoleBinding }
+      - { file: ion-namespace.yml }
+      - { file: ion-rolebinding.yml }
 
 - name: Ion | Create manifests
   template:
@@ -19,10 +19,8 @@
 
 - name: Ion | Remove manifest products
   kube:
-    name: "{{ item.item.name }}"
     namespace: "{{ ion_ms_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
-    resource: "{{ item.item.type }}"
     filename: "{{ role_dir }}/{{ item.item.file }}"
     state: absent
   with_items: "{{ ion_role_manifests.results }}"

@@ -2,10 +2,10 @@
 - name: Dashboard | Templates list
   set_fact:
     dashboard_role_templates:
-      - { name: dashboard-ing, file: dashboard-ingress.yml, type: ing }
-      - { name: dashboard-sa, file: dashboard-service-account.yml, type: sa }
-      - { name: dashboard-rb, file: dashboard-rolebinding.yml, type: rolebinding }
-      - { name: dashboard-deploy, file: dashboard-deployment.yml, type: deploy }
+      - { file: dashboard-ingress.yml }
+      - { file: dashboard-service-account.yml }
+      - { file: dashboard-rolebinding.yml }
+      - { file: dashboard-deployment.yml }
 
 - name: Dashboard | Create subfolder
   file:
@@ -22,10 +22,8 @@
 
 - name: Dashboard | Remove manifest products
   kube:
-    name: "{{ item.item.name }}"
     namespace: "kube-system"
     kubectl: "{{ bin_dir }}/kubectl"
-    resource: "{{ item.item.type }}"
     filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "absent"
   with_items: "{{ dashboard_role_manifests.results }}"

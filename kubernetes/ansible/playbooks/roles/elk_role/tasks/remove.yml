@@ -45,7 +45,7 @@
 - name: ELK | Templates list
   set_fact:
     elk_role_templates:
-      - { name: namespace, file: elk-namespace.yml, type: ns }
+      - { file: elk-namespace.yml }
 
 - name: ELK | Create manifests
   template:
@@ -56,10 +56,8 @@
 
 - name: ELK | Remove manifest products
   kube:
-    name: "{{ item.item.name }}"
     namespace: "{{ elk_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
-    resource: "{{ item.item.type }}"
     filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "absent"
   with_items: "{{ elk_role_manifests.results }}"

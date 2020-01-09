@@ -49,8 +49,8 @@
 - name: Authorization | Templates list
   set_fact:
     auth_role_templates:
-      - { name: configmap, file: auth-configmap.yml, type: cm }
-      - { name: namespace, file: auth-namespace.yml, type: ns }
+      - { file: auth-configmap.yml }
+      - { file: auth-namespace.yml }
       
 - name: Authorization | Create manifests
   template:
@@ -61,10 +61,8 @@
 
 - name: Authorization | Remove manifest products
   kube:
-    name: "{{ item.item.name }}"
     namespace: "{{ auth_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
-    resource: "{{ item.item.type }}"
     filename: "{{ role_dir }}/{{ item.item.file }}"
     state: absent
   with_items: "{{ auth_role_manifests.results }}"

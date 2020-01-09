@@ -46,7 +46,7 @@
 # At the moment we put prometheus into kube-system. Therefore until we put it in another namespace
 # it should stay commented out. We DO NOT want to delete kube-system.
 
-- name: Prometheus | Delete subfolder
+- name: Prometheus | Create subfolder
   file:
     path: "{{ role_dir }}"
     state: directory
@@ -55,8 +55,8 @@
 - name: Prometheus | Templates list
   set_fact:
     prometheus_role_templates:
-      # - { name: namespace, file: prometheus-namespace.yml, type: ns }
-      - { name: cluster-role, file: prometheus-crd-clusterrole.yml, type: ClusterRole }
+      # - { file: prometheus-namespace.yml }
+      - { file: prometheus-crd-clusterrole.yml }
 
 - name: Prometheus | Create manifests
   template:
@@ -68,10 +68,8 @@
 # Namespace must be deployed before secret.
 - name: Prometheus | Remove manifest products
   kube:
-    name: "{{ item.item.name }}"
     namespace: "{{ prometheus_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
-    resource: "{{ item.item.type }}"
     filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "absent"
   with_items: "{{ prometheus_role_manifests.results }}"
