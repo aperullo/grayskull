@@ -22,31 +22,6 @@
     chart_src: "{{ grayskull_dir }}/{{ helm_cert_manager_image_name }}"
     chart_version: "{{ helm_cert_manager_chart_version }}"
 
-- name: Cert-manager | Check for cfssl
-  stat:
-    path: "{{ bin_dir }}/cfssl"
-  register: cfssl_exists
-
-- name: Cert-manager | Check for cfssljson
-  stat:
-    path: "{{ bin_dir }}/cfssljson"
-  register: cfssljson_exists
-
-- name: Cert-manager | Install cfssl
-  block:
-    - name: Cert-manager | Download cfssl binary
-      get_url:
-        url: https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
-        dest: "{{ bin_dir }}/cfssl"
-        mode: '0755'
-
-    - name: Cert-manager | Download cfssljson binary
-      get_url:
-        url: https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
-        dest: "{{ bin_dir }}/cfssljson"
-        mode: '0755'
-  when: not cfssl_exists.stat.exists or not cfssljson_exists.stat.exists
-
 - name: Cert-manager | List secrets in namespace
   shell: "{{ bin_dir }}/kubectl get secrets -n {{ cert_manager_namespace }}"
   register: cert_manager_secrets
@@ -59,13 +34,18 @@
       register: grayskull_ca
 
     - name: Cert-manager | Create a self-signed CA
-      shell: "{{ bin_dir }}/cfssl gencert -initca {{ grayskull_ca_csrjson_src }} | {{ bin_dir }}/cfssljson -bare {{ grayskull_ca_path }}"
+      import_role:
+        name: certs_role
+      vars:
+        ca_path: "{{ grayskull_ca_path }}"
+        ca_csrjson_src: "{{ grayskull_ca_csrjson_src }}"
       when: not grayskull_ca.stat.exists
 
     - name: Cert-manager | Create grayskull CA issuer secret
       shell: "{{ bin_dir }}/kubectl create secret tls {{ grayskull_ca_issuer_secret }} --cert={{ grayskull_ca_path }}.pem --key={{ grayskull_ca_path }}-key.pem -n {{ cert_manager_namespace }}"
   when: grayskull_ca_issuer_secret not in cert_manager_secrets.stdout
 
+# This assumes kube CA exists, and will not try to create it if it doesn't
 - name: Cert-manager | Create kube CA issuer secret
   block:
     - name: Cert-manager | Check if kube CA exists
