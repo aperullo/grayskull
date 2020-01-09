@@ -76,7 +76,7 @@
   - name: Registry | Templates list
     set_fact:
       registry_role_templates:
-        - { name: namespace, file: registry-namespace.yml, type: ns }
+        - { file: registry-namespace.yml }
 
   - name: Registry | Template values file
     template:
@@ -95,10 +95,8 @@
   # Namespace must be deployed before secret.
   - name: Registry | Apply manifests
     kube:
-      name: "{{ item.item.name }}"
       namespace: "{{ registry_namespace }}"
       kubectl: "{{ bin_dir }}/kubectl"
-      resource: "{{ item.item.type }}"
       filename: "{{ role_dir }}/{{ item.item.file }}"
       state: "latest"
     with_items: "{{ registry_role_manifests.results }}"
@@ -146,13 +144,13 @@
       chart_version: "{{ helm_registry_chart_version }}"
       path_to_values: "{{ role_dir }}/registry-values.yml"
 
-  - name: Registry | Wait for registry to rollout
-    shell: "{{ bin_dir }}/kubectl -n {{ registry_namespace }} rollout status deploy/{{ platform_prefix }}-registry-harbor-registry"
+#   - name: Registry | Wait for registry to rollout
+#     shell: "{{ bin_dir }}/kubectl -n {{ registry_namespace }} rollout status deploy/{{ platform_prefix }}-registry-harbor-registry"
 
-# This way nodes can pull from the the private-registry without needing an image pull secret.
-- name: Registry | Docker login on each nodes
-  shell: "docker login \
-  --username={{ harbor_user }} \
-  --password={{ hostvars[groups['kube-setup-delegate'][0]]['harbor_pass'] }} \
-  'https://{{ ingress_host }}'"
-  no_log: true    # Prevent the credentials from showing in the logs
+# # This way nodes can pull from the the private-registry without needing an image pull secret.
+# - name: Registry | Docker login on each nodes
+#   shell: "docker login \
+#   --username={{ harbor_user }} \
+#   --password={{ hostvars[groups['kube-setup-delegate'][0]]['harbor_pass'] }} \
+#   'https://{{ ingress_host }}'"
+#   no_log: true    # Prevent the credentials from showing in the logs

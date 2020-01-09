@@ -2,16 +2,16 @@
 - name: Rook Ceph | Templates list
   set_fact:
     rook_ceph_role_templates:
-      - { name: namespace, file: rook-ceph-namespace.yml, type: ns }
-      - { name: block-sc, file: rook-ceph-block-sc.yml, type: sc }
-      - { name: dashboard-ingress, file: rook-ceph-dashboard-ingress.yml, type: ing }
-      - { name: blockpool, file: rook-ceph-cephblockpool.yml, type: CephBlockPool }
-      - { name: objectstore, file: rook-ceph-cephobjectstore.yml, type: CephObjectStore }
-      - { name: cluster, file: rook-ceph-cluster.yml, type: CephCluster }
-      - { name: object-user, file: rook-ceph-object-user.yml, type: CephObjectStoreUser }
-      - { name: prometheus-servicemonitor, file: rook-ceph-prometheus-servicemonitor.yml, type: ServiceMonitor }
-      - { name: prometheusrule, file: rook-ceph-prometheusrule.yml, type: PrometheusRule }
-      - { name: cluster-role, file: rook-crd-clusterrole.yml, type: ClusterRole }
+      - { file: rook-ceph-namespace.yml }
+      - { file: rook-ceph-block-sc.yml }
+      - { file: rook-ceph-dashboard-ingress.yml }
+      - { file: rook-ceph-cephblockpool.yml }
+      - { file: rook-ceph-cephobjectstore.yml }
+      - { file: rook-ceph-cluster.yml }
+      - { file: rook-ceph-object-user.yml }
+      - { file: rook-ceph-prometheus-servicemonitor.yml }
+      - { file: rook-ceph-prometheusrule.yml }
+      - { file: rook-crd-clusterrole.yml }
 
 - name: Rook Ceph | Create subfolder
   file:
@@ -65,10 +65,8 @@
 
 - name: Rook Ceph | Apply manifests
   kube:
-    name: "{{ item.item.name }}"
     namespace: "{{ ceph_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
-    resource: "{{ item.item.type }}"
     filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "latest"
   with_items: "{{ rook_ceph_role_manifests.results }}"

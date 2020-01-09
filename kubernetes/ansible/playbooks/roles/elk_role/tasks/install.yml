@@ -34,10 +34,8 @@
 # Namespace must be deployed before secret.
 - name: ELK | Apply manifests
   kube:
-    name: "{{ item.item.name }}"
     namespace: "{{ elk_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
-    resource: "{{ item.item.type }}"
     filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "latest"
   with_items: "{{ elk_role_manifests.results }}"
