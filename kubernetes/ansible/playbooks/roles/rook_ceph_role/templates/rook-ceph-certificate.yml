@@ -1,0 +1,11 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: dash-cert
+spec:
+  secretName: {{ ingress_secretName }}
+  issuerRef:
+    name: {{ grayskull_ca_issuer_name }}
+    kind: ClusterIssuer
+  dnsNames:
+    - ceph.{{ grayskull_domain }}

@@ -1,15 +1,4 @@
 ---
-#---- Create secret
-- name: Dashboard | Check for secret
-  shell: "{{ bin_dir }}/kubectl get secrets -n kube-system"
-  register: dashboard_secret_exists
-  changed_when: false
-
-- name: Dashboard | Create secret
-  shell: "{{ bin_dir }}/kubectl create secret generic {{ ingress_secretName }} --from-file {{ ingress_tls_cert }} --from-file {{ ingress_tls_key }} -n kube-system"
-  when: "ingress_secretName not in dashboard_secret_exists.stdout"
-
-
 #---- Template and apply manifests
 - name: Dashboard | Templates list
   set_fact:
@@ -18,6 +7,7 @@
       - { file: dashboard-service-account.yml }
       - { file: dashboard-rolebinding.yml }
       - { file: dashboard-deployment.yml }
+      - { file: dashboard-certificate.yml }
 
 - name: Dashboard | Create subfolder
   file:

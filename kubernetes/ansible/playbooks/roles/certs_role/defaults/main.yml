@@ -1,24 +1,8 @@
-#  You must explicitly define each variable for each role. The default value doesn't matter if its overridden anywhere.
 task_modes:
   - install
 
-bin_dir: /usr/local/bin
+ca_path: "{{ grayskull_dir }}/ca"
+ca_csrjson_src: "{{ grayskull_dir }}/csr.json"
 
-task_create_ca: false
-ca_path: ca   # for dest dont include the file extension
-ca_csrjson_src: csr.json
-
-task_create_server: false
-server_path: server   # for dest dont include the file extension
-server_client_path: client
-server_chain_path: chain
-
-task_copy: false
-copy_ca_path: cacerts.pem
-copy_server_key_path: tls.key
-copy_chain_path: tls.crt
-
-task_rke_csrs: false
-rke_inv_path: ../inventory/rke_gray.yml
-rke_results_path: certs
-rke_csr_path: csr
+cfssl_download_path: https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+cfssljson_download_path: https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64

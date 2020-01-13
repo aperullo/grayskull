@@ -46,6 +46,7 @@
     # Rook relies on prometheus when the integration is enabled, so it must be deleted first.
     - { role: rook_cassandra_role, vars: { task_modes: [ 'remove' ] }, when: (rook_cassandra_role_enabled | default(True)) }
     - { role: prometheus_role, vars: { task_modes: [ 'remove' ] }, when: (prometheus_role_enabled | default(True)) }   # must be deleted after rook-ceph
+    - { role: cert_manager_role, vars: { task_modes: [ 'remove' ] }, when: (cert_manager_role_enabled | default(True)) }
 
 # Remove helm and delete the directory.    
 - hosts: kube-setup-delegate

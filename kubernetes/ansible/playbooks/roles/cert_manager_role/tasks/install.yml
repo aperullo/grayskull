@@ -1,0 +1,103 @@
+- name: Cert-manager | Template namespace manifest
+  template:
+    src: cert-manager-namespace.yml
+    dest: "{{ grayskull_dir }}/cert-manager-namespace.yml"
+
+- name: Cert-manager | Create namespace manifest
+  kube:
+    kubectl: "{{ bin_dir }}/kubectl"
+    filename: "{{ grayskull_dir }}/cert-manager-namespace.yml"
+    state: latest
+
+- name: Cert-manager | Apply custom resource definitions
+  shell: "{{ bin_dir }}/kubectl apply \
+    --validate=false \
+    -f {{ grayskull_dir }}/crds.yml"
+
+- name: Cert-manager | Apply chart
+  helm_chart:
+    name: "{{ helm_cert_manager_chart_name }}"
+    namespace: "{{ cert_manager_namespace }}"
+    bin_dir: "{{ bin_dir }}"
+    chart_src: "{{ grayskull_dir }}/{{ helm_cert_manager_image_name }}"
+    chart_version: "{{ helm_cert_manager_chart_version }}"
+
+- name: Cert-manager | List secrets in namespace
+  shell: "{{ bin_dir }}/kubectl get secrets -n {{ cert_manager_namespace }}"
+  register: cert_manager_secrets
+
+- name: Cert-manager | Create grayskull CA issuer secret
+  block:
+    - name: Cert-manager | Check if grayskull CA exists
+      stat:
+        path: "{{ grayskull_ca_path }}.pem"
+      register: grayskull_ca
+
+    - name: Cert-manager | Create a self-signed CA
+      import_role:
+        name: certs_role
+      vars:
+        ca_path: "{{ grayskull_ca_path }}"
+        ca_csrjson_src: "{{ grayskull_ca_csrjson_src }}"
+      when: not grayskull_ca.stat.exists
+
+    - name: Cert-manager | Create grayskull CA issuer secret
+      shell: "{{ bin_dir }}/kubectl create secret tls {{ grayskull_ca_issuer_secret }} --cert={{ grayskull_ca_path }}.pem --key={{ grayskull_ca_path }}-key.pem -n {{ cert_manager_namespace }}"
+  when: grayskull_ca_issuer_secret not in cert_manager_secrets.stdout
+
+# This assumes kube CA exists, and will not try to create it if it doesn't
+- name: Cert-manager | Create kube CA issuer secret
+  block:
+    - name: Cert-manager | Check if kube CA exists
+      stat:
+        path: "{{ kube_ca_path }}/kube-ca.pem"
+      register: kube_ca
+
+    - name: Cert-manager | Check if alternate CA exists
+      stat:
+        path: "{{ kube_ca_path }}/ca.crt"
+      register: alt_ca
+      when: not kube_ca.stat.exists
+
+    - name: Cert-manager | Rename kube CA certificate
+      copy:
+        src: "{{ kube_ca_path }}/ca.crt"
+        dest: "{{ kube_ca_path }}/kube-ca.pem"
+        remote_src: true
+      when: alt_ca.stat is defined and alt_ca.stat.exists
+
+    - name: Cert-manager | Rename kube CA key
+      copy:
+        src: "{{ kube_ca_path }}/ca.key"
+        dest: "{{ kube_ca_path }}/kube-ca-key.pem"
+        remote_src: true
+      when: alt_ca.stat is defined and alt_ca.stat.exists
+
+    - name: Cert-manager | Create kube CA issuer secret
+      shell: "{{ bin_dir }}/kubectl create secret tls {{ kube_ca_issuer_secret }} --cert={{ kube_ca_path }}/kube-ca.pem --key={{ kube_ca_path }}/kube-ca-key.pem -n {{ cert_manager_namespace }}"
+  when: kube_ca_issuer_secret not in cert_manager_secrets.stdout
+
+- name: Cert-manager | List cluster issuer manifests
+  set_fact:
+    cluster_issuer_templates:
+      - { file: cert-manager-grayskull-issuer.yml }
+      - { file: cert-manager-kube-issuer.yml }
+
+- name: Cert-manager | Template cluster issuer manifests
+  template:
+    src: "{{ item.file }}"
+    dest: "{{ grayskull_dir }}/{{ item.file }}"
+  with_items: "{{ cluster_issuer_templates }}"
+  register: cluster_issuer_manifests
+
+- name: Cert-manager | Wait for webhook to become available
+  shell: "{{ bin_dir }}/kubectl wait \
+    --for condition=available --timeout=300s \
+    deployment {{ helm_cert_manager_chart_name }}-webhook -n {{ cert_manager_namespace }}"
+
+- name: Cert-manager | Apply cluster issuer manifests
+  kube:
+    kubectl: "{{ bin_dir }}/kubectl"
+    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    state: latest
+  with_items: "{{ cluster_issuer_manifests.results }}"

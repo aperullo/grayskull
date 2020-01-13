@@ -4,6 +4,7 @@
     prometheus_role_templates:
       - { file: prometheus-namespace.yml }
       - { file: prometheus-crd-clusterrole.yml }
+      - { file: prometheus-certificate.yml }
 
 - name: Prometheus | Create subfolder
   file:
@@ -31,17 +32,6 @@
     filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "latest"
   with_items: "{{ prometheus_role_manifests.results }}"
-
-
-#---- Create secret
-- name: Prometheus | Check for secret
-  shell: "{{ bin_dir }}/kubectl get secrets -n {{ prometheus_namespace }}"
-  register: prometheus_secret_exists
-  changed_when: false
-
-- name: Prometheus | Create secret
-  shell: "{{ bin_dir }}/kubectl create secret generic {{ ingress_secretName }} --from-file {{ ingress_tls_cert }} --from-file {{ ingress_tls_key }} -n {{ prometheus_namespace }}"
-  when: "ingress_secretName not in prometheus_secret_exists.stdout"
 
 - name: Prometheus | Deploy chart
   helm_chart:

@@ -16,6 +16,7 @@
         - { file: rook-ceph-prometheus-servicemonitor.yml }
         - { file: rook-ceph-prometheusrule.yml }
         - { file: rook-crd-clusterrole.yml }
+        - { file: rook-ceph-certificate.yml }
 
   - name: Rook Ceph | Create subfolder
     file:
@@ -64,20 +65,6 @@
       filename: "{{ role_dir }}/{{ item.item.file }}"
       state: absent
     with_items: "{{ rook_ceph_role_manifests.results }}"
-
-  #---- Create secret
-  - name: Rook Ceph | Check for secret
-    shell: "{{ bin_dir }}/kubectl get secrets -n {{ ceph_namespace }}"
-    register: rook_ceph_secret_exists
-    changed_when: false
-
-  - name: Rook Ceph | Remove secret
-    shell: "{{ bin_dir }}/kubectl delete secret {{ ingress_secretName }} -n {{ ceph_namespace }}"
-    when: 
-      - "ingress_secretName in rook_ceph_secret_exists.stdout"
-
-
-  #---- Delete namespace and role folder
 
   - name: Rook Ceph | Delete namespace
     kube:
