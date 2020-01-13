@@ -22,8 +22,8 @@
 - name: ELK | Templates list
   set_fact:
     elk_role_templates:
-      - { name: namespace, file: elk-namespace.yml, type: ns }
-      - { name: certificate, file: elk-certificate.yml, type: certificate }
+      - { file: elk-namespace.yml }
+      - { file: elk-certificate.yml }
 
 - name: ELK | Create manifests
   template:
