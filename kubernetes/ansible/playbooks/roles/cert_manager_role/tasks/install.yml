@@ -90,6 +90,11 @@
   with_items: "{{ cluster_issuer_templates }}"
   register: cluster_issuer_manifests
 
+- name: Cert-manager | Wait for webhook to become available
+  shell: "{{ bin_dir }}/kubectl wait \
+    --for condition=available --timeout=300s \
+    deployment {{ helm_cert_manager_chart_name }}-webhook -n {{ cert_manager_namespace }}"
+
 - name: Cert-manager | Apply cluster issuer manifests
   kube:
     kubectl: "{{ bin_dir }}/kubectl"
