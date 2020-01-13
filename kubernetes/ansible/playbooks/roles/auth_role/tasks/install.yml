@@ -78,6 +78,15 @@
     dest: "{{ auth_passwd_file }}"
     mode: 0755
 
+- name: Authorization | Check for secret
+  shell: "{{ bin_dir }}/kubectl get secrets -n {{ auth_namespace }}"
+  register: auth_secret_exists
+  changed_when: false
+
+- name: Authorization | Create pass secret
+  shell: "{{ bin_dir }}/kubectl create secret generic {{ auth_passwd_secretName }} --from-file {{ auth_passwd_file }} -n {{ auth_namespace }}"
+  when: "auth_passwd_secretName not in auth_secret_exists.stdout"
+
 - name: Authorization | Deploy chart
   helm_chart:
     name: "{{ helm_auth_chart_name }}"
