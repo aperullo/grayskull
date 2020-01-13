@@ -14,18 +14,10 @@ resource "aws_route53_zone" "k8s_r53_zone" {
   }
 }
 
-resource "aws_route53_record" "k8s_auth_record" {
+resource "aws_route53_record" "k8s_record" {
   zone_id = "${aws_route53_zone.k8s_r53_zone.zone_id}"
-  name    = "auth.${terraform.workspace}.gsp.test"
+  name    = "*.${terraform.workspace}.gsp.test"
   type    = "A"
   ttl     = "300"
-  records = ["${aws_instance.k8s_master[0].private_ip}"] # TODO: figure out how to turn an interpolation into a list.
-}
-
-resource "aws_route53_record" "k8s_registry_record" {
-  zone_id = "${aws_route53_zone.k8s_r53_zone.zone_id}"
-  name    = "registry.${terraform.workspace}.gsp.test"
-  type    = "A"
-  ttl     = "300"
-  records = ["${aws_instance.k8s_master[0].private_ip}"]
+  records = "${aws_instance.k8s_master[*].private_ip}"
 }
