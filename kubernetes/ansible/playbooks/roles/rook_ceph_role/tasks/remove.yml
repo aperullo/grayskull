@@ -6,21 +6,27 @@
   - name: Rook Ceph | Templates list
     set_fact:
       rook_ceph_role_templates:
-        - { name: namespace, file: rook-ceph-namespace.yml, type: ns }
-        - { name: block-sc, file: rook-ceph-block-sc.yml, type: sc }
-        - { name: blockpool, file: rook-ceph-cephblockpool.yml, type: CephBlockPool }
-        - { name: objectstore, file: rook-ceph-cephobjectstore.yml, type: CephObjectStore }
-        - { name: cluster, file: rook-ceph-cluster.yml, type: CephCluster }
-        - { name: dashboard-ingress, file: rook-ceph-dashboard-ingress.yml, type: ing }
-        - { name: object-user, file: rook-ceph-object-user.yml, type: CephObjectStoreUser }
-        - { name: prometheus-servicemonitor, file: rook-ceph-prometheus-servicemonitor.yml, type: ServiceMonitor }
-        - { name: prometheusrule, file: rook-ceph-prometheusrule.yml, type: PrometheusRule }
-        - { name: cluster-role, file: rook-crd-clusterrole.yml, type: ClusterRole }
+        - { file: rook-ceph-namespace.yml }
+        - { file: rook-ceph-block-sc.yml}
+        - { file: rook-ceph-cephblockpool.yml }
+        - { file: rook-ceph-cephobjectstore.yml }
+        - { file: rook-ceph-cluster.yml }
+        - { file: rook-ceph-dashboard-ingress.yml }
+        - { file: rook-ceph-object-user.yml }
+        - { file: rook-ceph-prometheus-servicemonitor.yml }
+        - { file: rook-ceph-prometheusrule.yml }
+        - { file: rook-crd-clusterrole.yml }
+
+  - name: Rook Ceph | Create subfolder
+    file:
+      path: "{{ role_dir }}"
+      state: directory
+      mode: '0755'
 
   - name: Rook Ceph | Create manifests
     template:
-      src: "{{ item.file }}.j2"
-      dest: "{{ grayskull_dir }}/{{ item.file }}"
+      src: "{{ item.file }}"
+      dest: "{{ role_dir }}/{{ item.file }}"
     with_items: "{{ rook_ceph_role_templates }}"
     register: rook_ceph_role_manifests
 
@@ -50,15 +56,12 @@
       chart_src: "{{ grayskull_dir }}/{{ helm_rook_ceph_image_name }}"
       chart_version: "{{ helm_rook_ceph_chart_version }}"
       state: absent
-      path_to_values: "{{ grayskull_dir }}/customizations/ceph.yml"
 
   - name: Rook Ceph | Remove manifest products
     kube:
-      name: "{{ item.item.name }}"
       namespace: "{{ ceph_namespace }}"
       kubectl: "{{ bin_dir }}/kubectl"
-      resource: "{{ item.item.type }}"
-      filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+      filename: "{{ role_dir }}/{{ item.item.file }}"
       state: absent
     with_items: "{{ rook_ceph_role_manifests.results }}"
 
@@ -74,15 +77,18 @@
       - "ingress_secretName in rook_ceph_secret_exists.stdout"
 
 
-  #---- Delete namespace
+  #---- Delete namespace and role folder
 
   - name: Rook Ceph | Delete namespace
     kube:
-      name: namespace
       namespace: "{{ ceph_namespace }}"
       kubectl: "{{ bin_dir }}/kubectl"
-      resource: ns
-      filename: "{{ grayskull_dir }}/rook-ceph-namespace.yml"
+      filename: "{{ role_dir }}/rook-ceph-namespace.yml"
+      state: absent
+
+  - name: Rook Ceph | Delete subfolder
+    file:
+      path: "{{ role_dir }}"
       state: absent
 
 
@@ -104,3 +110,6 @@
 
   - name: Rook Ceph | Remove Ceph device from mapper
     shell: "rm -rf /dev/mapper/ceph-*"
+
+
+  

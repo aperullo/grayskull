@@ -1,7 +1,7 @@
 #---- Remove chart
 - name: Dash-proxy | Remove chart
   helm_chart:
-    name: "{{ helm_dash_proxy_name }}"
+    name: "{{ helm_dash_proxy_chart_name }}"
     namespace: "{{ dash_proxy_namespace }}"
     bin_dir: "{{ bin_dir }}"
     chart_src: "{{ grayskull_dir }}/{{ helm_dash_proxy_image_name }}"

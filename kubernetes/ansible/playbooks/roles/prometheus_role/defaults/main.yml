@@ -3,6 +3,8 @@ task_modes:
   - install
 
 prometheus_namespace: kube-system
+subfolder: prometheus-role
+role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
 
 helm_prometheus_chart_name: "{{ platform_prefix }}-prometheus"
 helm_prometheus_chart_type: stable

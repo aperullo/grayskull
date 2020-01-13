@@ -32,7 +32,7 @@
     - { role: ion_role, vars: { task_modes: [ 'remove' ], ms_name: "platform", ms_namespace: "platform", is_cluster_admin: true }, when: (ion_role_enabled | default(True)) }
     - { role: ion_role, vars: { task_modes: [ 'remove' ], ms_name: "security", ms_namespace: "security", is_cluster_admin: true }, when: (ion_role_enabled | default(True)) }
 
-# This role needs to be run on all hosts
+# These roles need to be run on all hosts
 - hosts: all
   become: yes
   roles:

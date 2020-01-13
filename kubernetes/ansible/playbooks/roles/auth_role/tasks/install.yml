@@ -1,44 +1,82 @@
----
+- name: Authorization | Create subfolder
+  file:
+    path: "{{ role_dir }}"
+    state: directory
+    mode: '0755'
+
+
+#---- Create OIDC secret
+- name: Setup | Stat for UUID file
+  stat:
+    path: "{{ role_dir }}/uuid"
+  register: stat_result
+
+- name: Setup | Check for UUID file or create
+  when: stat_result is defined and not stat_result.stat.exists
+  block: 
+  - name: Setup | Generate UUID
+    set_fact: 
+      client_UUID: "{{ 99999999 | random | to_uuid }}"
+      cacheable: no
+
+  - name: Setup | Write UUID to file
+    copy: 
+      content: "{{ client_UUID }}"
+      dest: "{{ role_dir }}/uuid"
+
+- name: Setup | Get UUID file contents 
+  when: stat_result is defined and stat_result.stat.exists
+  block:
+  - name: Setup | Slurp file
+    slurp: 
+      src: "{{ role_dir }}/uuid"
+    register: slurp_contents
+
+  - name: Setup | Reuse UUID
+    set_fact:
+      client_UUID: "{{ slurp_contents.content | b64decode }}"
+
+
+#---- Template Manifests
+- name: Authorization | Template values file
+  template:
+    src: "auth-values.yml"
+    dest: "{{ role_dir }}/auth-values.yml"
+
 - name: Authorization | Templates list
   set_fact:
     auth_role_templates:
-      - { name: namespace, file: auth-namespace.yml, type: ns }
-      - { name: configmap, file: auth-configmap.yml, type: cm }
+      - { file: auth-namespace.yml }
+      - { file: auth-configmap.yml }
 
 - name: Authorization | Create manifests
   template:
-    src: "{{ item.file }}.j2"
-    dest: "{{ grayskull_dir }}/{{ item.file }}"
+    src: "{{ item.file }}"
+    dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ auth_role_templates }}"
   register: auth_role_manifests
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
 - name: Authorization | Apply manifests
   kube:
-    name: "{{ item.item.name }}"
     namespace: "{{ auth_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
-    resource: "{{ item.item.type }}"
-    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    filename: "{{ role_dir }}/{{ item.item.file }}"
     state: latest
   with_items: "{{ auth_role_manifests.results }}"
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
-- name: Authorization | Create secret/auth directory
+- name: Authorization | Create secrets directory
   file:
     path: "{{ auth_secrets_dir }}"
     state: directory
     mode: 0755
 
-
-# TODO: Instead of password file, can use password ansible module
+# TODO: Instead of password file, should use ansible vault
 - name: Authorization | Move passwd file
   copy: 
     src: "files/secrets/password"
     dest: "{{ auth_passwd_file }}"
     mode: 0755
+
 
 # ---- Make Certs
 
@@ -89,8 +127,8 @@
     copy_server_key_path: "{{ auth_secrets_dir }}/tls.key"
     copy_chain_path: "{{ auth_secrets_dir }}/tls.crt"
 
-#---- Create secret
 
+#---- Create secret
 - name: Authorization | Check for secret
   shell: "{{ bin_dir }}/kubectl get secrets -n {{ auth_namespace }}"
   register: auth_secret_exists
@@ -111,4 +149,4 @@
     bin_dir: "{{ bin_dir }}"
     chart_src: "{{ grayskull_dir }}/{{ helm_auth_image_name }}"
     chart_version: "{{ helm_auth_chart_version }}"
-    path_to_values: "{{ grayskull_dir }}/customizations/keycloak.yml"
+    path_to_values: "{{ role_dir }}/auth-values.yml"

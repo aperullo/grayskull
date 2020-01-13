@@ -1,26 +1,31 @@
+- name: Ion | Create subfolder
+  file:
+    path: "{{ role_dir }}"
+    state: directory
+    mode: '0755'
+
 - name: Ion | Templates list
   set_fact:
     ion_role_templates:
-      - { name: namespace, file: ion-namespace.yml, type: ns }
-      - { name: rolebinding, file: ion-rolebinding.yml, type: RoleBinding }
+      - { file: ion-namespace.yml }
+      - { file: ion-rolebinding.yml }
 
 - name: Ion | Create manifests
   template:
-    src: "{{ item.file }}.j2"
-    dest: "{{ grayskull_dir }}/{{ item.file }}"
+    src: "{{ item.file }}"
+    dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ ion_role_templates }}"
   register: ion_role_manifests
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
 - name: Ion | Remove manifest products
   kube:
-    name: "{{ item.item.name }}"
     namespace: "{{ ion_ms_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
-    resource: "{{ item.item.type }}"
-    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    filename: "{{ role_dir }}/{{ item.item.file }}"
     state: absent
   with_items: "{{ ion_role_manifests.results }}"
-  when:
-    - inventory_hostname == groups['kube-master'][0]
+
+- name: Ion | Delete subfolder
+  file:
+    path: "{{ role_dir }}"
+    state: absent

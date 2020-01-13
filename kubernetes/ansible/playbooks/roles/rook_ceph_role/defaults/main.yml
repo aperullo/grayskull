@@ -7,7 +7,8 @@ ceph_defaultStorage_enabled: true
 ceph_mon_count: 3
 ceph_objectstore_name: gsp-store
 
-prometheusOperator_enabled: true
+subfolder: "rook-ceph-role"
+role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
 
 helm_rook_ceph_chart_name: "{{ platform_prefix }}-rook-ceph"
 helm_rook_ceph_repo_url: https://charts.rook.io/release
@@ -22,3 +23,5 @@ ingress_secretName: "ceph-gsp-tls" #TODO: make this into admin-gsp-tls
 ingress_path: "/"
 ingress_tls_cert: "{{ grayskull_dir }}/secrets/tls.crt"
 ingress_tls_key: "{{ grayskull_dir }}/secrets/tls.key"
+
+prometheusOperator_enabled: true

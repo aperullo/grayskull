@@ -8,3 +8,5 @@ task_modes:
 
 # Don't set this, unless changing the ion prefix.
 ion_ms_namespace: "ion-{{ ms_namespace }}"
+subfolder: "{{ ion_ms_namespace }}-role"
+role_dir: "{{ grayskull_dir }}/{{ subfolder }}"

@@ -1,4 +1,10 @@
 #---- Remove the charts
+- name: ELK | Create subfolder
+  file:
+    path: "{{ role_dir }}"
+    state: directory
+    mode: '0755'
+
 - name: ELK | Remove Elasticsearch chart
   helm_chart:
     name: "{{ helm_elasticsearch_chart_name }}"
@@ -7,7 +13,6 @@
     chart_src: "{{ grayskull_dir }}/{{ helm_elasticsearch_image_name }}"
     chart_version: "{{ helm_elasticsearch_chart_version }}"
     state: absent
-    path_to_values: "{{ grayskull_dir }}/customizations/elasticsearch.yml"
 
 - name: ELK | Remove Kibana chart
   helm_chart:
@@ -17,7 +22,6 @@
     chart_src: "{{ grayskull_dir }}/{{ helm_kibana_image_name }}"
     chart_version: "{{ helm_kibana_chart_version }}"
     state: absent
-    path_to_values: "{{ grayskull_dir }}/customizations/kibana.yml"
 
 - name: ELK | Remove Logstash chart
   helm_chart:
@@ -27,7 +31,6 @@
     chart_src: "{{ grayskull_dir }}/{{ helm_logstash_image_name }}"
     chart_version: "{{ helm_logstash_chart_version }}"
     state: absent
-    path_to_values: "{{ grayskull_dir }}/customizations/logstash.yml"
 
 - name: ELK | Remove Fluentd chart
   helm_chart:
@@ -37,31 +40,29 @@
     chart_src: "{{ grayskull_dir }}/{{ helm_fluentd_image_name }}"
     chart_version: "{{ helm_fluentd_chart_version }}"
     state: absent
-    path_to_values: "{{ grayskull_dir }}/customizations/fluentd.yml"
 
 #---- Copy over the templates to be used with kubectl delete -f. 
 - name: ELK | Templates list
   set_fact:
     elk_role_templates:
-      - { name: namespace, file: elk-namespace.yml, type: ns }
+      - { file: elk-namespace.yml }
 
 - name: ELK | Create manifests
   template:
-    src: "{{ item.file }}.j2"
-    dest: "{{ grayskull_dir }}/{{ item.file }}"
+    src: "{{ item.file }}"
+    dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ elk_role_templates }}"
   register: elk_role_manifests
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
 - name: ELK | Remove manifest products
   kube:
-    name: "{{ item.item.name }}"
     namespace: "{{ elk_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
-    resource: "{{ item.item.type }}"
-    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "absent"
   with_items: "{{ elk_role_manifests.results }}"
-  when:
-    - inventory_hostname == groups['kube-master'][0]
+
+- name: ELK | Delete subfolder
+  file:
+    path: "{{ role_dir }}"
+    state: absent

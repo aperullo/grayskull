@@ -1,4 +1,10 @@
 ---
+- name: Authorization | Create subfolder
+  file:
+    path: "{{ role_dir }}"
+    state: directory
+    mode: '0755'
+
 #---- Remove chart
 - name: Authorization | Remove chart
   helm_chart:
@@ -8,7 +14,6 @@
     chart_src: "{{ grayskull_dir }}/{{ helm_auth_image_name }}"
     chart_version: "{{ helm_auth_chart_version }}"
     state: absent
-    path_to_values: "{{ grayskull_dir }}/customizations/keycloak.yml"
 
 
 #---- Remove secret
@@ -40,45 +45,24 @@
       path: "{{ auth_secrets_dir }}"
       state: absent
 
-  - name: Authorization | Delete kube-cert.pem
-    file: 
-      path: "{{ grayskull_dir }}/kube-cert.pem"
-      state: absent
-
-  - name: Authorization | Delete kube-cert-key.pem
-    file: 
-      path: "{{ grayskull_dir }}/kube-cert-key.pem"
-      state: absent
-
-  - name: Authorization | Delete kube-chain.pem
-    file: 
-      path: "{{ grayskull_dir }}/kube-chain.pem"
-      state: absent
-
 #---- Remove manifests
 - name: Authorization | Templates list
   set_fact:
     auth_role_templates:
-      - { name: configmap, file: auth-configmap.yml, type: cm }
-      - { name: namespace, file: auth-namespace.yml, type: ns }
+      - { file: auth-configmap.yml }
+      - { file: auth-namespace.yml }
       
 - name: Authorization | Create manifests
   template:
-    src: "{{ item.file }}.j2"
-    dest: "{{ grayskull_dir }}/{{ item.file }}"
+    src: "{{ item.file }}"
+    dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ auth_role_templates }}"
   register: auth_role_manifests
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
 - name: Authorization | Remove manifest products
   kube:
-    name: "{{ item.item.name }}"
     namespace: "{{ auth_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
-    resource: "{{ item.item.type }}"
-    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    filename: "{{ role_dir }}/{{ item.item.file }}"
     state: absent
   with_items: "{{ auth_role_manifests.results }}"
-  when:
-    - inventory_hostname == groups['kube-master'][0]

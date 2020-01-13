@@ -2,30 +2,35 @@
 - name: Prometheus | Templates list
   set_fact:
     prometheus_role_templates:
-      - { name: namespace, file: prometheus-namespace.yml, type: ns }
-      - { name: cluster-role, file: prometheus-crd-clusterrole.yml, type: ClusterRole }
+      - { file: prometheus-namespace.yml }
+      - { file: prometheus-crd-clusterrole.yml }
 
+- name: Prometheus | Create subfolder
+  file:
+    path: "{{ role_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Prometheus | Template values
+  template:
+    src: "prometheus-values.yml"
+    dest: "{{ role_dir }}/prometheus-values.yml"
+    
 - name: Prometheus | Create manifests
   template:
-    src: "{{ item.file }}.j2"
-    dest: "{{ grayskull_dir }}/{{ item.file }}"
+    src: "{{ item.file }}"
+    dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ prometheus_role_templates }}"
   register: prometheus_role_manifests
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
 # Namespace must be deployed before secret.
 - name: Prometheus | Apply manifests
   kube:
-    name: "{{ item.item.name }}"
     namespace: "{{ prometheus_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
-    resource: "{{ item.item.type }}"
-    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "latest"
   with_items: "{{ prometheus_role_manifests.results }}"
-  when:
-    - inventory_hostname == groups['kube-master'][0]
 
 
 #---- Create secret
@@ -45,4 +50,4 @@
     bin_dir: "{{ bin_dir }}"
     chart_src: "{{ grayskull_dir }}/{{ helm_prometheus_image_name }}"
     chart_version: "{{ helm_prometheus_chart_version }}"
-    path_to_values: "{{ grayskull_dir }}/customizations/prometheus.yml"
+    path_to_values: "{{ role_dir }}/prometheus-values.yml"

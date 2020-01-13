@@ -3,6 +3,8 @@ task_modes:
   - install
 
 ingress_namespace: grayskull-ingress
+subfolder: ingress-role
+role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
 
 helm_ingress_chart_name: "{{ platform_prefix }}-ingress"
 helm_ingress_chart_type: stable

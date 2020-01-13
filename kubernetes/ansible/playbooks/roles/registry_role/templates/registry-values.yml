@@ -22,18 +22,13 @@ externalURL: "https://registry.{{ grayskull_domain }}"
 
 # TODO: High priority pr to make better way of doing this.
 # The initial password of Harbor admin. Change it from portal after launching Harbor
-harborAdminPassword: "admin"
+harborAdminPassword: "{{ hostvars[groups['kube-setup-delegate'][0]]['harbor_pass'] }}"
 # The secret key used for encryption. Must be a string of 16 chars.
 secretKey: "{{ hostvars[groups['kube-setup-delegate'][0]]['harbor_key'] }}"
 
 persistence:
   enabled: true
   resourcePolicy: ""
-
-imagePullPolicy: IfNotPresent
-imagePullSecrets:
-#  - name: docker-registry-secret
-#  - name: internal-registry-secret
 
 logLevel: info
 
