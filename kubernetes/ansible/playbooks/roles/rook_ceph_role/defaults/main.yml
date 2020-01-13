@@ -6,6 +6,7 @@ ceph_namespace: "grayskull-storage"
 ceph_defaultStorage_enabled: true
 ceph_mon_count: 3
 ceph_objectstore_name: gsp-store
+ceph_data_dir: /storage/rook #/var/lib/rook
 
 subfolder: "rook-ceph-role"
 role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
