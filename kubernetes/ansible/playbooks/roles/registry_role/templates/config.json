@@ -1,0 +1,7 @@
+{
+	"auths": {
+		"https://registry.{{ grayskull_domain }}": {
+			"auth": "{{ (harbor_user + ':' + hostvars[groups['kube-setup-delegate'][0]]['harbor_pass']) | b64encode }}"
+		}
+	}
+}
