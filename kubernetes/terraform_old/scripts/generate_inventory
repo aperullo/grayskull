@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+
+import subprocess
+import json
+import pprint
+import argparse
+import sys
+from jinja2 import FileSystemLoader, Environment
+
+
+# -t is for template file path
+parser = argparse.ArgumentParser()
+parser.add_argument("-t", "--template", dest="template_file", default="inv_ansible.ini.tpl", help="The path to the template to use")
+args = parser.parse_args()
+template_file = args.template_file
+
+templateLoader = FileSystemLoader(searchpath="./")
+templateEnv = Environment(loader=templateLoader)
+
+template = templateEnv.get_template(template_file)
+
+getJsonCmd = "terraform state pull"
+jsonData,__ = subprocess.Popen([getJsonCmd], shell=True, stdout=subprocess.PIPE).communicate()
+data = json.loads(jsonData)['resources']
+
+environment,__ = subprocess.Popen(["terraform workspace show"], shell=True, stdout=subprocess.PIPE).communicate()
+environment = environment.decode("utf-8").strip() # decode /n then strip all whitespace
+
+hosts = []
+resources = list(filter(lambda x: x['type'] == "aws_instance", data))
+for resource in resources:
+        k8s_type = resource['name']
+        for instance in resource['instances']:
+            attr = instance['attributes']
+            real_type = ""
+            if k8s_type == "k8s_worker":
+                real_type = "worker"
+            if k8s_type == "k8s_master":
+                real_type = "master"
+            data = {
+                "public_ip": attr['public_ip'],
+                "public_dns": attr['public_dns'],
+                "private_ip": attr['private_ip'],
+                "private_dns": attr['private_dns'],
+                "name": attr['tags']['Name'],
+                "type": real_type,
+            }
+            hosts.append(data)
+
+print(template.render(instances=hosts, env=environment))
+

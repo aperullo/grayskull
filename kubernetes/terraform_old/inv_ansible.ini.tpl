@@ -40,6 +40,11 @@ kubeconfig_src=../inventory/kube_config_{{ env }}.yml
 {% endif -%}
 {% endfor %}
 
+[storage-node]
+{% for host in instances -%}
+{{ host.name }}
+{% endfor %}
+
 [k8s-cluster:children]
 kube-node
 kube-master

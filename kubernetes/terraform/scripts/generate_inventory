@@ -7,45 +7,78 @@ import argparse
 import sys
 from jinja2 import FileSystemLoader, Environment
 
+MASTER_MODULE_NAME = "module.master"
+WORKER_MODULE_NAME = "module.worker"
+STORAGE_MODULE_NAME = "module.ceph_storage"
+POSSIBLE_TYPES = ['master', 'worker', 'storage']
 
-# -t is for template file path
-parser = argparse.ArgumentParser()
-parser.add_argument("-t", "--template", dest="template_file", default="inv_ansible.ini.tpl", help="The path to the template to use")
-args = parser.parse_args()
-template_file = args.template_file
+def main():
+    # -t is for template file path
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-t', '--template', dest='template_file', default='scripts/templates/inv_ansible.ini.tpl', help='The path to the template to use')
+    args = parser.parse_args()
+    template_file = args.template_file
 
-templateLoader = FileSystemLoader(searchpath="./")
-templateEnv = Environment(loader=templateLoader)
+    templateLoader = FileSystemLoader(searchpath='./')
+    templateEnv = Environment(loader=templateLoader, extensions=['jinja2.ext.do'])
 
-template = templateEnv.get_template(template_file)
+    template = templateEnv.get_template(template_file)
 
-getJsonCmd = "terraform state pull"
-jsonData,__ = subprocess.Popen([getJsonCmd], shell=True, stdout=subprocess.PIPE).communicate()
-data = json.loads(jsonData)['resources']
+    getJsonCmd = 'terraform state pull'
+    jsonData,__ = subprocess.Popen([getJsonCmd], shell=True, stdout=subprocess.PIPE).communicate()
+    data = json.loads(jsonData)['resources']
 
-environment,__ = subprocess.Popen(["terraform workspace show"], shell=True, stdout=subprocess.PIPE).communicate()
-environment = environment.decode("utf-8").strip() # decode /n then strip all whitespace
+    environment,__ = subprocess.Popen(['terraform workspace show'], shell=True, stdout=subprocess.PIPE).communicate()
+    environment = environment.decode('utf-8').strip() # decode /n then strip all whitespace
 
-hosts = []
-resources = list(filter(lambda x: x['type'] == "aws_instance", data))
-for resource in resources:
-        k8s_type = resource['name']
+    hosts = []
+    # list of ec2 instances
+    resources = list(filter(lambda x: x['type'] == 'aws_instance', data))
+    # list of volume attachments
+    attachments = list(filter(lambda x: x['type'] == 'aws_volume_attachment', data))
+
+    for resource in resources:
         for instance in resource['instances']:
-            attr = instance['attributes']
-            real_type = ""
-            if k8s_type == "k8s_worker":
-                real_type = "worker"
-            if k8s_type == "k8s_master":
-                real_type = "master"
+            attr = instance ['attributes']
             data = {
-                "public_ip": attr['public_ip'],
-                "public_dns": attr['public_dns'],
-                "private_ip": attr['private_ip'],
-                "private_dns": attr['private_dns'],
-                "name": attr['tags']['Name'],
-                "type": real_type,
+                'public_ip': attr['public_ip'],
+                'public_dns': attr['public_dns'],
+                'private_ip': attr['private_ip'],
+                'private_dns': attr['private_dns'],
+                'name': attr['tags']['Name'],
+                'type': determine_node_types(instance, attachments=attachments),
             }
             hosts.append(data)
 
-print(template.render(instances=hosts, env=environment))
+    print(template.render(instances=hosts, env=environment))
 
+
+def determine_node_types(instance, attachments=[]):
+    inst = instance['attributes']
+
+    # If the instance has a name inside its tags, assign it to name, otherwise assign ''
+    name = inst.get('tags').get('Name') if 'tags' in inst and 'Name' in inst.get('tags') else ''
+
+    determined_types = set()
+
+    # Create a list of the types of this node based on its name
+    for type in POSSIBLE_TYPES:
+        if type in name:
+            determined_types.add(type)
+
+    # Additionally check if this node is acting as storage by checking if there is an attachment associated with it.
+    for resource in attachments:
+        if resource['module'] == STORAGE_MODULE_NAME:
+            for attachment_inst in resource['instances']:
+                attr = attachment_inst['attributes']
+
+                # Check if instance id is the same as the attached instance for this volume
+                attached_to = attr.get('instance_id')
+
+                if attached_to is not None and attached_to == inst.get("id"):
+                    determined_types.add('storage')
+
+    return list(determined_types)
+
+         
+main()

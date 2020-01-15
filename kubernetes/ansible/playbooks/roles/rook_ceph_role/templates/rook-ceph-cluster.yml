@@ -18,6 +18,21 @@ spec:
     hostNetwork: false
   rbdMirroring:
     workers: 0
+  placement:
+    all:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: "node-role.kubernetes.io/storage"
+              operator: "Exists"
+      tolerations:
+      - key: "node-role.kubernetes.io/controlplane"
+        operator: "Exists"
+        effect: NoSchedule
+      - key: "node-role.kubernetes.io/etcd"
+        operator: "Exists"
+        effect: NoExecute
   annotations:
   #resources:
   # The requests and limits set here, allow the mgr pod to use half of one CPU core and 1 gigabyte of memory
