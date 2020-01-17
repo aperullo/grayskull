@@ -73,3 +73,10 @@ variable "public_dns" {
   description = "Whether the nodes should be given public IPs."
 }
 
+#---- Loadbalancer
+
+variable "lb_name" {
+  type        = string
+  default     = "k8s-lb"
+  description = "Name to add to all the lb resources"
+}

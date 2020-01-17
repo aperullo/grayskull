@@ -41,4 +41,12 @@ module "k8s_network" {
   nodes = concat(module.master.nodes, module.worker.nodes)
 }
 
+module "k8s_loadbalancer" {
+  source = "./loadbalancer"
+  name = var.lb_name
+  subnets = module.k8s_network.subnets
+  vpc = module.k8s_network.vpc
+  nodes = concat(module.master.nodes, module.worker.nodes)
+}
+
 #TODO include commented out templates for other possible node types, like masters that are also workers.

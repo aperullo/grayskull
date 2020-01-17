@@ -5,3 +5,7 @@ output "security_groups" {
 output "subnets" {
 	value = [aws_subnet.subnet_1, aws_subnet.subnet_2, aws_subnet.subnet_3]
 }
+
+output "vpc" {
+	value = aws_vpc.vpc
+}
