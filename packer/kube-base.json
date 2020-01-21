@@ -1,0 +1,22 @@
+{
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "region": "us-gov-west-1",
+      "source_ami": "ami-06432267",
+      "instance_type": "t2.micro",
+      "ssh_username": "maintuser",
+      "ami_name": "kube-base {{timestamp}}",
+      "associate_public_ip_address": true,
+      "vpc_id": "",
+      "subnet_id": ""
+    }
+  ],
+
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "user_data.sh"
+    }
+  ]
+}

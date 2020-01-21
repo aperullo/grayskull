@@ -6,7 +6,7 @@ variable "k8s_root_size" {
 
 variable "k8s_ami" {
   type        = string
-  default     = "ami-06432267"
+  default     = "ami-54301135"
   description = "AMI to use for the k8s nodes"
 }
 
