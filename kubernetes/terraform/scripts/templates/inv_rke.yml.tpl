@@ -3,7 +3,7 @@ nodes:
   {% for host in instances -%}
   - address: {{ host.public_ip }}
     internal_address: {{ host.private_ip }}
-    user: maintuser
+    user: ubuntu 
     role: 
     {%- if "master" in host.type %}
       - controlplane

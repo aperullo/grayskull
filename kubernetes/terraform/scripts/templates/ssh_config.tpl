@@ -1,6 +1,6 @@
 {% for host in instances %}
 Host {{ host.name }}
   Hostname {{ host.public_dns }}
-  user maintuser
+  user ubuntu
   IdentityFile ~/.ssh/grayskull_admin
 {% endfor %}
