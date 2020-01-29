@@ -1,12 +1,12 @@
 variable "k8s_root_size" {
   type        = number
-  default     = 40
+  default     = 100
   description = "The size in Gibibytes of the k8s root volume"
 }
 
 variable "k8s_ami" {
   type        = string
-  default     = "ami-06432267"
+  default     = "ami-5f2f0c3e"
   description = "AMI to use for the k8s nodes"
 }
 
