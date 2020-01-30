@@ -1,2 +1,3 @@
 *.creds
-**/**.rkestate
+**/*.rkestate
+**/kube_config*

@@ -1,16 +1,25 @@
+# The original file used to craft the ceph block part of the rook-ceph-role. Kept as reference
+
+
+apiVersion: ceph.rook.io/v1
+kind: CephBlockPool
+metadata:
+  name: replicapool
+  namespace: rook-ceph
+spec:
+  failureDomain: host
+  replicated:
+    size: 3
+---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: csi-cephblock
-{% if ceph_defaultStorage == "block" %}
-  annotations:
-    storageclass.kubernetes.io/is-default-class: "true"
-{% endif %}
+   name: csi-cephblock
 # Change "rook-ceph" provisioner prefix to match the operator namespace if needed
-provisioner: "{{ ceph_namespace }}.rbd.csi.ceph.com"
+provisioner: rook-ceph.rbd.csi.ceph.com
 parameters:
     # clusterID is the namespace where the rook cluster is running
-    clusterID: "{{ ceph_namespace }}"
+    clusterID: rook-ceph
     # Ceph pool into which the RBD image shall be created
     pool: replicapool
 
@@ -22,13 +31,13 @@ parameters:
 
     # The secrets contain Ceph admin credentials.
     csi.storage.k8s.io/provisioner-secret-name: rook-ceph-csi
-    csi.storage.k8s.io/provisioner-secret-namespace: "{{ ceph_namespace }}"
+    csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
     csi.storage.k8s.io/node-stage-secret-name: rook-ceph-csi
-    csi.storage.k8s.io/node-stage-secret-namespace: "{{ ceph_namespace }}"
+    csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
 
     # Specify the filesystem type of the volume. If not specified, csi-provisioner
     # will set default as `ext4`.
     csi.storage.k8s.io/fstype: ext4
 
 # Delete the rbd volume when a PVC is deleted
-reclaimPolicy: Delete
+reclaimPolicy: Retain

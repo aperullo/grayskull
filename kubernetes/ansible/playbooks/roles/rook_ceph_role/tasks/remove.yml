@@ -8,7 +8,9 @@
       rook_ceph_role_templates:
         - { file: rook-ceph-namespace.yml }
         - { file: rook-ceph-block-sc.yml}
-        - { file: rook-ceph-cephblockpool.yml }
+        - { file: rook-ceph-block-pool.yml }
+        - { file: rook-ceph-fs-sc.yml}
+        - { file: rook-ceph-fs-pool.yml }
         - { file: rook-ceph-cephobjectstore.yml }
         - { file: rook-ceph-cluster.yml }
         - { file: rook-ceph-dashboard-ingress.yml }

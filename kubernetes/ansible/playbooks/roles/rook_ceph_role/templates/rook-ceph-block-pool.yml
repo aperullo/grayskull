@@ -2,7 +2,8 @@ apiVersion: ceph.rook.io/v1
 kind: CephBlockPool
 metadata:
   name: replicapool
-  namespace: {{ ceph_namespace }}
+  namespace: "{{ ceph_namespace }}"
 spec:
+  failureDomain: host
   replicated:
     size: 3

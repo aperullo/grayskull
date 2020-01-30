@@ -3,7 +3,8 @@ task_modes:
   - install
 
 ceph_namespace: "grayskull-storage"
-ceph_defaultStorage_enabled: true
+# Options are block, fs, none
+ceph_defaultStorage: block
 ceph_mon_count: "{{ groups['kube-storage'] | length }}"
 ceph_objectstore_name: gsp-store
 ceph_data_dir: /storage/rook #/var/lib/rook
@@ -23,6 +24,6 @@ helm_rook_ceph_chart_version: v1.1.0
 template_ceph_image: ceph/ceph
 template_ceph_image_version: v14.2.4-20191112
 
-ingress_url: "ceph.{{grayskull_domain}}"
+ingress_url: "ceph.{{ grayskull_domain }}"
 ingress_secretName: "ceph-gsp-tls" #TODO: make this into admin-gsp-tls
 ingress_path: "/"
