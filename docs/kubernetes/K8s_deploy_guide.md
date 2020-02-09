@@ -27,38 +27,69 @@ Run the git command to load the submodule:
 
 If your aws command line tool is set up, you can navigate to `kubernetes/terraform.`
 
-1. `terraform plan`. Verify the plan looks as you expect
-2. `terraform apply`. Provision the VMs.
-3. `scripts/generate_ssh_config > /tmp/ssh_config`. Create a temporary set of ssh credentials for you and ansible to use on the VMs.
-4. `eval $(ssh-agent)`
-5. `ssh-add ~/.ssh/grayskull-admin`
+1. `terrafrom workspace new <name>` (or `terraform workspace select <name>` for an existing workspace)
+2. `terraform plan`. Verify the plan looks as you expect
+3. `terraform apply`. Provision the VMs.
+4. `scripts/generate_ssh_config > /tmp/ssh_config`. Create a temporary set of ssh credentials for you and ansible to use on the VMs.
+5. `eval $(ssh-agent)`
+6. `ssh-add ~/.ssh/grayskull-admin`
 
-### Deploy Kubernetes
+### Generate Ansible Inventory
 
-The next step is to deploy kubernetes itself, which is the orchestrator. We can accomplish this via RKE (below) or by [kubespray](./K8s_kubespray_guide.md).
+1. `mkdir -p ~/.grayskull/clusters/<terraform_workspace_name>`
+2. `./scripts/generate_inventory > ~/.grayskull/clusters/<terraform_workspace_name>` (run this from the `kuberentes/terraform` directory)
 
-RKE sets up a production-ready cluster given a specially formatted inventory file.
 
-1. `scripts/generate_inventory -t scripts/templates/inv_rke.yml.tpl> ../ansible/inventory/rke.yml`. This is a python script that will template out the IP addresses of the nodes in an RKE style inventory.
-2. `scripts/generate_inventory -t scripts/templates/inv_ansible.ini.tpl > ../ansible/inventory/rke.ini`. This is a python script that will template out the IP addresses of the nodes in an ansible style inventory.
-3. **(Optional)** If you want to provide custom certs to the kubernetes cluster follow [these steps](./rke_custom_certs.md) instead. Otherwise continue to the next step.
-4. From the `ansible` directory run `rke up --config inventory/rke.yml`. This will start the deploy process.
+### Deploy grayskull
 
+#### Secrets
+
+As part of the deploy we need to specify some secrets to manually. 
+
+Keycloak password:
+1. Create a file called `password` in `kubernetes/ansible/playbooks/roles/auth_role/files/secrets`
+2. Fill this file with some value, like `admin`.
+
+
+#### Run platform playbook
+
+In this step we deploy grayskull itself. Grayskull is the platform, it deploys several services:
+- Kubernetes
+- An ingress load balancer
+- Rook-ceph storage operator
+- Keycloak authenticator
+- A kubernetes dashboard
+- An ELK stack
+- Prometheus metrics database
+
+To enable or disable these roles, you can set `<role_name>_enabled=True/False` in the inventory.
+
+In `kubernetes/ansible/playbooks` run 
 ```
-...
-INFO[0245] [addons] Setting up user addons              
-INFO[0245] [addons] no user addons defined              
-INFO[0245] Finished building Kubernetes cluster successfully 
+> ansible-playbook -i <inventory_settings>.ini playbooks/grayskull.yml
+
+PLAY RECAP ***********************************************************
+node1: ok=61    changed=61    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+``` 
+
+#### Set up remote administration
+
+When the playbook deployed the kuberentes cluster a kubconfig was created at `~/.grayskull/clusters/<terraform_workspace_name>/kube_config_rke.yml`.
+
+It can be used like this:
+
+`kubectl --kubeconfig ~/.grayskull/clusters/<terraform_workspace_name>/kube_config_rke.yml get all -A`. Check on the k8s cluster by seeing all pods should be `up` or `done`. 
+
+or alternatively: 
+
+```bash
+export KUBECONFIG=~/.grayskull/clusters/<terraform_workspace_name>/kube_config_rke.yml
+
+kubectl get all -A
 ```
 
-When it is done it will create a kubeconfig file called `kube_config_rke.yml`.
+The kubeconfig can also be combined with your users kubeconfig at `~/.kube/config`
 
-`kubectl --kubeconfig ~/<path_to_grayskull>/kubernetes/ansible/inventory/kube_config_rke.yml get all -A`. Check on the k8s cluster by seeing all pods should be `up` or `done`. 
-
-### Set up remote administration
-
-You will need the kubeconfig file to be able to send commands to the cluster. You can combine it with your existing kubeconfig if you have one.
- 
 One way to merge with your current to allow remote administration of the new cluster is the following:
 ```
 > cp ~/.kube/config ~/.kube/config.old      # Backup the old config in case something goes wrong.
@@ -78,37 +109,6 @@ Switched to context "kubernetes-admin@cluster.local".
 > kubectl config current-context 
 kubernetes-admin@cluster.local
 ```
-
-### Deploy grayskull
-
-#### Secrets
-
-As part of the deploy we need to specify some secrets to manually. 
-
-Keycloak password:
-1. Create a file called `password` in `kubernetes/ansible/playbooks/roles/auth_role/files/secrets`
-2. Fill this file with some value, like `admin`.
-
-
-#### Run platform playbook
-
-In this step we deploy grayskull itself. Grayskull is the platform, it deploys several services:
-- An ingress load balancer
-- Rook-ceph storage operator
-- Keycloak authenticator
-- A kubernetes dashboard
-- An ELK stack
-- Prometheus metrics database
-
-To enable or disable these roles, you can set `<role_name>_enabled=True/False` in the inventory.
-
-In `kubernetes/ansible/playbooks` run 
-```
-> ansible-playbook -i <inventory_settings>.ini playbooks/grayskull.yml
-
-PLAY RECAP ***********************************************************
-node1: ok=61    changed=61    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-``` 
 
 ### Customizing the deployment
 To customize the values for the non-helm services add them to `roles/<role>/vars`.
