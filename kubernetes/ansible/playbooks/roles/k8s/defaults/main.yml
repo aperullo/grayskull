@@ -1,0 +1,12 @@
+task_modes:
+  - download
+  - install
+
+cluster_name: default
+cluster_config_location: "~/.grayskull/clusters/{{ cluster_name }}"
+cluster_bin_dir: "{{ cluster_config_location }}/bin"
+
+k8s_deploy_method: rke  # rke, kubespray
+
+rke_binary_url: https://github.com/rancher/rke/releases/download/v
+rke_binary_version: 1.0.4

@@ -1,0 +1,4 @@
+---
+- name: K8S | Include RKE tasks
+  include_tasks: "rke_remove.yml"
+  when: k8s_deploy_method == "rke"

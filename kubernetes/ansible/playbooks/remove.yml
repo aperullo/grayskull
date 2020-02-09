@@ -1,5 +1,5 @@
 ---
-# This playbook triggers a series of tasks which uninstall/remove the various platform services 
+# This playbook triggers a series of tasks which uninstall/remove the various platform services
 # and objects created/deployed by grayskull.
 
 - hosts: kube-setup-delegate
@@ -56,7 +56,7 @@
     - { role: prometheus_role, vars: { task_modes: [ 'remove' ] }, when: (prometheus_role_enabled | default(True)) }   # must be deleted after rook-ceph
     - { role: cert_manager_role, vars: { task_modes: [ 'remove' ] }, when: (cert_manager_role_enabled | default(True)) }
 
-# Remove helm and delete the directory.    
+# Remove helm and delete the directory.
 - hosts: kube-setup-delegate
   become: yes
   tasks:
@@ -67,3 +67,7 @@
     file:
       path: "{{ grayskull_dir }}"
       state: absent
+
+- hosts: localhost
+  roles:
+    - { role: k8s, vars: { task_modes: [ 'remove'] }, when: (k8s_enabled | default(True)) }

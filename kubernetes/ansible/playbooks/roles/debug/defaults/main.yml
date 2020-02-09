@@ -1,0 +1,3 @@
+---
+cluster_name: default
+cluster_config_location: "~/.grayskull/clusters/{{ cluster_name }}"

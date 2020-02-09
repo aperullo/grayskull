@@ -1,0 +1,3 @@
+---
+- name: K8S | Destroy RKE Cluster
+  command: "{{ cluster_bin_dir }}/rke remove --config {{ cluster_config_location }}/rke.yml --force"

@@ -1,23 +1,25 @@
 #jinja2: lstrip_blocks: "True"
 nodes:
-  {% for host in instances -%}
-  - address: {{ host.public_ip }}
-    internal_address: {{ host.private_ip }}
-    hostname_override: {{ host.private_dns }}
+
+  {% for host in groups['kube-node'] %}
+  - address: {{ hostvars[host]['public_ip'] }}
+    internal_address: {{ hostvars[host]['ip'] }}
+    hostname_override: {{ hostvars[host]['ansible_host'] }}
     user: maintuser 
     role: 
-    {%- if "master" in host.type %}
+    {% if 'kube-master' in hostvars[host]['group_names'] %}
       - controlplane
       - etcd
-    {%- endif %}
-    {%- if "worker" in host.type %}
+    {% endif %}
+    {% if 'kube-worker' in hostvars[host]['group_names'] %}
       - worker
-    {%- endif %}
+    {% endif %}
     ssh_key_path: ~/.ssh/grayskull-admin
-  {%- if "storage" in host.type %}
+  {% if 'kube-storage' in hostvars[host]['group_names'] %}
     labels:
       node-role.kubernetes.io/storage: true
-  {%- endif %}
+  {% endif %}
+
   {% endfor %}
   
 ingress:
@@ -41,7 +43,7 @@ services:
   kube-api:
     extra_args:
       oidc-client-id: "kubernetes"
-      oidc-issuer-url: "https://auth.{{ env }}.gsp.test/auth/realms/master"
+      oidc-issuer-url: "https://auth.{{ cluster_name }}.gsp.test/auth/realms/master"
       oidc-username-claim: "preferred_username"
       oidc-groups-claim: "groups"
       oidc-ca-file: "/etc/kubernetes/ssl/kube-ca.pem"

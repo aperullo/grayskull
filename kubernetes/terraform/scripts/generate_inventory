@@ -16,8 +16,12 @@ def main():
     # -t is for template file path
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--template', dest='template_file', default='scripts/templates/inv_ansible.ini.tpl', help='The path to the template to use')
+    parser.add_argument('-i', '--identity-file', dest='identity_file', default='~/.ssh/grayskull_admin', help='The path to the identity file used to log into virtual machines')
+    parser.add_argument('-d', '--storage-directory', dest='storage_dir', default='~/.grayskull/clusters', help='The directory to store cluster configurations')
     args = parser.parse_args()
     template_file = args.template_file
+    identity_file = args.identity_file
+    storage_dir = args.storage_dir
 
     templateLoader = FileSystemLoader(searchpath='./')
     templateEnv = Environment(loader=templateLoader, extensions=['jinja2.ext.do'])
@@ -50,7 +54,7 @@ def main():
             }
             hosts.append(data)
 
-    print(template.render(instances=hosts, env=environment))
+    print(template.render(instances=hosts, env=environment, key=identity_file, cluster_storage=storage_dir))
 
 
 def determine_node_types(instance, attachments=[]):

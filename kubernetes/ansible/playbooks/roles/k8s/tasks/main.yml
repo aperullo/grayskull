@@ -1,0 +1,5 @@
+- name: K8S | Run tasks
+  include_tasks: "{{ line_item }}.yml"
+  with_items: "{{ task_modes }}"
+  loop_control:
+    loop_var: line_item

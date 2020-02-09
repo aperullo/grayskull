@@ -1,0 +1,20 @@
+---
+- name: K8S | Create Cluster Directory
+  file:
+    path: "{{ cluster_bin_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: K8S | Download RKE binary
+  get_url:
+    url: "{{ rke_binary_url }}{{ rke_binary_version }}/rke_linux-amd64"
+    dest: "{{ cluster_bin_dir }}/rke"
+    mode: 0755
+  when: k8s_deploy_method == 'rke' and ansible_facts['os_family'] == 'Debian'
+
+- name: K8S | Download RKE binary
+  get_url:
+    url: "{{ rke_binary_url }}{{ rke_binary_version }}/rke_darwin-amd64"
+    dest: "{{ cluster_bin_dir }}/rke"
+    mode: 0755
+  when: k8s_deploy_method == 'rke' and ansible_facts['os_family'] == 'Darwin'

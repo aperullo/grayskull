@@ -7,6 +7,8 @@
 ansible_ssh_common_args='-o StrictHostKeyChecking=no'
 helm_version='v2.14.3'
 kubectl_version='v1.17.2'
+cluster_name={{ env }}
+identity_file={{ key }}
 
 [kube-master]
 {% for host in instances -%}
@@ -52,7 +54,7 @@ grayskull_dir=/grayskull
 platform_prefix=gsp
 bin_dir=/usr/local/bin
 grayskull_domain={{ env }}.gsp.test
-kubeconfig_src=../inventory/kube_config_{{ env }}.yml
+kubeconfig_src={{ cluster_storage }}/{{ env }}/kube_config_rke.yml
 
 [etcd]
 {% for host in instances -%}

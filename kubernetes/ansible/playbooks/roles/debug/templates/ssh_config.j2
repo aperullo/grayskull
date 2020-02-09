@@ -1,0 +1,6 @@
+{% for host in groups['kube-node'] %}
+Host {{ host }}
+  Hostname {{ hostvars[host]['ansible_ssh_host'] }}
+  user maintuser
+  IdentityFile {{ identity_file }}
+{% endfor %}

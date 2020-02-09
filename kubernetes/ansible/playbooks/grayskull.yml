@@ -6,6 +6,11 @@
 
 # - import_playbook: kubespray/cluster.yml
 
+- hosts: localhost
+  roles:
+    - { role: debug, when: (debug_enabled | default(True)) }
+    - { role: k8s, when: (k8s_enabled | default(True)) }
+
 - hosts: kube-setup-delegate
   become: yes
   tasks:

@@ -1,0 +1,9 @@
+---
+- name: K8S | RKE Inventory Template
+  template:
+    src: "inv_rke.yml.j2"
+    dest: "{{ cluster_config_location }}/rke.yml"
+  register: rke_inventory
+
+- name: K8S | RKE up
+  command: "{{ cluster_bin_dir }}/rke up --config {{ cluster_config_location }}/rke.yml"
