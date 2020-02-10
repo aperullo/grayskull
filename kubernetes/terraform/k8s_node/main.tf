@@ -25,6 +25,8 @@ resource "aws_instance" "k8s_node" {
     volume_size = var.k8s_root_size
   }
 
+  user_data = file(local.user_data_file_path)
+
   vpc_security_group_ids = var.security_groups[*].id
 
   #vpc_security_group_ids = [ "${aws_security_group.k8s_ports.id}", "${aws_security_group.external_ports.id}" ]

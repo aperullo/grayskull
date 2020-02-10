@@ -2,7 +2,7 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: kubernetes-dashboard
-  namespace: kube-system
+  namespace: {{ dashboard_namespace }}
   annotations:
     kubernetes.io/ingress.class: "nginx"
     kubernetes.io/tls-acme: "true"

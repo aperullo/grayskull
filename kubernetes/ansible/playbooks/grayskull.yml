@@ -19,8 +19,8 @@
     ignore_errors: True
 
   - name: Setup | Install kubectl
-    get_url: 
-      url: https://storage.googleapis.com/kubernetes-release/release/v1.16.1/bin/linux/amd64/kubectl
+    get_url:
+      url: "https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl"
       dest: "{{ bin_dir }}/kubectl"
       mode: '0755'
     when: kubectl_result.rc != 0
@@ -31,7 +31,7 @@
     register: kubeconfig
 
   # If the file doesn't exist we need to bring it from locally
-  - name: Setup | Copy kubeconfig 
+  - name: Setup | Copy kubeconfig
     copy:
       src: "{{ kubeconfig_src }}"
       dest: "/etc/kubernetes/admin.conf"
@@ -72,10 +72,10 @@
       filename: "{{ grayskull_dir }}/tiller-rbac.yml"
       state: present
 
-  # Needed to re-install helm if the remove playbook is run. 
+  # Needed to re-install helm if the remove playbook is run.
   - name: Setup | Retrieve helm binary archive
     unarchive:
-      src: https://storage.googleapis.com/kubernetes-helm/helm-v2.14.3-linux-amd64.tar.gz
+      src: "https://get.helm.sh/helm-{{ helm_version }}-linux-amd64.tar.gz"
       dest: "{{ bin_dir }}"
       remote_src: yes
       exclude:
@@ -91,9 +91,17 @@
       creates={{ bin_dir }}/helm
 
   - name: Setup | Set up Helm and Tiller
-    command: "{{ bin_dir }}/helm init --service-account tiller"
+    shell: "{{ bin_dir }}/helm init --service-account tiller --override spec.selector.matchLabels.'name'='tiller',spec.selector.matchLabels.'app'='helm' --output yaml | sed 's@apiVersion: extensions/v1beta1@apiVersion: apps/v1@' | {{ bin_dir }}/kubectl apply -f -"
     register: helm_init_result
     changed_when: "'already installed' not in helm_init_result.stdout"
+
+  - name: Setup | Helm init - Client Only
+    command: "{{ bin_dir }}/helm init --client-only"
+    register: helm_init_client_result
+    changed_when: "'already installed' not in helm_init_result.stdout"
+
+  - name: Setup | Add Helm repo
+    command: "{{ bin_dir }}/helm repo add stable https://kubernetes-charts.storage.googleapis.com"
 
   - name: Setup | Wait for tiller to rollout
     shell: "{{ bin_dir }}/kubectl -n kube-system rollout status deploy/tiller-deploy"
@@ -121,7 +129,7 @@
     - { role: dashboard_role, when: (dashboard_role_enabled | default(True)) }
     - { role: prometheus_role, when: (prometheus_role_enabled | default(True)) }   # must be deployed before rook-ceph
     - { role: rook_ceph_role, when: (rook_ceph_role_enabled | default(True)) }
-    # - { role: rook_cassandra_role, when: (rook_cassandra_role_enabled | default(True)) }
+    - { role: rook_cassandra_role, when: (rook_cassandra_role_enabled | default(False)) }
 
 # This role needs to be run on all hosts
 - hosts: all
@@ -133,11 +141,12 @@
   become: yes
   # Turns out vars are shared for all instances of a role. You must explicitly define each variable for each role. The default value doesn't matter if its overridden anywhere.
   roles:
-    - { role: auth_role, when: (auth_role_enabled | default(True)) }
-    - { role: dash_proxy_role, when: (dash_proxy_role_enabled | default(True)) }
+    - { role: auth_role, when: (auth_role_enabled | default(False)) }
+    - { role: dash_proxy_role, when: (dash_proxy_role_enabled | default(False)) }
     - { role: elk_role, when: (elk_role_enabled | default(True)) }
     - { role: ion_role, vars: { ms_name: "cdr", ms_namespace: "cdr", is_cluster_admin: false }, when: (ion_role_enabled | default(True)) }
     - { role: ion_role, vars: { ms_name: "transform", ms_namespace: "transform", is_cluster_admin: false }, when: (ion_role_enabled | default(True)) }
     - { role: ion_role, vars: { ms_name: "replication", ms_namespace: "replication", is_cluster_admin: false }, when: (ion_role_enabled | default(True)) }
     - { role: ion_role, vars: { ms_name: "platform", ms_namespace: "platform", is_cluster_admin: true }, when: (ion_role_enabled | default(True)) }
     - { role: ion_role, vars: { ms_name: "security", ms_namespace: "security", is_cluster_admin: true }, when: (ion_role_enabled | default(True)) }
+    

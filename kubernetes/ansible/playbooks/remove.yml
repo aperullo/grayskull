@@ -12,9 +12,17 @@
       state: directory
 
   - name: Teardown | Set up Helm and Tiller
-    command: "{{ bin_dir }}/helm init --service-account tiller --wait"
+    shell: "{{ bin_dir }}/helm init --service-account tiller --override spec.selector.matchLabels.'name'='tiller',spec.selector.matchLabels.'app'='helm' --output yaml | sed 's@apiVersion: extensions/v1beta1@apiVersion: apps/v1@' | {{ bin_dir }}/kubectl apply -f -"
     register: helm_init_result
     changed_when: "'already installed' not in helm_init_result.stdout"
+
+  - name: Teardown | Helm init - Client Only
+    command: "{{ bin_dir }}/helm init --client-only"
+    register: helm_init_client_result
+    changed_when: "'already installed' not in helm_init_result.stdout"
+
+  - name: Setup | Wait for tiller to rollout
+    shell: "{{ bin_dir }}/kubectl -n kube-system rollout status deploy/tiller-deploy"
 
 # Run most of the roles in remove mode
 - hosts: kube-setup-delegate

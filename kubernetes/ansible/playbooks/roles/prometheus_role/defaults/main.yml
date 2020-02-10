@@ -11,6 +11,6 @@ grayskull_ca_issuer_name: grayskull-ca-issuer
 helm_prometheus_chart_name: "{{ platform_prefix }}-prometheus"
 helm_prometheus_chart_type: stable
 helm_prometheus_image_name: prometheus-operator
-helm_prometheus_chart_version: 5.12.3
+helm_prometheus_chart_version: 8.6.0
 
 ingress_secretName: "prom-gsp-tls"

@@ -1,11 +1,12 @@
 [all]
 {% for host in instances -%}
-{{ host.name }} ansible_host={{ host.private_dns }} ip={{ host.private_ip }} ansible_user=ubuntu ansible_ssh_host={{ host.public_dns }} public_ip={{ host.public_ip }}
+{{ host.name }} ansible_host={{ host.private_dns }} ip={{ host.private_ip }} ansible_user=maintuser ansible_ssh_host={{ host.public_dns }} public_ip={{ host.public_ip }}
 {% endfor -%}
 
 [all:vars]
 ansible_ssh_common_args='-o StrictHostKeyChecking=no'
 helm_version='v2.14.3'
+kubectl_version='v1.17.2'
 
 [kube-master]
 {% for host in instances -%}

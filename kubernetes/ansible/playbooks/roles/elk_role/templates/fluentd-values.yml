@@ -1,3 +1,0 @@
-output:
-  host: elasticsearch-master
-  port: 9200

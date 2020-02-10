@@ -17,14 +17,16 @@
 
 - name: ELK | Download Logstash chart
   shell: "{{ bin_dir }}/helm fetch \
+    --repo {{ helm_logstash_repo_url }} \
     --version {{ helm_logstash_chart_version }} \
     --destination {{ grayskull_dir }} \
     --untar \
-    {{ helm_logstash_chart_type }}/{{ helm_logstash_image_name }}"
+    {{ helm_logstash_image_name }}"
 
-- name: ELK | Download Fluentd chart
+- name: ELK | Download Metricbeat chart
   shell: "{{ bin_dir }}/helm fetch \
-    --version {{ helm_fluentd_chart_version }} \
+    --repo {{ helm_metricbeat_repo_url }} \
+    --version {{ helm_metricbeat_chart_version }} \
     --destination {{ grayskull_dir }} \
     --untar \
-    {{ helm_fluentd_chart_type }}/{{ helm_fluentd_image_name }}"
+    {{ helm_metricbeat_image_name }}"

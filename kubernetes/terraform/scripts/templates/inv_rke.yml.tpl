@@ -3,7 +3,8 @@ nodes:
   {% for host in instances -%}
   - address: {{ host.public_ip }}
     internal_address: {{ host.private_ip }}
-    user: ubuntu 
+    hostname_override: {{ host.private_dns }}
+    user: maintuser 
     role: 
     {%- if "master" in host.type %}
       - controlplane
@@ -33,9 +34,7 @@ services:
   kubelet:
     MountFlags: shared
     extra_args:
-      cgroup-root: "/cgroup:/sys/fs/cgroup"
       cgroup-driver: cgroupfs
-      cgroups-per-qos: false
       volume-plugin-dir: /usr/libexec/kubernetes/kubelet-plugins/volume/exec
     extra_binds:
       - /usr/libexec/kubernetes/kubelet-plugins/volume/exec:/usr/libexec/kubernetes/kubelet-plugins/volume/exec

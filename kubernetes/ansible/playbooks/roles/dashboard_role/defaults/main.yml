@@ -6,7 +6,14 @@ role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
 
 grayskull_ca_issuer_name: grayskull-ca-issuer
 
-
 ingress_url: "dash.{{ grayskull_domain }}"
 ingress_secretName: "dashboard-gsp-tls"
 ingress_path: "/"
+
+dashboard_namespace: kubernetes-dashboard
+dashboard_repo_url: docker.io
+dashboard_image_name: kubernetesui/dashboard
+dashboard_image_version: v2.0.0-rc3
+scraper_repo_url: docker.io
+scraper_image_name: kubernetesui/metrics-scraper
+scraper_image_version: v1.0.3

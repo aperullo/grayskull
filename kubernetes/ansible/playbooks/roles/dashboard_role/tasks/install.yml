@@ -3,11 +3,16 @@
 - name: Dashboard | Templates list
   set_fact:
     dashboard_role_templates:
+      - { file: dashboard-namespace.yml }
+      - { file: dashboard-admin.yml }
+      - { file: dashboard-secret.yml }
+      - { file: dashboard-configmap.yml }
       - { file: dashboard-ingress.yml }
       - { file: dashboard-service-account.yml }
       - { file: dashboard-rolebinding.yml }
       - { file: dashboard-deployment.yml }
       - { file: dashboard-certificate.yml }
+      - { file: dashboard-metrics-scraper.yml }
 
 - name: Dashboard | Create subfolder
   file:
@@ -24,7 +29,7 @@
 
 - name: Dashboard | Apply manifests
   kube:
-    namespace: "kube-system"
+    namespace: "{{ dashboard_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
     filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "latest"
@@ -32,13 +37,13 @@
 
 #---- Get login token
 - name: Dashboard | Get login token
-  shell: "{{ bin_dir }}/kubectl -n kube-system describe secret $({{ bin_dir }}/kubectl -n kube-system get secret | awk '/^dashboard-admin-token-/{print $1}') | awk '$1==\"token:\"{print $2}'" 
+  shell: "{{ bin_dir }}/kubectl -n {{ dashboard_namespace }} describe secret $({{ bin_dir }}/kubectl -n {{ dashboard_namespace }} get secret | awk '/^dashboard-admin-token-/{print $1}') | awk '$1==\"token:\"{print $2}'"
   #shell: "{{ bin_dir }}/kubectl -n kube-system get secret | awk '/^dashboard-admin-token-/{print $1}'" 
   register: dashboard_token
 
 - name: Dashboard | Show instructions
   debug: 
-    msg: "Dashboard is available at https://<MASTER_NODE_IP>:6443/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/node?namespace=default"
+    msg: "Dashboard is available at https://<MASTER_NODE_IP>:6443/api/v1/namespaces/{{ dashboard_namespace }}/services/https:kubernetes-dashboard:/proxy/#!/node?namespace=default"
 
 - name: Dashboard | Show token
   debug: 
