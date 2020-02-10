@@ -28,6 +28,6 @@ deploy:
       - ./k8s/*.yaml
 ```
 
-Run `skaffold dev --port-forwards`
+Run `skaffold dev --port-forward`
 
 Any changes you make will rebuild your image and redeploy the app
