@@ -1,4 +1,4 @@
- service:
+service:
   type: ClusterIP
   ports:
     - name: beats
@@ -18,10 +18,10 @@ logstashConfig:
     http.host: 0.0.0.0
     xpack.monitoring.enabled: false
 
-logstashPipeline: 
+logstashPipeline:
   uptime.conf: |
     input { exec { command => "uptime" interval => 30 } }
-# Delete above line to remove uptime spam from elasticsearch logs.
+    # Delete above line to remove uptime spam from elasticsearch logs.
 
   input.conf: |-
     input {
