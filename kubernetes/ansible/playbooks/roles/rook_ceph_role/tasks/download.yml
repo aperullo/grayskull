@@ -3,6 +3,6 @@
   shell: "{{ bin_dir }}/helm fetch \
     --repo {{ helm_rook_ceph_repo_url }} \
     --version {{ helm_rook_ceph_chart_version }} \
-    --destination {{ grayskull_dir }} \
+    --destination {{ role_dir }} \
     --untar \
     {{ helm_rook_ceph_image_name }}"  

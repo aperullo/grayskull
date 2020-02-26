@@ -3,6 +3,6 @@
   shell: "{{ bin_dir }}/helm fetch \
     --repo {{ helm_dash_proxy_repo_url }} \
     --version {{ helm_dash_proxy_chart_version }} \
-    --destination {{ grayskull_dir }} \
+    --destination {{ role_dir }} \
     --untar \
     {{ helm_dash_proxy_image_name }}"  

@@ -6,6 +6,6 @@
     shell: "{{ bin_dir }}/helm fetch \
       --repo {{ helm_registry_repo_url }} \
       --version {{ helm_registry_chart_version }} \
-      --destination {{ grayskull_dir }} \
+      --destination {{ role_dir }} \
       --untar \
       {{ helm_registry_image_name }}"
