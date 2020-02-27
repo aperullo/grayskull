@@ -56,7 +56,7 @@
       name: "{{ helm_rook_ceph_chart_name }}"
       namespace: "{{ ceph_namespace }}"
       bin_dir: "{{ bin_dir }}"
-      chart_src: "{{ grayskull_dir }}/{{ helm_rook_ceph_image_name }}"
+      chart_src: "{{ role_dir }}/{{ helm_rook_ceph_image_name }}"
       chart_version: "{{ helm_rook_ceph_chart_version }}"
       state: absent
 

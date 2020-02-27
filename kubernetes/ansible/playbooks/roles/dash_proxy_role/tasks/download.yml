@@ -1,4 +1,9 @@
----
+- name: Dash-proxy | Create subfolder
+  file:
+    path: "{{ role_dir }}"
+    state: directory
+    mode: '0755'
+
 - name: Dash-proxy | Download chart
   shell: "{{ bin_dir }}/helm fetch \
     --repo {{ helm_dash_proxy_repo_url }} \

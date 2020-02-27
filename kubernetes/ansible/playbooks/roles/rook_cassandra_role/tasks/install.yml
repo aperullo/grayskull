@@ -11,7 +11,7 @@
 - name: Rook Cassandra | Create manifests
   template:
     src: "{{ item.file }}.j2"
-    dest: "{{ grayskull_dir }}/{{ item.file }}"
+    dest: "{{ role_dir }}/{{ item.file }}"
   with_items: "{{ cassandra_role_templates }}"
   register: cassandra_role_manifests
   when:
@@ -23,7 +23,7 @@
     namespace: "{{ rook_cas_op_namespace }}"
     kubectl: "{{ bin_dir }}/kubectl"
     resource: "{{ item.item.type }}"
-    filename: "{{ grayskull_dir }}/{{ item.item.file }}"
+    filename: "{{ role_dir }}/{{ item.item.file }}"
     state: "latest"
   with_items: "{{ cassandra_role_manifests.results }}"
   when:

@@ -32,7 +32,7 @@
     name: "{{ helm_ingress_chart_name }}"
     namespace: "{{ ingress_namespace }}"
     bin_dir: "{{ bin_dir }}"
-    chart_src: "{{ grayskull_dir }}/{{ helm_ingress_image_name }}"
+    chart_src: "{{ role_dir }}/{{ helm_ingress_image_name }}"
     chart_version: "{{ helm_ingress_chart_version }}"
     state: absent
 

@@ -1,4 +1,9 @@
----
+- name: Authorization | Create subfolder
+  file:
+    path: "{{ role_dir }}"
+    state: directory
+    mode: '0755'
+
 - name: Authorization | Download chart
   shell: "{{ bin_dir }}/helm fetch \
     --repo {{ helm_auth_repo_url }} \

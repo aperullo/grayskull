@@ -1,3 +1,9 @@
+- name: Registry | Create subfolder
+  file:
+    path: "{{ role_dir }}"
+    state: directory
+    mode: '0755'
+
 - name: Registry | Delegate tasks
   when:
     - inventory_hostname == groups['kube-setup-delegate'][0]

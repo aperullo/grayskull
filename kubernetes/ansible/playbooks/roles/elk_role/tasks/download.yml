@@ -1,4 +1,9 @@
----
+- name: ELK | Create subfolder
+  file:
+    path: "{{ role_dir }}"
+    state: directory
+    mode: '0755'
+
 - name: ELK | Download Elasticsearch chart
   shell: "{{ bin_dir }}/helm fetch \
     --repo {{ helm_elasticsearch_repo_url }} \

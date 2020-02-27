@@ -1,4 +1,9 @@
----
+- name: Ingress | Create subfolder
+  file:
+    path: "{{ role_dir }}"
+    state: directory
+    mode: '0755'
+
 - name: Ingress | Download chart
   shell: "{{ bin_dir }}/helm fetch \
     --version {{ helm_ingress_chart_version }} \
