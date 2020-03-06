@@ -20,9 +20,9 @@ helm_logstash_chart_name: "{{ platform_prefix }}-logstash"
 helm_logstash_repo_url: https://helm.elastic.co
 helm_logstash_image_name: logstash
 helm_logstash_chart_version: 7.5.2
-helm_metricbeat_chart_name: "{{ platform_prefix }}-metricbeat"
-helm_metricbeat_repo_url: https://helm.elastic.co
-helm_metricbeat_image_name: metricbeat
-helm_metricbeat_chart_version: 7.5.2
+# helm_metricbeat_chart_name: "{{ platform_prefix }}-metricbeat"
+# helm_metricbeat_repo_url: https://helm.elastic.co
+# helm_metricbeat_image_name: metricbeat
+# helm_metricbeat_chart_version: 7.5.2
 
 ingress_secretName: "elk-gsp-tls"

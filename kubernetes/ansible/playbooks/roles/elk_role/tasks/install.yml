@@ -10,7 +10,7 @@
       - { file: elasticsearch-values.yml }
       - { file: kibana-values.yml }
       - { file: logstash-values.yml }
-      - { file: metricbeat-values.yml }
+      # - { file: metricbeat-values.yml }
 
 - name: ELK | Template Values
   template:
@@ -68,11 +68,11 @@
     chart_version: "{{ helm_logstash_chart_version }}"
     path_to_values: "{{ role_dir }}/logstash-values.yml"
 
-- name: ELK | Deploy Metricbeat chart
-  helm_chart:
-    name: "{{ helm_metricbeat_chart_name }}"
-    namespace: "{{ elk_namespace }}"
-    bin_dir: "{{ bin_dir }}"
-    chart_src: "{{ grayskull_dir }}/{{ helm_metricbeat_image_name }}"
-    chart_version: "{{ helm_metricbeat_chart_version }}"
-    path_to_values: "{{ role_dir }}/metricbeat-values.yml"
+# - name: ELK | Deploy Metricbeat chart
+#   helm_chart:
+#     name: "{{ helm_metricbeat_chart_name }}"
+#     namespace: "{{ elk_namespace }}"
+#     bin_dir: "{{ bin_dir }}"
+#     chart_src: "{{ grayskull_dir }}/{{ helm_metricbeat_image_name }}"
+#     chart_version: "{{ helm_metricbeat_chart_version }}"
+#     path_to_values: "{{ role_dir }}/metricbeat-values.yml"

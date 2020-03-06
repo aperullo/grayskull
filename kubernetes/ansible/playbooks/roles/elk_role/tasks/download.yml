@@ -23,10 +23,10 @@
     --untar \
     {{ helm_logstash_image_name }}"
 
-- name: ELK | Download Metricbeat chart
-  shell: "{{ bin_dir }}/helm fetch \
-    --repo {{ helm_metricbeat_repo_url }} \
-    --version {{ helm_metricbeat_chart_version }} \
-    --destination {{ grayskull_dir }} \
-    --untar \
-    {{ helm_metricbeat_image_name }}"
+# - name: ELK | Download Metricbeat chart
+#   shell: "{{ bin_dir }}/helm fetch \
+#     --repo {{ helm_metricbeat_repo_url }} \
+#     --version {{ helm_metricbeat_chart_version }} \
+#     --destination {{ grayskull_dir }} \
+#     --untar \
+#     {{ helm_metricbeat_image_name }}"
