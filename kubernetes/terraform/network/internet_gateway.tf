@@ -2,7 +2,7 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
 
   tags = {
-    Name = "${terraform.workspace}_${var.name}_igw"
+    Name = "${terraform.workspace}-${var.name}-igw"
     Environment = terraform.workspace
   }
 }
@@ -21,7 +21,7 @@ resource "aws_default_route_table" "rt" {
   }
 
   tags = {
-    Name = "${terraform.workspace}_${var.name}_rt"
+    Name = "${terraform.workspace}-${var.name}-rt"
     Environment = terraform.workspace
   }
 }

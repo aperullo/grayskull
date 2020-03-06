@@ -9,7 +9,7 @@ resource "aws_route53_zone" "r53_zone" {
   }
 
   tags = {
-    Name = "${terraform.workspace}_${var.name}_zone"
+    Name = "${terraform.workspace}-${var.name}-zone"
     Environment = terraform.workspace
   }
 }
