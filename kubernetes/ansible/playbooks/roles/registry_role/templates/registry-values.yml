@@ -29,6 +29,11 @@ secretKey: "{{ hostvars[groups['kube-setup-delegate'][0]]['harbor_key'] }}"
 persistence:
   enabled: true
   resourcePolicy: ""
+  persistentVolumeClaim:
+    registry:
+      size: 30Gi
+    database:
+      size: 20Gi
 
 logLevel: info
 
