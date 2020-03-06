@@ -25,8 +25,12 @@ This method also requires changing network interface settings which may need to 
 ### Setup
 
 1. Get the list of current dns servers in use
-2. run `docker container run -d --name dns -p 54:53/udp --cap-add=NET_ADMIN andyshinn/dnsmasq:2.76 --address=/test/127.0.0.1 --server=<original_dns_server>`
+2. run `docker container run -d --name dns -p 54:53/tcp -p 54:53/udp --cap-add=NET_ADMIN andyshinn/dnsmasq:2.76 --address=/test/127.0.0.1 --server=/<original_dns_address>/<original_dns_ip>`
 3. Reconfigure network interface to use a custom dns of `127.0.0.1`
+
+Note: You can add as many `--address` and `--server` arguments as necessary.
+
+Note to Git Bash users: Git Bash may automatically try to expand the arguments into paths. If this happens, you can disable it by running `export MSYS_NO_PATHCONV=1`
 
 ### Reset
 
