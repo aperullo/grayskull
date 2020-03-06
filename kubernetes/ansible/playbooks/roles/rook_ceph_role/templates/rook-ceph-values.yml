@@ -14,20 +14,6 @@ csi:
   enableCephfsDriver: true
   enableRbdDriver: true
   forceCephFSKernelClient: false
-  # provisionerTolerations:
-  #   - key: "node-role.kubernetes.io/controlplane"
-  #     operator: "Exists"
-  #     effect: NoSchedule
-  #   - key: "node-role.kubernetes.io/etcd"
-  #     operator: "Exists"
-  #     effect: NoExecute
-  # pluginTolerations:
-  #   - key: "node-role.kubernetes.io/controlplane"
-  #     operator: "Exists"
-  #     effect: NoSchedule
-  #   - key: "node-role.kubernetes.io/etcd"
-  #     operator: "Exists"
-  #     effect: NoExecute
 
 hostpathRequiresPrivileged: true
 

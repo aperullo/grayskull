@@ -1,0 +1,7 @@
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStoreUser
+metadata:
+  name: s3-admin
+spec:
+  store: gsp-store
+  displayName: "gsp-store administrator"
