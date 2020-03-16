@@ -19,6 +19,26 @@ grafana:
       - hosts:
           - "graph.{{ grayskull_domain }}"
         secretName: prom-gsp-tls
+  extraContainers: |
+    - name: grafana-datasource-updater
+      image: alpine
+      env:
+        {{- if not .Values.env.GF_SECURITY_ADMIN_USER }}
+        - name: GF_SECURITY_ADMIN_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.admin.existingSecret | default (include "grafana.fullname" .) }}
+              key: {{ .Values.admin.userKey | default "admin-user" }}
+        {{- end }}
+        {{- if and (not .Values.env.GF_SECURITY_ADMIN_PASSWORD) (not .Values.env.GF_SECURITY_ADMIN_PASSWORD__FILE) }}
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.admin.existingSecret | default (include "grafana.fullname" .) }}
+              key: {{ .Values.admin.passwordKey | default "admin-password" }}
+        {{- end }}
+      command: ["sh", "-c", "while true; do curl -X POST -u $GF_SECURITY_ADMIN_USER:$GF_SECURITY_ADMIN_PASSWORD -H 'Accept: application/json' -H 'Content-Type: application/json' localhost:3000/api/admin/provisioning/datasources/reload; sleep 30; done"]
+
 
 alertmanager:
   ingress:
