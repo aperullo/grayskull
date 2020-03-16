@@ -1,5 +1,5 @@
 resource "aws_security_group" "ports" {
-  name        = "${terraform.workspace}_${var.name}_ports"
+  name        = "${terraform.workspace}-${var.name}-ports"
   description = "Allow intra cluster communication"
   vpc_id      = aws_vpc.vpc.id
 
@@ -11,14 +11,14 @@ resource "aws_security_group" "ports" {
   }
 
   tags = {
-    Name = "${terraform.workspace}_${var.name}_ports"
+    Name = "${terraform.workspace}-${var.name}-ports"
     Environment = terraform.workspace
   }
 
 }
 
 resource "aws_security_group" "external_ports" {
-  name        = "${terraform.workspace}_${var.name}_external_ports"
+  name        = "${terraform.workspace}-${var.name}-external-ports"
   description = "Allow communication to and from the cluster"
   vpc_id      = aws_vpc.vpc.id
 
@@ -37,7 +37,7 @@ resource "aws_security_group" "external_ports" {
   }
 
   tags = {
-    Name = "${terraform.workspace}_${var.name}_external_ports"
+    Name = "${terraform.workspace}-${var.name}-external-ports"
     Environment = terraform.workspace
   }
 

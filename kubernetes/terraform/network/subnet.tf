@@ -6,7 +6,7 @@ resource "aws_subnet" "subnet_1" {
   # availability_zone_id = aws_route53_zone.r53_zone.zone_id
 
   tags = {
-    Name = "${terraform.workspace}_${var.name}_subnet_1"
+    Name = "${terraform.workspace}-${var.name}-subnet-1"
     Environment = terraform.workspace
   }
 }
@@ -19,7 +19,7 @@ resource "aws_subnet" "subnet_2" {
   # availability_zone_id = aws_route53_zone.r53_zone.zone_id
 
   tags = {
-    Name = "${terraform.workspace}_${var.name}_subnet_2"
+    Name = "${terraform.workspace}-${var.name}-subnet-2"
     Environment = terraform.workspace
   }
 }
@@ -32,7 +32,7 @@ resource "aws_subnet" "subnet_3" {
   # availability_zone_id = aws_route53_zone.r53_zone.zone_id
 
   tags = {
-    Name = "${terraform.workspace}_${var.name}_subnet_3"
+    Name = "${terraform.workspace}-${var.name}-subnet-3"
     Environment = terraform.workspace
   }
 }
