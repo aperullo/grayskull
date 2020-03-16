@@ -32,14 +32,14 @@
     chart_version: "{{ helm_logstash_chart_version }}"
     state: absent
 
-- name: ELK | Remove Metricbeat chart
-  helm_chart:
-    name: "{{ helm_metricbeat_chart_name }}"
-    namespace: "{{ elk_namespace }}"
-    bin_dir: "{{ bin_dir }}"
-    chart_src: "{{ grayskull_dir }}/{{ helm_metricbeat_image_name }}"
-    chart_version: "{{ helm_metricbeat_chart_version }}"
-    state: absent
+# - name: ELK | Remove Metricbeat chart
+#   helm_chart:
+#     name: "{{ helm_metricbeat_chart_name }}"
+#     namespace: "{{ elk_namespace }}"
+#     bin_dir: "{{ bin_dir }}"
+#     chart_src: "{{ grayskull_dir }}/{{ helm_metricbeat_image_name }}"
+#     chart_version: "{{ helm_metricbeat_chart_version }}"
+#     state: absent
 
 #---- Copy over the templates to be used with kubectl delete -f. 
 - name: ELK | Templates list
