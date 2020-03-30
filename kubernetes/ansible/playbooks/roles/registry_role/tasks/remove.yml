@@ -19,7 +19,7 @@
       name: "{{ helm_registry_chart_name }}"
       namespace: "{{ registry_namespace }}"
       bin_dir: "{{ bin_dir }}"
-      chart_src: "{{ grayskull_dir }}/{{ helm_registry_image_name }}"
+      chart_src: "{{ role_dir }}/{{ helm_registry_image_name }}"
       chart_version: "{{ helm_registry_chart_version }}"
       state: absent
 
@@ -42,7 +42,7 @@
   - name: Registry | Create manifests
     template:
       src: "{{ item.file }}"
-      dest: "{{ grayskull_dir }}/{{ subfolder }}/{{ item.file }}"
+      dest: "{{ role_dir }}/{{ item.file }}"
     with_items: "{{ registry_role_templates }}"
     register: registry_role_manifests
 

@@ -3,7 +3,7 @@
     name: "{{ helm_prometheus_chart_name }}"
     namespace: "{{ prometheus_namespace }}"
     bin_dir: "{{ bin_dir }}"
-    chart_src: "{{ grayskull_dir }}/{{ helm_prometheus_image_name }}"
+    chart_src: "{{ role_dir }}/{{ helm_prometheus_image_name }}"
     chart_version: "{{ helm_prometheus_chart_version }}"
     state: absent
 

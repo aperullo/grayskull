@@ -1,7 +1,12 @@
----
+- name: Prometheus | Create subfolder
+  file:
+    path: "{{ role_dir }}"
+    state: directory
+    mode: '0755'
+
 - name: Prometheus | Download chart
   shell: "{{ bin_dir }}/helm fetch \
     --version {{ helm_prometheus_chart_version }} \
-    --destination {{ grayskull_dir }} \
+    --destination {{ role_dir }} \
     --untar \
     {{ helm_prometheus_chart_type}}/{{ helm_prometheus_image_name }}"  

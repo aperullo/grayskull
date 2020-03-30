@@ -1,9 +1,14 @@
----
+- name: ELK | Create subfolder
+  file:
+    path: "{{ role_dir }}"
+    state: directory
+    mode: '0755'
+
 - name: ELK | Download Elasticsearch chart
   shell: "{{ bin_dir }}/helm fetch \
     --repo {{ helm_elasticsearch_repo_url }} \
     --version {{ helm_elasticsearch_chart_version }} \
-    --destination {{ grayskull_dir }} \
+    --destination {{ role_dir }} \
     --untar \
     {{ helm_elasticsearch_image_name }}"
 
@@ -11,7 +16,7 @@
   shell: "{{ bin_dir }}/helm fetch \
     --repo {{ helm_kibana_repo_url }} \
     --version {{ helm_kibana_chart_version }} \
-    --destination {{ grayskull_dir }} \
+    --destination {{ role_dir }} \
     --untar \
     {{ helm_kibana_image_name }}"
 
@@ -19,7 +24,7 @@
   shell: "{{ bin_dir }}/helm fetch \
     --repo {{ helm_logstash_repo_url }} \
     --version {{ helm_logstash_chart_version }} \
-    --destination {{ grayskull_dir }} \
+    --destination {{ role_dir }} \
     --untar \
     {{ helm_logstash_image_name }}"
 
@@ -27,6 +32,6 @@
 #   shell: "{{ bin_dir }}/helm fetch \
 #     --repo {{ helm_metricbeat_repo_url }} \
 #     --version {{ helm_metricbeat_chart_version }} \
-#     --destination {{ grayskull_dir }} \
+#     --destination {{ role_dir }} \
 #     --untar \
 #     {{ helm_metricbeat_image_name }}"

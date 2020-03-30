@@ -3,3 +3,6 @@ task_modes:
 
 rook_cas_namespace: "default"   # Represents which namespace the actual cluster is deployed to
 rook_cas_op_namespace: "grayskull-cassandra"   # where the operator will live
+
+subfolder: cert-manager-role
+role_dir: "{{ grayskull_dir }}/{{ subfolder }}"

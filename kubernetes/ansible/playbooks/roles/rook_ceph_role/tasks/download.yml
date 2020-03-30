@@ -1,8 +1,13 @@
----
+- name: Rook Ceph | Create subfolder
+  file:
+    path: "{{ role_dir }}"
+    state: directory
+    mode: '0755'
+
 - name: Rook Ceph | Download chart
   shell: "{{ bin_dir }}/helm fetch \
     --repo {{ helm_rook_ceph_repo_url }} \
     --version {{ helm_rook_ceph_chart_version }} \
-    --destination {{ grayskull_dir }} \
+    --destination {{ role_dir }} \
     --untar \
     {{ helm_rook_ceph_image_name }}"  

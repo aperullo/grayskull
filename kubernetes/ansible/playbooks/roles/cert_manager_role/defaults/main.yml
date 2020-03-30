@@ -4,6 +4,9 @@ task_modes:
 
 cert_manager_namespace: grayskull-cert-manager
 
+subfolder: cert-manager-role
+role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
+
 grayskull_ca_issuer_name: grayskull-ca-issuer
 grayskull_ca_issuer_secret: grayskull-ca-key-pair
 grayskull_ca_path: "{{ grayskull_dir }}/ca"

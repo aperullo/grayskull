@@ -46,7 +46,7 @@
     name: "{{ helm_elasticsearch_chart_name }}"
     namespace: "{{ elk_namespace }}"
     bin_dir: "{{ bin_dir }}"
-    chart_src: "{{ grayskull_dir }}/{{ helm_elasticsearch_image_name }}"
+    chart_src: "{{ role_dir }}/{{ helm_elasticsearch_image_name }}"
     chart_version: "{{ helm_elasticsearch_chart_version }}"
     path_to_values: "{{ role_dir }}/elasticsearch-values.yml"
 
@@ -55,7 +55,7 @@
     name: "{{ helm_kibana_chart_name }}"
     namespace: "{{ elk_namespace }}"
     bin_dir: "{{ bin_dir }}"
-    chart_src: "{{ grayskull_dir }}/{{ helm_kibana_image_name }}"
+    chart_src: "{{ role_dir }}/{{ helm_kibana_image_name }}"
     chart_version: "{{ helm_kibana_chart_version }}"
     path_to_values: "{{ role_dir }}/kibana-values.yml"
 
@@ -64,7 +64,7 @@
     name: "{{ helm_logstash_chart_name }}"
     namespace: "{{ elk_namespace }}"
     bin_dir: "{{ bin_dir }}"
-    chart_src: "{{ grayskull_dir }}/{{ helm_logstash_image_name }}"
+    chart_src: "{{ role_dir }}/{{ helm_logstash_image_name }}"
     chart_version: "{{ helm_logstash_chart_version }}"
     path_to_values: "{{ role_dir }}/logstash-values.yml"
 
@@ -73,6 +73,6 @@
 #     name: "{{ helm_metricbeat_chart_name }}"
 #     namespace: "{{ elk_namespace }}"
 #     bin_dir: "{{ bin_dir }}"
-#     chart_src: "{{ grayskull_dir }}/{{ helm_metricbeat_image_name }}"
+#     chart_src: "{{ role_dir }}/{{ helm_metricbeat_image_name }}"
 #     chart_version: "{{ helm_metricbeat_chart_version }}"
 #     path_to_values: "{{ role_dir }}/metricbeat-values.yml"

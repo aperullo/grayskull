@@ -32,7 +32,7 @@
     name: "{{ helm_dash_proxy_chart_name }}"
     namespace: "{{ dash_proxy_namespace }}"
     bin_dir: "{{ bin_dir }}"
-    chart_src: "{{ grayskull_dir }}/{{ helm_dash_proxy_image_name }}"
+    chart_src: "{{ role_dir }}/{{ helm_dash_proxy_image_name }}"
     chart_version: "{{ helm_dash_proxy_chart_version }}"
     path_to_values: "{{ dash_proxy_file_location }}"
 
