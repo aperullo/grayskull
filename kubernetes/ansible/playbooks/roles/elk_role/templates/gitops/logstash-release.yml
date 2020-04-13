@@ -1,0 +1,13 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: "{{ helm_logstash_chart_name }}"
+  namespace: "{{ elk_namespace }}"
+spec:
+  releaseName: "{{ helm_logstash_chart_name }}"
+  chart:
+    repository: "{{ helm_logstash_repo_url }}"
+    name: "{{ helm_logstash_image_name }}"
+    version: "{{ helm_logstash_chart_version }}"
+  values:
+{{logstash_values}}

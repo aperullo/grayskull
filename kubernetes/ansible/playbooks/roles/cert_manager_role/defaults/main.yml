@@ -3,6 +3,13 @@ task_modes:
   - install
 
 cert_manager_namespace: grayskull-cert-manager
+gitops_namespace_dir: "{{ gitops_repo_dir }}/namespaces/{{ cert_manager_namespace }}"
+gitops_release_dir: "{{ gitops_repo_dir }}/releases/{{ cert_manager_namespace }}"
+gitops_workload_dir: "{{ gitops_repo_dir }}/workloads/{{ cert_manager_namespace }}"
+# Hacky solution to getting values file into HelmRelease
+# Read the values file, template, and indent it. Then assign it to a variable
+# When we template the helm release file the contents of this variable will be loaded
+values: "{{ lookup('template', 'templates/values.yml') | indent( width=4, first=True ) }}"
 
 subfolder: cert-manager-role
 role_dir: "{{ grayskull_dir }}/{{ subfolder }}"

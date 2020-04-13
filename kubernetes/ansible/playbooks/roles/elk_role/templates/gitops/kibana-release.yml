@@ -1,0 +1,13 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: "{{ helm_kibana_chart_name }}"
+  namespace: "{{ elk_namespace }}"
+spec:
+  releaseName: "{{ helm_kibana_chart_name }}"
+  chart:
+    repository: "{{ helm_kibana_repo_url }}"
+    name: "{{ helm_kibana_image_name }}"
+    version: "{{ helm_kibana_chart_version }}"
+  values:
+{{kibana_values}}

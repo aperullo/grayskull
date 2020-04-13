@@ -7,6 +7,16 @@ elk_namespace: grayskull-logs
 subfolder: elk-role
 role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
 
+gitops_namespace_dir: "{{ gitops_repo_dir }}/namespaces/{{ elk_namespace }}"
+gitops_release_dir: "{{ gitops_repo_dir }}/releases/{{ elk_namespace }}"
+gitops_workload_dir: "{{ gitops_repo_dir }}/workloads/{{ elk_namespace }}"
+# Hacky solution to getting values file into HelmRelease
+# Read the values file, template, and indent it. Then assign it to a variable
+# When we template the helm release file the contents of this variable will be loaded
+elasticsearch_values: "{{ lookup('template', 'templates/elasticsearch-values.yml') | indent( width=4, first=True ) }}"
+kibana_values: "{{ lookup('template', 'templates/kibana-values.yml') | indent( width=4, first=True ) }}"
+logstash_values: "{{ lookup('template', 'templates/logstash-values.yml') | indent( width=4, first=True ) }}"
+
 grayskull_ca_issuer_name: grayskull-ca-issuer
 helm_elasticsearch_chart_name: "{{ platform_prefix }}-elasticsearch"
 helm_elasticsearch_repo_url: https://helm.elastic.co

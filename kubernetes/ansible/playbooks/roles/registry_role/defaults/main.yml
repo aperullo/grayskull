@@ -6,6 +6,14 @@ registry_namespace: grayskull-registry
 subfolder: registry-role
 role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
 
+gitops_namespace_dir: "{{ gitops_repo_dir }}/namespaces/{{ registry_namespace }}"
+gitops_release_dir: "{{ gitops_repo_dir }}/releases/{{ registry_namespace }}"
+gitops_workload_dir: "{{ gitops_repo_dir }}/workloads/{{ registry_namespace }}"
+# Hacky solution to getting values file into HelmRelease
+# Read the values file, template, and indent it. Then assign it to a variable
+# When we template the helm release file the contents of this variable will be loaded
+values: "{{ lookup('template', 'templates/registry-values.yml') | indent( width=4, first=True ) }}"
+
 grayskull_ca_issuer_name: grayskull-ca-issuer
 
 ca_path_remote_src: "{{ grayskull_dir }}/ca.pem"
@@ -13,6 +21,11 @@ ca_path_dest: "/etc/docker/certs.d/{{ ingress_host }}"
 
 # TODO: submit PR against harbor to allow specifying this value from an existing secret. Or Fork harbor to add it
 harbor_user: "admin"
+harbor_pass_secret_name: harbor-pass
+harbor_pass_secret_key: password
+harbor_encryption_secret_name: harbor-key
+harbor_encryption_secret_key: key 
+
 
 helm_registry_chart_name: "{{ platform_prefix }}-registry"
 helm_registry_repo_url: https://helm.goharbor.io

@@ -26,6 +26,16 @@ harborAdminPassword: "{{ hostvars[groups['kube-setup-delegate'][0]]['harbor_pass
 # The secret key used for encryption. Must be a string of 16 chars.
 secretKey: "{{ hostvars[groups['kube-setup-delegate'][0]]['harbor_key'] }}"
 
+# The initial password of Harbor admin.
+# Or specify the name and key of an existing secret to use for the initial password instead.
+harborAdminExistingSecret: "{{ harbor_pass_secret_name }}"
+harborAdminExistingSecretKey: "{{ harbor_pass_secret_key }}"
+
+# The secret key used for encryption.
+# Or specify the name and key of an existing secret to use for the initial password instead.
+secretKeyExistingSecret: "{{ harbor_encryption_secret_name }}"
+secretKeyExistingSecretKey: "{{ harbor_encryption_secret_key }}"
+
 persistence:
   enabled: true
   resourcePolicy: ""

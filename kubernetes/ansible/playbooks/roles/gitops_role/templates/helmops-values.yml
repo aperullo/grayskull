@@ -1,0 +1,10 @@
+chartSyncInterval: "1m"
+
+git:
+  url: "{{ git_repo_url }}"
+  ssh:
+    secretName: "{{ flux_secret_name }}"
+  pollInterval: "1m"
+
+helm:
+  versions: "v3"

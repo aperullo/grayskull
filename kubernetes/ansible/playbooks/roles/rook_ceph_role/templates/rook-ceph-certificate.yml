@@ -2,6 +2,7 @@ apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
   name: dash-cert
+  namespace: {{ ceph_namespace }}
 spec:
   secretName: {{ ingress_secretName }}
   issuerRef:

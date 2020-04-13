@@ -1,0 +1,39 @@
+- name: Registry | Delegate tasks
+  when:
+    - inventory_hostname == groups['kube-setup-delegate'][0]
+  block:
+  - name: Registry | Create namespace folder
+    file:
+      path: "{{ gitops_namespace_dir }}"
+      state: directory
+      mode: '0755'
+
+  - name: Registry | Create releases folder
+    file:
+      path: "{{ gitops_release_dir }}"
+      state: directory
+      mode: '0755'
+
+  - name: Registry | Create workloads folder
+    file:
+      path: "{{ gitops_workload_dir }}"
+      state: directory
+      mode: '0755'
+
+  - name: Registry | Template namespace
+    template:
+      src: registry-namespace.yml
+      dest: "{{ gitops_namespace_dir }}/registry-namespace.yml"
+
+  - name: Registry | Template certificate
+    template:
+      src: registry-certificate.yml
+      dest: "{{ gitops_workload_dir }}/registry-certificate.yml"
+
+  #---- Need to get the values into the release but don't want to duplicate them in case values file changes.
+
+  - name: Registry | Template release
+    template:
+      src: gitops/release.yml
+      dest: "{{ gitops_release_dir }}/release.yml"
+

@@ -2,14 +2,22 @@ task_modes:
   - download
   - install
 
-prometheus_namespace: kube-system
+prometheus_namespace: grayskull-metrics #kube-system
 subfolder: prometheus-role
 role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
+
+gitops_namespace_dir: "{{ gitops_repo_dir }}/namespaces/{{ prometheus_namespace }}"
+gitops_release_dir: "{{ gitops_repo_dir }}/releases/{{ prometheus_namespace }}"
+gitops_workload_dir: "{{ gitops_repo_dir }}/workloads/{{ prometheus_namespace }}"
+# Hacky solution to getting values file into HelmRelease
+# Read the values file, template, and indent it. Then assign it to a variable
+# When we template the helm release file the contents of this variable will be loaded
+values: "{{ lookup('template', 'templates/prometheus-values.yml') | indent( width=4, first=True ) }}"
 
 grayskull_ca_issuer_name: grayskull-ca-issuer
 
 helm_prometheus_chart_name: "{{ platform_prefix }}-prometheus"
-helm_prometheus_chart_type: stable
+helm_prometheus_repo_url: "https://kubernetes-charts.storage.googleapis.com" #stable
 helm_prometheus_image_name: prometheus-operator
 helm_prometheus_chart_version: 8.6.0
 

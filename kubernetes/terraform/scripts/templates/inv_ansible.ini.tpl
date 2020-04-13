@@ -5,8 +5,9 @@
 
 [all:vars]
 ansible_ssh_common_args='-o StrictHostKeyChecking=no'
-helm_version='v2.14.3'
+helm_version='v3.1.1'
 kubectl_version='v1.17.2'
+gitops_repo_dir=/grayskull/gitops-repo
 
 [kube-master]
 {% for host in instances -%}

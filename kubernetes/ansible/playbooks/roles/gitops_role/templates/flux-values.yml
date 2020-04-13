@@ -1,0 +1,6 @@
+git:
+  url: "{{ git_repo_url }}"
+  secretName: "{{ flux_secret_name }}"
+  pollInterval: "1m"
+syncGarbageCollection:
+  enabled: true

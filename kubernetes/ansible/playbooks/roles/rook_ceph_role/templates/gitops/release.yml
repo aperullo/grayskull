@@ -1,0 +1,13 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: "{{ helm_rook_ceph_chart_name }}"
+  namespace: "{{ ceph_namespace }}"
+spec:
+  releaseName: "{{ helm_rook_ceph_chart_name }}"
+  chart:
+    repository: "{{ helm_rook_ceph_repo_url }}"
+    name: "{{ helm_rook_ceph_image_name }}"
+    version: "{{ helm_rook_ceph_chart_version }}"
+  values:
+{{values}}

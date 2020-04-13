@@ -6,7 +6,8 @@
 
 - name: Prometheus | Download chart
   shell: "{{ bin_dir }}/helm fetch \
+    --repo {{ helm_prometheus_repo_url }} \
     --version {{ helm_prometheus_chart_version }} \
     --destination {{ role_dir }} \
     --untar \
-    {{ helm_prometheus_chart_type}}/{{ helm_prometheus_image_name }}"  
+    {{ helm_prometheus_image_name }}"  

@@ -1,0 +1,98 @@
+- name: Gitops | Create subfolder
+  file:
+    path: "{{ role_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Gitops | Template flux values file
+  template:
+    src: "flux-values.yml"
+    dest: "{{ role_dir }}/flux-values.yml"
+
+- name: Gitops | Template helmops values file
+  template:
+    src: "helmops-values.yml"
+    dest: "{{ role_dir }}/helmops-values.yml"
+
+# Need a namespace that is idempotently created
+- name: Gitops | Templates list
+  set_fact:
+    gitops_role_templates:
+      - { file: gitops-namespace.yml }
+
+- name: Gitops | Create manifests
+  template:
+    src: "{{ item.file }}"
+    dest: "{{ role_dir }}/{{ item.file }}"
+  with_items: "{{ gitops_role_templates }}"
+  register: gitops_role_manifests
+
+- name: Gitops | Apply manifests
+  kube:
+    kubectl: "{{ bin_dir }}/kubectl"
+    filename: "{{ role_dir }}/{{ item.item.file }}"
+    state: "latest"
+  with_items: "{{ gitops_role_manifests.results }}"
+
+- name: Gitops | Template crd file
+  template:
+    src: "flux-crds.yml"
+    dest: "{{ role_dir }}/flux-crds.yml"
+
+- name: Gitops | Apply crds
+  command: "{{ bin_dir }}/kubectl apply -f {{ role_dir }}/flux-crds.yml"
+
+- name: Gitops | Check for secret
+  shell: "{{ bin_dir }}/kubectl get secrets -n {{ gitops_namespace }}"
+  register: gitops_secret_exists
+  changed_when: false
+
+#---- Generate an ssh key.
+
+# We need a public key for the operator to use. We don't want to make a new one if it exists already
+- name: Gitops | Generate ssh keys
+  shell: "echo -e 'y\n'|ssh-keygen -q -N \"\" -f {{ role_dir }}/identity"
+  when: "flux_secret_name not in gitops_secret_exists.stdout"
+
+- name: Gitops | Apply ssh key secret
+  command: "{{ bin_dir }}/kubectl -n {{ gitops_namespace }} create secret generic {{ flux_secret_name }} --from-file={{ role_dir }}/identity"
+  when: "flux_secret_name not in gitops_secret_exists.stdout"
+
+- name: Gitops | Get public key
+  command: "cat {{ role_dir }}/identity.pub"
+  register: public_key
+
+# This key will need to be added to the repo deploy keys with write permission.
+- name: Gitops | Show public key
+  debug: 
+    msg: "Add this public key to be repo: {{ public_key.stdout_lines[0] }}"
+
+- name: Gitops | Ensure repo url is defined
+  fail:
+    msg: "Please make sure git_repo_url is defined for the gitops role"
+  when: "git_repo_url is not defined or not git_repo_url"
+
+#TODO: Update helm task to handle helm3
+# - name: Gitops | Deploy flux chart
+#   helm_chart:
+#     name: "{{ helm_flux_chart_name }}"
+#     namespace: "{{ gitops_namespace }}"
+#     bin_dir: "{{ bin_dir }}"
+#     chart_src: "{{ grayskull_dir }}/{{ helm_flux_image_name }}"
+#     chart_version: "{{ helm_flux_chart_version }}"
+#     path_to_values: "{{ role_dir }}/flux-values.yml"
+#     state: present
+
+- name: Gitops | Deploy flux chart
+  command: "{{ bin_dir }}/helm upgrade {{ helm_flux_chart_name }} \
+  {{ role_dir }}/{{ helm_flux_image_name }}-{{ helm_flux_chart_version }}.tgz \
+  --namespace {{ gitops_namespace }} \
+  --values {{ role_dir }}/flux-values.yml \
+  --install"
+
+- name: Gitops | Deploy helm-operator chart
+  command: "{{ bin_dir }}/helm upgrade {{ helm_helmops_chart_name }} \
+  {{ role_dir }}/{{ helm_helmops_image_name }}-{{ helm_helmops_chart_version }}.tgz \
+  --namespace {{ gitops_namespace }} \
+  --values {{ role_dir }}/helmops-values.yml \
+  --install"

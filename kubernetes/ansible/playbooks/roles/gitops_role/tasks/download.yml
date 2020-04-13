@@ -1,0 +1,19 @@
+- name: Gitops | Create subfolder
+  file:
+    path: "{{ role_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Gitops | Download chart
+  shell: "{{ bin_dir }}/helm fetch \
+    --repo {{ helm_flux_repo_url }}
+    --version {{ helm_flux_chart_version }} \
+    --destination {{ role_dir }} \
+    {{ helm_flux_image_name }}"  
+
+- name: Gitops | Download chart
+  shell: "{{ bin_dir }}/helm fetch \
+    --repo {{ helm_helmops_repo_url }}
+    --version {{ helm_helmops_chart_version }} \
+    --destination {{ role_dir }} \
+    {{ helm_helmops_image_name }}"  

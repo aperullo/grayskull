@@ -1,0 +1,13 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: "{{ helm_ingress_chart_name }}"
+  namespace: "{{ ingress_namespace }}"
+spec:
+  releaseName: "{{ helm_ingress_chart_name }}"
+  chart:
+    repository: "{{ helm_ingress_repo_url }}"
+    name: "{{ helm_ingress_image_name }}"
+    version: "{{ helm_ingress_chart_version }}"
+  values:
+{{values}}

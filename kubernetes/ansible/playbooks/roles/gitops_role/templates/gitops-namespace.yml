@@ -1,0 +1,7 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ gitops_namespace }}
+  labels:
+    name: {{ gitops_namespace }}

@@ -1,0 +1,43 @@
+- name: Prometheus | Create namespace folder
+  file:
+    path: "{{ gitops_namespace_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Prometheus | Create releases folder
+  file:
+    path: "{{ gitops_release_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Prometheus | Create workloads folder
+  file:
+    path: "{{ gitops_workload_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Prometheus | Template namespace
+  template:
+    src: prometheus-namespace.yml
+    dest: "{{ gitops_namespace_dir }}/prometheus-namespace.yml"
+
+#---- Need to get the values into the release but don't want to duplicate them in case values file changes.
+
+- name: Prometheus | Template release
+  template:
+    src: gitops/release.yml
+    dest: "{{ gitops_release_dir }}/release.yml"
+
+#---- Template workloads
+
+- name: Prometheus | Templates list
+  set_fact:
+    prometheus_role_templates:
+      - { file: prometheus-crd-clusterrole.yml }
+      - { file: prometheus-certificate.yml }
+    
+- name: Prometheus | Template manifests
+  template:
+    src: "{{ item.file }}"
+    dest: "{{ gitops_workload_dir }}/{{ item.file }}"
+  with_items: "{{ prometheus_role_templates }}"

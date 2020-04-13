@@ -1,0 +1,27 @@
+- name: Ion | Create namespace folder
+  file:
+    path: "{{ gitops_namespace_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Ion | Create workloads folder
+  file:
+    path: "{{ gitops_workload_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Ion | Template namespace
+  template:
+    src: ion-namespace.yml
+    dest: "{{ gitops_namespace_dir }}/ion-namespace.yml"
+
+- name: Ion | Templates list
+  set_fact:
+    ion_role_templates:
+      - { file: ion-rolebinding.yml }
+
+- name: Ion | Template manifests
+  template:
+    src: "{{ item.file }}"
+    dest: "{{ gitops_workload_dir }}/{{ item.file }}"
+  with_items: "{{ ion_role_templates }}"

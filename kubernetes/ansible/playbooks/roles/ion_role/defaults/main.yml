@@ -10,3 +10,6 @@ task_modes:
 ion_ms_namespace: "ion-{{ ms_namespace }}"
 subfolder: "{{ ion_ms_namespace }}-role"
 role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
+
+gitops_namespace_dir: "{{ gitops_repo_dir }}/namespaces/{{ ion_ms_namespace }}"
+gitops_workload_dir: "{{ gitops_repo_dir }}/workloads/{{ ion_ms_namespace }}"

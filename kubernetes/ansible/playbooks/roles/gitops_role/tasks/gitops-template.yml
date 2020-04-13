@@ -1,0 +1,23 @@
+- name: Gitops | Create git folder
+  file:
+    path: "{{ gitops_repo_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Gitops | Create namespace folder
+  file:
+    path: "{{ gitops_repo_dir }}/namespaces"
+    state: directory
+    mode: '0755'
+
+- name: Gitops | Create releases folder
+  file:
+    path: "{{ gitops_repo_dir }}/releases"
+    state: directory
+    mode: '0755'
+
+- name: Gitops | Create workloads folder
+  file:
+    path: "{{ gitops_repo_dir }}/workloads"
+    state: directory
+    mode: '0755'

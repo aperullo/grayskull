@@ -1,0 +1,189 @@
+---
+# This playbook sets up the platform services that make up the grayskull platform.
+# This playbook assumes that the ansible host 'kube-setup-delegate' is capable of reaching
+# an already provisioned kubernetes cluster. It will install kubectl if necessary,
+# but you must provide it a path to a valid KUBECONFIG using the variable kubeconfig_src.
+
+# - import_playbook: kubespray/cluster.yml
+
+- hosts: kube-setup-delegate
+  become: yes
+  tasks:
+
+  # ---- Kubectl set up
+
+  # RKE does not provide kubectl or kubeconfig on host. Kubespray does. We're going to bring our own just in case
+  - name: Setup | Check for kubectl
+    shell: "{{ bin_dir }}/kubectl --help"
+    register: kubectl_result
+    ignore_errors: True
+
+  - name: Setup | Install kubectl
+    get_url:
+      url: "https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl"
+      dest: "{{ bin_dir }}/kubectl"
+      mode: '0755'
+    when: kubectl_result.rc != 0
+
+  - name: Setup | Check for KUBECONFIG
+    stat:
+      path: /etc/kubernetes/admin.conf
+    register: kubeconfig
+
+  # If the file doesn't exist we need to bring it from locally
+  - name: Setup | Copy kubeconfig
+    copy:
+      src: "{{ kubeconfig_src }}"
+      dest: "/etc/kubernetes/admin.conf"
+    when: kubeconfig.stat is defined and not kubeconfig.stat.exists
+
+  # Correct the kubeconfig by changing the server ip to be internal one.
+  - name: Setup | Correct kubeconfig
+    lineinfile:
+      path: "/etc/kubernetes/admin.conf"
+      regexp: "server:*"
+      line: "    server: \"https://{{ hostvars[groups['kube-master'][0]].ip }}:6443\""
+    when: kubeconfig.stat is defined and not kubeconfig.stat.exists
+
+  - name: Setup | Add Environment variable
+    lineinfile:
+      path: /etc/environment
+      regexp: "KUBECONFIG=*"
+      line: KUBECONFIG=/etc/kubernetes/admin.conf
+      create: yes
+
+  # ---- Helm set up
+  - name: Setup | Create grayskull directory
+    file:
+      path: "{{ grayskull_dir }}"
+      state: directory
+      mode: '0755'
+
+  # Needed to re-install helm if the remove playbook is run.
+  - name: Setup | Retrieve helm binary archive
+    unarchive:
+      src: "https://get.helm.sh/helm-{{ helm_version }}-linux-amd64.tar.gz"
+      dest: "{{ bin_dir }}"
+      remote_src: yes
+      exclude:
+        - "*/LICENSE"
+        - "*/README.md"
+        - "*/tiller"
+      extra_opts:
+        - --strip-components=1
+
+  - name: Setup | Move helm binary into place
+    command: >
+      cp /tmp/linux-amd64/helm {{ bin_dir }}
+      creates={{ bin_dir }}/helm
+
+  - name: Setup | Add Helm repo
+    command: "{{ bin_dir }}/helm repo add stable https://kubernetes-charts.storage.googleapis.com"
+
+  - name: Setup | Update Helm repos
+    command: "{{ bin_dir }}/helm repo update"
+
+  - name: Setup | Create grayskull/secrets directory
+    file:
+      path: "{{ grayskull_dir }}/secrets"
+      state: directory
+      mode: '0755'
+
+  - name: Setup | Create CSR and copy to remote.
+    template:
+      src: csr.json.tpl
+      dest: "{{ grayskull_dir }}/csr.json"
+
+- hosts: kube-setup-delegate
+  become: yes
+  tasks:
+    - include_role:
+        name: certs_role
+    - include_role:
+        name: gitops_role
+      when: (gitops_role_enabled | default(True)) 
+    - include_role:
+        name: cert_manager_role
+      vars: 
+        task_modes: ["gitops-install", "gitops-template"]
+      when: (cert_manager_role_enabled | default(True)) 
+    - include_role:
+        name: ingress_role
+      vars:
+        task_modes: ["gitops-template"]
+      when: (ingress_role_enabled | default(True)) 
+    - include_role:
+        name: dashboard_role
+      vars:
+        task_modes: ["gitops-template"]
+      when: (dashboard_role_enabled | default(True)) 
+    - include_role:
+        name: prometheus_role
+      vars:
+        task_modes: ["gitops-template"]
+      when: (prometheus_role_enabled | default(True)) 
+    - include_role:
+        name: rook_ceph_role
+      vars:
+        task_modes: ["gitops-template"]
+      when: (rook_ceph_role_enabled | default(True)) 
+
+# This role needs to be run on all hosts
+- hosts: all
+  become: yes
+  tasks:
+    - include_role:
+        name: registry_role
+      vars:
+        task_modes: ["gitops-install", "gitops-template"]
+      when: (registry_role_enabled | default(True))  
+
+- hosts: kube-setup-delegate
+  become: yes
+  # Turns out vars are shared for all instances of a role. You must explicitly define each variable for each role. The default value doesn't matter if its overridden anywhere.
+  tasks:
+    - include_role:
+        name: elk_role
+      vars:
+        task_modes: ["gitops-template"]
+      when: (elk_role_enabled | default(True)) 
+    - include_role:
+        name: ion_role
+      vars:
+        task_modes: ["gitops-template"]
+        ms_name: "cdr"
+        ms_namespace: "cdr"
+        is_cluster_admin: false
+      when: (ion_role_enabled | default(True)) 
+    - include_role:
+        name: ion_role
+      vars:
+        task_modes: ["gitops-template"]
+        ms_name: "transform"
+        ms_namespace: "transform"
+        is_cluster_admin: false
+      when: (ion_role_enabled | default(True)) 
+    - include_role:
+        name: ion_role
+      vars:
+        task_modes: ["gitops-template"]
+        ms_name: "replication"
+        ms_namespace: "replication"
+        is_cluster_admin: false
+      when: (ion_role_enabled | default(True)) 
+    - include_role:
+        name: ion_role
+      vars:
+        task_modes: ["gitops-template"]
+        ms_name: "platform"
+        ms_namespace: "platform"
+        is_cluster_admin: true
+      when: (ion_role_enabled | default(True)) 
+    - include_role:
+        name: ion_role
+      vars:
+        task_modes: ["gitops-template"]
+        ms_name: "security"
+        ms_namespace: "security"
+        is_cluster_admin: true
+      when: (ion_role_enabled | default(True))  

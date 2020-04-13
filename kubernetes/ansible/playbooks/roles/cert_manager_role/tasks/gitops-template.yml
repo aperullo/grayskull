@@ -1,0 +1,46 @@
+- name: Cert-manager | Create namespace folder
+  file:
+    path: "{{ gitops_namespace_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Cert-manager | Create releases folder
+  file:
+    path: "{{ gitops_release_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Cert-manager | Create workloads folder
+  file:
+    path: "{{ gitops_workload_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Cert-manager | Template namespace
+  template:
+    src: cert-manager-namespace.yml
+    dest: "{{ gitops_namespace_dir }}/cert-manager-namespace.yml"
+
+- name: Cert-manager | Template custom resource definitions
+  template:
+    src: gitops/crds.yml
+    dest: "{{ gitops_workload_dir }}/crds.yml"
+
+#---- Need to get the values into the release but don't want to duplicate them in case values file changes.
+
+- name: Cert-manager | Template release
+  template:
+    src: gitops/release.yml
+    dest: "{{ gitops_release_dir }}/release.yml"
+
+#---- Template ca issuers
+
+- name: Cert-manager | Template CA issuer
+  template:
+    src: cert-manager-grayskull-issuer.yml
+    dest: "{{ gitops_workload_dir }}/cert-manager-grayskull-issuer.yml"
+
+- name: Cert-manager | Template kube-ca issuer
+  template:
+    src: cert-manager-kube-issuer.yml
+    dest: "{{ gitops_workload_dir }}/cert-manager-kube-issuer.yml"

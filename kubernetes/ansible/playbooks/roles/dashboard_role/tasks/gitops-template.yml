@@ -1,0 +1,42 @@
+- name: Dashboard | Create namespace folder
+  file:
+    path: "{{ gitops_namespace_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Dashboard | Create releases folder
+  file:
+    path: "{{ gitops_release_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Dashboard | Create workloads folder
+  file:
+    path: "{{ gitops_workload_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Dashboard | Template namespace
+  template:
+    src: dashboard-namespace.yml
+    dest: "{{ gitops_namespace_dir }}/dashboard-namespace.yml"
+
+#---- Template manifests
+- name: Dashboard | Templates list
+  set_fact:
+    dashboard_role_templates:
+      - { file: dashboard-admin.yml }
+      - { file: dashboard-secret.yml }
+      - { file: dashboard-configmap.yml }
+      - { file: dashboard-ingress.yml }
+      - { file: dashboard-service-account.yml }
+      - { file: dashboard-rolebinding.yml }
+      - { file: dashboard-deployment.yml }
+      - { file: dashboard-certificate.yml }
+      - { file: dashboard-metrics-scraper.yml }
+
+- name: Dashboard | Template manifests
+  template:
+    src: "{{ item.file }}"
+    dest: "{{ gitops_workload_dir }}/{{ item.file }}"
+  with_items: "{{ dashboard_role_templates }}"

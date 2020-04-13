@@ -1,0 +1,18 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: "{{ helm_registry_chart_name }}"
+  namespace: "{{ registry_namespace }}"
+spec:
+  releaseName: "{{ helm_registry_chart_name }}"
+  chart:
+    # repository: "{{ helm_registry_repo_url }}"
+    # name: "{{ helm_registry_image_name }}"
+    # version: "{{ helm_registry_chart_version }}"
+    git: git@github.com:aperullo/harbor-helm.git
+    ref: secret
+    path: "."
+  values:
+{{values}}
+
+#TODO: include the chart with existing secrets

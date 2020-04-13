@@ -4,6 +4,10 @@ task_modes:
 subfolder: dashboard-role
 role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
 
+gitops_namespace_dir: "{{ gitops_repo_dir }}/namespaces/{{ dashboard_namespace }}"
+gitops_release_dir: "{{ gitops_repo_dir }}/releases/{{ dashboard_namespace }}"
+gitops_workload_dir: "{{ gitops_repo_dir }}/workloads/{{ dashboard_namespace }}"
+
 grayskull_ca_issuer_name: grayskull-ca-issuer
 
 ingress_url: "dash.{{ grayskull_domain }}"

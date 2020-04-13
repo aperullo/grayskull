@@ -9,6 +9,14 @@ ceph_mon_count: "{{ groups['kube-storage'] | length }}"
 ceph_objectstore_name: gsp-store
 ceph_data_dir: /storage/rook #/var/lib/rook
 
+gitops_namespace_dir: "{{ gitops_repo_dir }}/namespaces/{{ ceph_namespace }}"
+gitops_release_dir: "{{ gitops_repo_dir }}/releases/{{ ceph_namespace }}"
+gitops_workload_dir: "{{ gitops_repo_dir }}/workloads/{{ ceph_namespace }}"
+# Hacky solution to getting values file into HelmRelease
+# Read the values file, template, and indent it. Then assign it to a variable
+# When we template the helm release file the contents of this variable will be loaded
+values: "{{ lookup('template', 'templates/rook-ceph-values.yml') | indent( width=4, first=True ) }}"
+
 prometheusOperator_enabled: true
 
 subfolder: "rook-ceph-role"

@@ -1,0 +1,13 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: "{{ helm_cert_manager_chart_name }}"
+  namespace: "{{ cert_manager_namespace }}"
+spec:
+  releaseName: "{{ helm_cert_manager_chart_name }}"
+  chart:
+    repository: "{{ helm_cert_manager_repo_url }}"
+    name: "{{ helm_cert_manager_image_name }}"
+    version: "{{ helm_cert_manager_chart_version }}"
+  values:
+{{values}}

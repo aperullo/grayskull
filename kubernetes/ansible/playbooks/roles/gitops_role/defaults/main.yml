@@ -1,0 +1,22 @@
+task_modes:
+  - download
+  - install
+  - gitops-template
+
+gitops_namespace: grayskull-gitops
+subfolder: gitops-role
+role_dir: "{{ grayskull_dir }}/{{ subfolder }}"
+
+git_repo_url:   # give this a value
+flux_secret_name: flux-ssh
+
+helm_flux_chart_name: "{{ platform_prefix }}-gitops"
+helm_flux_repo_url: "https://charts.fluxcd.io"
+helm_flux_image_name: flux
+helm_flux_chart_version: 1.2.0
+
+helm_helmops_chart_name: "{{ platform_prefix }}-helmops"
+helm_helmops_repo_url: "https://charts.fluxcd.io"
+helm_helmops_image_name: helm-operator
+helm_helmops_chart_version: 0.7.0
+

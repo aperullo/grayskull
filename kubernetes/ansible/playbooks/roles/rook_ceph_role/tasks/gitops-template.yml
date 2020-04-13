@@ -1,0 +1,51 @@
+- name: Rook Ceph | Create namespace folder
+  file:
+    path: "{{ gitops_namespace_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Rook Ceph | Create releases folder
+  file:
+    path: "{{ gitops_release_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Rook Ceph | Create workloads folder
+  file:
+    path: "{{ gitops_workload_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Rook Ceph | Template namespace
+  template:
+    src: rook-ceph-namespace.yml
+    dest: "{{ gitops_namespace_dir }}/rook-ceph-namespace.yml"
+
+#---- Need to get the values into the release but don't want to duplicate them in case values file changes.
+
+- name: Rook Ceph | Template release
+  template:
+    src: gitops/release.yml
+    dest: "{{ gitops_release_dir }}/release.yml"
+
+- name: Rook Ceph | Templates list
+  set_fact:
+    rook_ceph_role_templates:
+      - { file: rook-ceph-block-sc.yml }
+      - { file: rook-ceph-dashboard-ingress.yml }
+      - { file: rook-ceph-block-pool.yml }
+      - { file: rook-ceph-fs-pool.yml }
+      - { file: rook-ceph-fs-sc.yml }
+      - { file: rook-ceph-cephobjectstore.yml }
+      - { file: rook-ceph-cluster.yml }
+      - { file: rook-ceph-object-user.yml }
+      - { file: rook-ceph-prometheus-servicemonitor.yml }
+      - { file: rook-ceph-prometheusrule.yml }
+      - { file: rook-crd-clusterrole.yml }
+      - { file: rook-ceph-certificate.yml }
+
+- name: Rook Ceph | Template workloads
+  template:
+    src: "{{ item.file }}"
+    dest: "{{ gitops_workload_dir }}/{{ item.file }}"
+  with_items: "{{ rook_ceph_role_templates }}"
