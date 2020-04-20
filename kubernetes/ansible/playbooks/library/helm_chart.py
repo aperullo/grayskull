@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from re import compile, findall
+
 DOCUMENTATION = """
 ---
 module: helm_chart
@@ -137,6 +139,10 @@ class KubeManager(object):
         chart_check_cmd = self.helm_cmd[:]
         chart_check_cmd.append('list')
         chart_check_cmd.append('--short')
+        # 'helm3 list' is namespaced where 'helm2 list' was not. Alter this check
+        if self.is_helm_3():
+            chart_check_cmd.append('--namespace')
+            chart_check_cmd.append(self.namespace)
         result, __ = self._execute(chart_check_cmd)
 
         # Does the release name already exist?
@@ -159,6 +165,27 @@ class KubeManager(object):
 
         else:
             return "Nothing to be done", "skip"
+
+
+    def is_helm_3(self):
+        helm_version_cmd = self.helm_cmd[:]
+        helm_version_cmd.append('version')
+
+        # run 'helm version'
+        results, success = self._execute(helm_version_cmd)
+        # make a regex matching v2.1.1 or some variation. Get the first match
+        exp = compile("v\d*\.\d*\.\d*")
+        reg_result = findall(exp, results)
+        # if didn't find any matches, something is wrong with helm.
+        if len(reg_result) == 0:
+            self.module.fail_json(msg='Could not find helm version string')
+            raise RuntimeError("Could not find helm version string")
+
+        reg_result = reg_result[0]
+
+        # reg_result is something like 'v3.X.X' or 'v2.X.X'
+        # If the second char is 3 or greater we are using helm v3
+        return int(reg_result[1]) >= 3
 
 
     def create_namespace(self):
@@ -211,9 +238,14 @@ class KubeManager(object):
 
         chart_install_cmd = self.helm_cmd[:]
         chart_install_cmd.append('install')
-        chart_install_cmd.append(self.chart_src)
-        chart_install_cmd.append('--name')
-        chart_install_cmd.append(self.name)
+        # helm3 got rid of the --name option and rearranged the order of args
+        if self.is_helm_3():
+            chart_install_cmd.append(self.name)
+            chart_install_cmd.append(self.chart_src)
+        else:
+            chart_install_cmd.append(self.chart_src)
+            chart_install_cmd.append('--name')
+            chart_install_cmd.append(self.name)
 
         if self.atomic:
             chart_install_cmd.append('--atomic')    # lets make sure deploy either worked or nothing changed
@@ -239,7 +271,12 @@ class KubeManager(object):
         chart_install_cmd = self.helm_cmd[:]
         chart_install_cmd.append('delete')
         chart_install_cmd.append(self.name)
-        chart_install_cmd.append('--purge')
+        # helm3 delete is namespaced, and removes the --purge argument
+        if self.is_helm_3():
+            chart_install_cmd.append('--namespace')
+            chart_install_cmd.append(self.namespace)
+        else:
+            chart_install_cmd.append('--purge')
 
         return self._execute(chart_install_cmd)
 
@@ -265,11 +302,11 @@ def main():
     result, changed = manager.fetch_and_apply_chart()
 
     # Changed can be either true, false, or "skip". Once we know its not a string
-    # we know its a boolean, so we can use its value as boolean like in "changed".
+    # we know its a boolean, so we can use its value as a boolean like in "changed".
     # Meanwhile the expression next to "skipped" will handle converting it to a 
     # boolean if its a string.
     module.exit_json(changed = changed if changed != "skip" else False,
-                    skipped = True if changed == "skip" else False,
+                     skipped = True if changed == "skip" else False,
                      msg='success: {}'.format(result)
                      )
 
